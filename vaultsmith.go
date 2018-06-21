@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/starlingbank/vaultsmith/internal"
+	"path/filepath"
 )
 
 var flags = flag.NewFlagSet("Vaultsmith", flag.ExitOnError)
@@ -83,6 +84,23 @@ func Run(c internal.VaultsmithClient, config *VaultsmithConfig) error {
 	//if err != nil {
 	//	log.Fatal(err)
 	//}
+	sysHandler, err := internal.NewSysHandler(c, filepath.Join(configDir, "sys"))
+	if err != nil {
+		log.Fatalf("could not create syshandler: %s", err)
+	}
+
+	var handlerMap = map[string]internal.PathHandler {
+		"sys": sysHandler,
+	}
+	log.Printf("%+v", handlerMap)
+
+
+	cw := internal.ConfigWalker{
+		HandlerMap: handlerMap,
+		Client: c,
+		ConfigDir: config.configDir,
+	}
+	cw.Run()
 
 	log.Println("Success")
 	return nil
