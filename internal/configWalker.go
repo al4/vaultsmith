@@ -6,6 +6,7 @@ import (
 	"log"
 	"fmt"
 	"path"
+	"strings"
 )
 
 type Walker interface {
@@ -53,10 +54,25 @@ func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]PathHand
 	return err
 }
 
-// determine the handler and pass it
+// determine the handler and pass the root directory to it
 func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
-	log.Printf("walking %s\n", path)
+	//log.Printf("walking %s\n", path)
+	relPath, err := filepath.Rel(cw.ConfigDir, path)
+	if err != nil {
+		return err
+	}
 
+	pathArray := strings.Split(relPath, string(os.PathSeparator))
+	if ! f.IsDir() || len(pathArray) > 1 || pathArray[0] == "." {
+		// we only want to operate on top-level directories, handler is responsible for walking
+		return nil
+	}
+	log.Printf("path: %s, relPath: %s", path, relPath)
 
-	return nil
+	handler, ok := cw.HandlerMap[pathArray[0]]
+	if ! ok {
+		log.Printf("no handler for path %s (file %s)", pathArray[0], relPath)
+		return nil
+	}
+	return handler.PutPoliciesFromDir(path)
 }
