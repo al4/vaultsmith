@@ -22,7 +22,26 @@ type ConfigWalker struct {
 	ConfigDir  string
 }
 
-func (cw *ConfigWalker) Run() error {
+func NewConfigWalker(client *VaultsmithClient, configDir string) ConfigWalker {
+	sysHandler, err := NewSysHandler(client, filepath.Join(configDir, "sys"))
+	if err != nil {
+		log.Fatalf("could not create syshandler: %s", err)
+	}
+
+	var handlerMap = map[string]PathHandler {
+		"sys": &sysHandler,
+	}
+	log.Printf("%+v", handlerMap)
+
+
+	return ConfigWalker{
+		HandlerMap: handlerMap,
+		Client: *client,
+		ConfigDir: configDir,
+	}
+}
+
+func (cw ConfigWalker) Run() error {
 	// file will be a dir here unless a trailing slash was added
 	log.Printf("%+v", filepath.Join(cw.ConfigDir, "sys"))
 
@@ -33,14 +52,13 @@ func (cw *ConfigWalker) Run() error {
 	return nil
 }
 
-func (cw *ConfigWalker) walkConfigDir(path string, handlerMap map[string]PathHandler) error {
+func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]PathHandler) error {
 	err := filepath.Walk(path, cw.walkFile)
 	return err
 }
 
-func (cw *ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
-	log.Printf("walking %s: %+v\n", path, f)
+func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
+	log.Printf("walking %s\n", path)
 
 	return nil
 }
-

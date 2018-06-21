@@ -59,8 +59,8 @@ func NewVaultClient() (*VaultClient, error) {
 	}
 
 	c := &VaultClient{
-		client,
-		&credAws.CLIHandler{},
+		client: client,
+		awsHandler: &credAws.CLIHandler{},
 	}
 
 	return c, nil
