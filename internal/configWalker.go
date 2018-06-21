@@ -22,21 +22,21 @@ type ConfigWalker struct {
 	ConfigDir  string
 }
 
-func NewConfigWalker(client *VaultsmithClient, configDir string) ConfigWalker {
+func NewConfigWalker(client VaultsmithClient, configDir string) ConfigWalker {
 	sysHandler, err := NewSysHandler(client, filepath.Join(configDir, "sys"))
 	if err != nil {
 		log.Fatalf("could not create syshandler: %s", err)
 	}
 
 	var handlerMap = map[string]PathHandler {
-		"sys": &sysHandler,
+		"sys": sysHandler,
 	}
 	log.Printf("%+v", handlerMap)
 
 
 	return ConfigWalker{
 		HandlerMap: handlerMap,
-		Client: *client,
+		Client: client,
 		ConfigDir: configDir,
 	}
 }

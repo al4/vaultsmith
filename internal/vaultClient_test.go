@@ -9,7 +9,7 @@ import (
 
 type VaultsmithClientTestSuite struct {
 	suite.Suite
-	sysHandler SysHandler
+	sysHandler *SysHandler
 }
 
 func (suite *VaultsmithClientTestSuite) SetupTest() {

@@ -62,10 +62,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	vaultClient, err := internal.NewVaultClient()
+	var vaultClient *internal.VaultClient
+	vaultClient, err = internal.NewVaultClient()
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	err = Run(vaultClient, config)
 	if err != nil {
 		log.Fatal(err)
@@ -83,7 +85,7 @@ func Run(c internal.VaultsmithClient, config *VaultsmithConfig) error {
 	//if err != nil {
 	//	log.Fatal(err)
 	//}
-	cw := internal.NewConfigWalker(&c, config.configDir)
+	cw := internal.NewConfigWalker(c, config.configDir)
 	cw.Run()
 
 	log.Println("Success")

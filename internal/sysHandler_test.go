@@ -12,12 +12,12 @@ import (
 
 type SysHandlerTestSuite struct {
 	suite.Suite
-	handler SysHandler
+	handler *SysHandler
 }
 
 func (suite *SysHandlerTestSuite) SetupTest() {
-	c := mocks.MockVaultsmithClient{}
-	sh, err := NewSysHandler(&c, "")
+	client := &mocks.MockVaultsmithClient{}
+	sh, err := NewSysHandler(client, "")
 	if err != nil {
 		log.Fatal("failed to create SysHandler (using mock client)")
 	}
