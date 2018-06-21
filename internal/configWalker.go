@@ -5,6 +5,7 @@ import (
 	"os"
 	"log"
 	"fmt"
+	"path"
 )
 
 type Walker interface {
@@ -32,7 +33,7 @@ func NewConfigWalker(client VaultsmithClient, configDir string) ConfigWalker {
 	return ConfigWalker{
 		HandlerMap: handlerMap,
 		Client: client,
-		ConfigDir: configDir,
+		ConfigDir: path.Clean(configDir),
 	}
 }
 
@@ -52,8 +53,10 @@ func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]PathHand
 	return err
 }
 
+// determine the handler and pass it
 func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 	log.Printf("walking %s\n", path)
+
 
 	return nil
 }
