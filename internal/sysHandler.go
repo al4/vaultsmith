@@ -20,8 +20,8 @@ type SysHandler struct {
 	BasePathHandler
 	client 				VaultsmithClient
 	rootPath 			string
-	liveAuthMap 		*map[string]*vaultApi.AuthMount
-	configuredAuthMap 	*map[string]*vaultApi.AuthMount
+	liveAuthMap 		map[string]*vaultApi.AuthMount
+	configuredAuthMap 	map[string]*vaultApi.AuthMount
 }
 
 func NewSysHandler(c VaultsmithClient, rootPath string) (*SysHandler, error) {
@@ -38,8 +38,8 @@ func NewSysHandler(c VaultsmithClient, rootPath string) (*SysHandler, error) {
 	return &SysHandler{
 		client: c,
 		rootPath: rootPath,
-		liveAuthMap: &liveAuthMap,
-		configuredAuthMap: &configuredAuthMap,
+		liveAuthMap: liveAuthMap,
+		configuredAuthMap: configuredAuthMap,
 	}, nil
 }
 
@@ -59,12 +59,15 @@ func (sh *SysHandler) walkFile(path string, f os.FileInfo, err error) error {
 		return nil
 	}
 
-	log.Printf("Reading file %s\n", path)
+	log.Printf("Applying %s\n", path)
 	fileContents, err := sh.readFile(path)
+	if err != nil {
+		return err
+	}
 	var enableOpts vaultApi.EnableAuthOptions
 	err = json.Unmarshal([]byte(fileContents), &enableOpts)
 	if err != nil {
-		return fmt.Errorf("could not parse json: %s", err)
+		return fmt.Errorf("could not parse json from file %s: %s", path, err)
 	}
 
 	err = sh.EnsureAuth(strings.Split(file, ".")[0], enableOpts)
@@ -77,8 +80,10 @@ func (sh *SysHandler) walkFile(path string, f os.FileInfo, err error) error {
 
 func (sh *SysHandler) PutPoliciesFromDir(path string) error {
 	err := filepath.Walk(path, sh.walkFile)
-	err = sh.DisableUnconfiguredAuths()
-	return err
+	if err != nil {
+		return err
+	}
+	return sh.DisableUnconfiguredAuths()
 }
 
 // Ensure that this auth type is enabled and has the correct configuration
@@ -94,10 +99,10 @@ func (sh *SysHandler) EnsureAuth(path string, enableOpts vaultApi.EnableAuthOpti
 		Type:   enableOpts.Type,
 		Config: enableOptsAuthConfigOutput,
 	}
-	(*sh.configuredAuthMap)[path] = &authMount
+	sh.configuredAuthMap[path] = &authMount
 
 	path = path + "/" // vault appends a slash to paths
-	if liveAuth, ok := (*sh.liveAuthMap)[path]; ok {
+	if liveAuth, ok := sh.liveAuthMap[path]; ok {
 		// If this path is present in our live config, we may not need to enable
 		if sh.isConfigApplied(enableOpts.Config, liveAuth.Config) {
 			log.Printf("Configuration for authMount %s already applied\n", enableOpts.Type)
@@ -114,9 +119,9 @@ func (sh *SysHandler) EnsureAuth(path string, enableOpts vaultApi.EnableAuthOpti
 
 func(sh *SysHandler) DisableUnconfiguredAuths() error {
 	// delete entries not in configured list
-	for k, authMount := range *sh.liveAuthMap {
+	for k, authMount := range sh.liveAuthMap {
 		path := strings.Trim(k, "/") // vault appends a slash to paths
-		if _, ok := (*sh.configuredAuthMap)[path]; ok {
+		if _, ok := sh.configuredAuthMap[path]; ok {
 			continue  // present, do nothing
 		} else if authMount.Type == "token" {
 			continue  // cannot be disabled, would give http 400 if attempted

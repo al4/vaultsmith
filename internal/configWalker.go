@@ -44,7 +44,7 @@ func (cw ConfigWalker) Run() error {
 
 	err := cw.walkConfigDir(cw.ConfigDir, cw.HandlerMap)
 	if err != nil {
-		return fmt.Errorf("error walking config dir: %s", err)
+		return fmt.Errorf("error walking config dir %s: %s", cw.ConfigDir, err)
 	}
 	return nil
 }
@@ -63,7 +63,7 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 	}
 
 	pathArray := strings.Split(relPath, string(os.PathSeparator))
-	if ! f.IsDir() || len(pathArray) > 1 || pathArray[0] == "." {
+	if ! f.IsDir() || len(pathArray) != 1 || pathArray[0] == "." {
 		// we only want to operate on top-level directories, handler is responsible for walking
 		return nil
 	}
@@ -74,5 +74,6 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 		log.Printf("no handler for path %s (file %s)", pathArray[0], relPath)
 		return nil
 	}
+	log.Printf("Processing %s", path)
 	return handler.PutPoliciesFromDir(path)
 }
