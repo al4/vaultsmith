@@ -23,6 +23,7 @@ put.
 */
 
 
+// VaultsmithClient is an abstraction of hashicorp's vault api client
 type VaultsmithClient interface {
 	Authenticate(string) error
 	DisableAuth(string) error

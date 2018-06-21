@@ -15,18 +15,14 @@ var configDir string
 var vaultRole string
 
 type VaultsmithConfig struct {
-	configDir string
-	vaultRole string
-}
-
-// A PathHandler takes a path and applies the policies within
-type PathHandler interface {
-	PutPoliciesFromDir(path string) error
+	configDir	string
+	vaultRole	string
 }
 
 func init() {
 	flags.StringVar(
-		&configDir, "configDir", "", "The root directory of the configuration",
+		// TODO: remove default value of "./example", could do bad things in prod
+		&configDir, "configDir", "./example", "The root directory of the configuration",
 	)
 	flags.StringVar(
 		&vaultRole, "role", "", "The Vault role to authenticate as",
@@ -63,7 +59,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	err = Run(vaultClient, config)
 	if err != nil {
 		log.Fatal(err)
@@ -84,19 +79,11 @@ func Run(c internal.VaultsmithClient, config *VaultsmithConfig) error {
 		return fmt.Errorf("failed authenticating with Vault: %s", err)
 	}
 
-	sysHandler, err := internal.NewSysHandler(c, "example/sys")
-
-	var handlerMap = map[string]PathHandler {
-		"sys/auth": &sysHandler,
-	}
-	log.Printf("%+v", handlerMap)
-
-	err = sysHandler.PutPoliciesFromDir("./example")
-	if err != nil {
-		log.Fatal(err)
-	}
+	//err = sysHandler.PutPoliciesFromDir("./example")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
 	log.Println("Success")
 	return nil
-
 }

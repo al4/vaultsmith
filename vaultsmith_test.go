@@ -21,7 +21,6 @@ func (suite *VaultsmithTestSuite) SetupTest() {
 }
 
 func (suite *VaultsmithTestSuite) TearDownTest() {
-	//	os.Remove(suite.config.outputFile)
 }
 
 func (suite *VaultsmithTestSuite) TestRunWhenVaultNotListening() {

@@ -8,7 +8,6 @@ import (
 
 type MockVaultsmithClient struct {
 	mock.Mock
-	sh interface{}
 }
 
 func (m *MockVaultsmithClient) Authenticate(role string) error {
