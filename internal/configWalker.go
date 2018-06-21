@@ -7,11 +7,6 @@ import (
 	"fmt"
 )
 
-// A PathHandler takes a path and applies the policies within
-type PathHandler interface {
-	PutPoliciesFromDir(path string) error
-}
-
 type Walker interface {
 
 }

@@ -3,8 +3,6 @@ package internal
 import (
 	"os"
 	"fmt"
-	"bytes"
-	"io"
 	"log"
 	"path/filepath"
 	"strings"
@@ -19,6 +17,7 @@ import (
  */
 
 type SysHandler struct {
+	BasePathHandler
 	client 				VaultsmithClient
 	rootPath 			string
 	liveAuthMap 		*map[string]*vaultApi.AuthMount
@@ -42,27 +41,6 @@ func NewSysHandler(c VaultsmithClient, rootPath string) (*SysHandler, error) {
 		liveAuthMap: &liveAuthMap,
 		configuredAuthMap: &configuredAuthMap,
 	}, nil
-}
-
-func (sh *SysHandler) readFile(path string) (string, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		err = fmt.Errorf("error opening file: %s", err)
-		return "", err
-	}
-	defer file.Close()
-
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, file)
-
-	if err != nil {
-		log.Fatal(fmt.Sprintf("error reading from buffer: %s", err))
-	}
-
-	data := buf.String()
-
-	return data, nil
-
 }
 
 func (sh *SysHandler) walkFile(path string, f os.FileInfo, err error) error {
