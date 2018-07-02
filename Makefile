@@ -22,7 +22,7 @@ install: clean
 	go install .
 
 test: get
-	go test ./...
+	go test -v ./...
 
 get:
 	go get -t .
