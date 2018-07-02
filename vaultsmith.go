@@ -38,9 +38,9 @@ func init() {
 	flags.Usage = func() {
 		fmt.Printf("Usage of vaultsmith:\n")
 		flags.PrintDefaults()
-		fmt.Println("\nVault authentication is handled by environment variables (the same " +
+		fmt.Print("\nVault authentication is handled by environment variables (the same " +
 			"ones as the Vault client, as vaultsmith uses the same code). So ensure VAULT_ADDR " +
-			"and VAULT_TOKEN are set.\n")
+			"and VAULT_TOKEN are set.\n\n")
 	}
 
 	// Avoid parsing flags passed on running `go test`
