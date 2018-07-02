@@ -4,7 +4,6 @@ import (
 	"github.com/hashicorp/vault/api"
 	"time"
 	"fmt"
-	"strconv"
 )
 
 // convert AuthConfigInput type to AuthConfigOutput type
@@ -37,32 +36,6 @@ func ConvertAuthConfig(input api.AuthConfigInput) (api.AuthConfigOutput, error) 
 	}
 
 	output = api.AuthConfigOutput{
-		DefaultLeaseTTL:           DefaultLeaseTTL,
-		MaxLeaseTTL:               MaxLeaseTTL,
-		PluginName:                input.PluginName,
-		AuditNonHMACRequestKeys:   input.AuditNonHMACRequestKeys,
-		AuditNonHMACResponseKeys:  input.AuditNonHMACResponseKeys,
-		ListingVisibility:         input.ListingVisibility,
-		PassthroughRequestHeaders: input.PassthroughRequestHeaders,
-	}
-
-	return output, nil
-}
-
-// convert AuthConfigOutput type to AuthConfigInput type
-// this is much safer than the reverse, as the TTL ints are valid inputs when converted to strings
-func ConvertAuthConfigOutputToAuthConfigInput(input api.AuthConfigOutput) (api.AuthConfigInput, error) {
-	// NOTE: Doesn't currently handle time strings such as "5m30s", use ints that can be cast as strings
-	var output api.AuthConfigInput
-
-	// These need converting to the below
-	var DefaultLeaseTTL string // was int
-	DefaultLeaseTTL = strconv.Itoa(input.DefaultLeaseTTL)
-
-	var MaxLeaseTTL string // was int
-	MaxLeaseTTL = strconv.Itoa(input.MaxLeaseTTL)
-
-	output = api.AuthConfigInput{
 		DefaultLeaseTTL:           DefaultLeaseTTL,
 		MaxLeaseTTL:               MaxLeaseTTL,
 		PluginName:                input.PluginName,
