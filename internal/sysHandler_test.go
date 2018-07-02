@@ -3,9 +3,6 @@ package internal
 import (
 	"github.com/stretchr/testify/suite"
 	"testing"
-	"io/ioutil"
-	"os"
-	"github.com/stretchr/testify/assert"
 	"log"
 	"github.com/starlingbank/vaultsmith/mocks"
 )
@@ -19,24 +16,12 @@ func (suite *SysHandlerTestSuite) SetupTest() {
 	client := &mocks.MockVaultsmithClient{}
 	sh, err := NewSysHandler(client, "")
 	if err != nil {
-		log.Fatal("failed to create SysHandler (using mock client)")
+		log.Fatalf("failed to create SysHandler (using mock client): %s", err)
 	}
 	suite.handler = sh
 }
 
 func (suite *SysHandlerTestSuite) TearDownTest() {
-	//	os.Remove(suite.config.outputFile)
-}
-
-func (suite *SysHandlerTestSuite) TestReadFile() {
-	file, _ := ioutil.TempFile(".", "test-SysHandler-")
-	_ = ioutil.WriteFile(file.Name(), []byte("foo"), os.FileMode(int(0664)))
-	defer os.Remove(file.Name())
-	data, err := suite.handler.readFile(file.Name())
-	if err != nil {
-		log.Fatal(err)
-	}
-	assert.Contains(suite.T(), data, "foo")
 }
 
 func TestSysHandlerTestSuite(t *testing.T) {
