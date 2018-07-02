@@ -21,15 +21,11 @@ install: clean
 	go get -t .
 	go install .
 
-test: get-deps-tests get
+test: get
 	go test ./...
 
 get:
 	go get -t .
-
-get-deps-tests:
-	@echo "go get testing dependencies"
-	go get github.com/stretchr/testify
 
 docker:
 	docker build -t quay.io/starlingbank/vaultsmith:$(BUILD_NUMBER) .
