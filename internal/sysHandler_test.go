@@ -5,6 +5,7 @@ import (
 	"testing"
 	"log"
 	"github.com/starlingbank/vaultsmith/mocks"
+	vaultApi "github.com/hashicorp/vault/api"
 )
 
 type SysHandlerTestSuite struct {
@@ -22,6 +23,15 @@ func (suite *SysHandlerTestSuite) SetupTest() {
 }
 
 func (suite *SysHandlerTestSuite) TearDownTest() {
+
+}
+
+func (suite *SysHandlerTestSuite) TestEnsureAuth() {
+	enableOpts := vaultApi.EnableAuthOptions{ }
+	err := suite.handler.EnsureAuth("foo", enableOpts)
+	if err != nil {
+		log.Fatalf("Error calling EnsureAuth: %s", err)
+	}
 }
 
 func TestSysHandlerTestSuite(t *testing.T) {
