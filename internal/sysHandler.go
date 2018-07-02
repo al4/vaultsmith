@@ -90,7 +90,7 @@ func (sh *SysHandler) PutPoliciesFromDir(path string) error {
 func (sh *SysHandler) EnsureAuth(path string, enableOpts vaultApi.EnableAuthOptions) error {
 	// we need to convert to AuthConfigOutput in order to compare with existing config
 	var enableOptsAuthConfigOutput vaultApi.AuthConfigOutput
-	enableOptsAuthConfigOutput, err := ConvertAuthConfigInputToAuthConfigOutput(enableOpts.Config)
+	enableOptsAuthConfigOutput, err := ConvertAuthConfig(enableOpts.Config)
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func (sh *SysHandler) isConfigApplied(localConfig vaultApi.AuthConfigInput, remo
 		comparison
 	*/
 
-	converted, err := ConvertAuthConfigInputToAuthConfigOutput(localConfig)
+	converted, err := ConvertAuthConfig(localConfig)
 	if err != nil {
 		log.Fatal(err)
 	}

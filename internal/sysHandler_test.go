@@ -27,6 +27,7 @@ func (suite *SysHandlerTestSuite) TearDownTest() {
 }
 
 func (suite *SysHandlerTestSuite) TestEnsureAuth() {
+	// Not terribly testable as it doesn't return anything we can assert against
 	enableOpts := vaultApi.EnableAuthOptions{ }
 	err := suite.handler.EnsureAuth("foo", enableOpts)
 	if err != nil {

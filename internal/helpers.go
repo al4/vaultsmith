@@ -11,7 +11,7 @@ import (
 // A potential problem with this is that the transformation doesn't use the same code that Vault
 // uses internally, so bugs are possible; but ParseDuration is pretty standard (and vault
 // does use this same method)
-func ConvertAuthConfigInputToAuthConfigOutput(input api.AuthConfigInput) (api.AuthConfigOutput, error) {
+func ConvertAuthConfig(input api.AuthConfigInput) (api.AuthConfigOutput, error) {
 	var output api.AuthConfigOutput
 	var dur time.Duration
 	var err error
