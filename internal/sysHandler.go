@@ -72,7 +72,7 @@ func (sh *SysHandler) walkFile(path string, f os.FileInfo, err error) error {
 
 	err = sh.EnsureAuth(strings.Split(file, ".")[0], enableOpts)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("error while ensuring auth for path %s: %s", path, err)
 	}
 
 	return nil
@@ -104,7 +104,13 @@ func (sh *SysHandler) EnsureAuth(path string, enableOpts vaultApi.EnableAuthOpti
 	path = path + "/" // vault appends a slash to paths
 	if liveAuth, ok := sh.liveAuthMap[path]; ok {
 		// If this path is present in our live config, we may not need to enable
-		if sh.isConfigApplied(enableOpts.Config, liveAuth.Config) {
+		err, applied := sh.isConfigApplied(enableOpts.Config, liveAuth.Config)
+		if err != nil {
+			return fmt.Errorf(
+				"could not determine whether configuration for auth mount %s was applied: %s",
+				enableOpts.Type, err)
+		}
+		if applied {
 			log.Printf("Configuration for authMount %s already applied\n", enableOpts.Type)
 			return nil
 		}
@@ -127,30 +133,23 @@ func(sh *SysHandler) DisableUnconfiguredAuths() error {
 			continue  // cannot be disabled, would give http 400 if attempted
 		} else {
 			log.Printf("Disabling auth type %s\n", authMount.Type)
-			err := sh.client.DisableAuth(authMount.Type)
-			if err != nil {
-				log.Fatal(err)
-			}
+			return sh.client.DisableAuth(authMount.Type)
 		}
 	}
 	return nil
 }
 
 // return true if the localConfig is reflected in remoteConfig, else false
-func (sh *SysHandler) isConfigApplied(localConfig vaultApi.AuthConfigInput, remoteConfig vaultApi.AuthConfigOutput) bool {
-	/*
-		AuthConfigInput uses string for int types, so we need to re-cast them in order to do a
-		comparison
-	*/
-
+func (sh *SysHandler) isConfigApplied(localConfig vaultApi.AuthConfigInput, remoteConfig vaultApi.AuthConfigOutput) (error, bool) {
+	// AuthConfigInput uses different types for TTL, which need to be converted
 	converted, err := ConvertAuthConfig(localConfig)
 	if err != nil {
-		log.Fatal(err)
+		return err, false
 	}
 
 	if reflect.DeepEqual(converted, remoteConfig) {
-		return true
+		return nil, true
 	} else {
-		return false
+		return nil, false
 	}
 }

@@ -15,7 +15,6 @@ func ConvertAuthConfig(input api.AuthConfigInput) (api.AuthConfigOutput, error) 
 	var dur time.Duration
 	var err error
 
-	// These need converting to the below
 	var DefaultLeaseTTL int // was string
 
 	if input.DefaultLeaseTTL != "" {
