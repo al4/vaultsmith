@@ -44,9 +44,13 @@ func NewSysHandler(c VaultsmithClient, rootPath string) (*SysHandler, error) {
 }
 
 func (sh *SysHandler) walkFile(path string, f os.FileInfo, err error) error {
+	if f == nil {
+		return fmt.Errorf("got nil FileInfo for %s", path)
+	}
 	if err != nil {
 		return fmt.Errorf("error reading %s: %s", path, err)
 	}
+	// not doing anything with dirs
 	if f.IsDir() {
 		return nil
 	}
