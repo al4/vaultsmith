@@ -21,8 +21,9 @@ install: clean
 	go get -t .
 	go install .
 
-test: get
-	go test -v ./...
+test:
+	docker build --target=tester \
+		.
 
 get:
 	go get -t .

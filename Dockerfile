@@ -14,7 +14,7 @@ COPY . .
 RUN go build -a --installsuffix cgo --ldflags="-s"
 
 # Run tests
-RUN go get github.com/stretchr/testify
+FROM builder as tester
 RUN go test ./...
 
 # Production image stage
