@@ -4,6 +4,7 @@ import (
 	"testing"
 	"os"
 	"time"
+	"log"
 )
 
 func TestWalkFile(t *testing.T) {
@@ -15,8 +16,10 @@ func TestWalkFile(t *testing.T) {
 	}
 	f := &fakeFileInfo{}
 
-	cw.walkFile("auth", f, nil)
-
+	e := cw.walkFile("auth", f, nil)
+	if e != nil {
+		log.Fatal(e)
+	}
 }
 
 // Mocks
