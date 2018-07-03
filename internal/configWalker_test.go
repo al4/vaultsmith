@@ -10,8 +10,8 @@ import (
 func TestWalkFile(t *testing.T) {
 	cw := ConfigWalker{
 		HandlerMap: map[string]PathHandler{
-			"auth": MockPathHandler{},
-			"aws": MockPathHandler{},
+			"auth": mockPathHandler{},
+			"aws":  mockPathHandler{},
 		},
 	}
 	f := &fakeFileInfo{}
@@ -23,9 +23,9 @@ func TestWalkFile(t *testing.T) {
 }
 
 // Mocks
-type MockPathHandler struct {}
+type mockPathHandler struct {}
 
-func (ph MockPathHandler) PutPoliciesFromDir(path string) error {
+func (ph mockPathHandler) PutPoliciesFromDir(path string) error {
 	return nil
 }
 
