@@ -1,52 +1,50 @@
 package main
 
 import (
-	"fmt"
-	"testing"
-
-	"github.com/stretchr/testify/suite"
-	"github.com/stretchr/testify/assert"
 	"github.com/starlingbank/vaultsmith/mocks"
+	"log"
+	"strings"
+	"testing"
+	"fmt"
 )
 
-type VaultsmithTestSuite struct {
-	suite.Suite
-	config *VaultsmithConfig
-}
-
-func (suite *VaultsmithTestSuite) SetupTest() {
-	suite.config = &VaultsmithConfig{
+func TestRunWhenVaultNotListening(t *testing.T) {
+	config := &VaultsmithConfig{
 		vaultRole: "ValidRole",
+	}
+	mockClient := new(mocks.MockVaultsmithClient)
+	config.vaultRole = "ConnectionRefused"
+	mockClient.On("Authenticate", config.vaultRole)
+
+	err := Run(mockClient, config)
+	if err == nil {
+		log.Fatal("Expected error, got nil")
+	}
+	if ! strings.Contains(err.Error(), "failed authenticating with Vault:") {
+		log.Fatal("bad failure message")
+	}
+	if ! strings.Contains(err.Error(), "connection refused") {
+		log.Fatal("bad reason message")
 	}
 }
 
-func (suite *VaultsmithTestSuite) TearDownTest() {
-}
-
-func (suite *VaultsmithTestSuite) TestRunWhenVaultNotListening() {
+func TestRunWhenRoleIsInvalid(t *testing.T) {
+	config := &VaultsmithConfig{
+		vaultRole: "ValidRole",
+	}
 	mockClient := new(mocks.MockVaultsmithClient)
-	suite.config.vaultRole = "ConnectionRefused"
-	mockClient.On("Authenticate", suite.config.vaultRole)
+	config.vaultRole = "InvalidRole"
+	mockClient.On("Authenticate", config.vaultRole)
 
-	err := Run(mockClient, suite.config)
-	assert.Error(suite.T(), err)
-	assert.Contains(suite.T(), err.Error(), "failed authenticating with Vault:")
-	assert.Contains(suite.T(), err.Error(), "connection refused")
-	mockClient.AssertExpectations(suite.T())
-}
+	err := Run(mockClient, config)
+	if err == nil {
+		log.Fatal("Expected error, got nil")
+	}
+	if ! strings.Contains(err.Error(), "failed authenticating with Vault:") {
+		log.Fatalf("bad failure message '%s'", err.Error())
+	}
 
-func (suite *VaultsmithTestSuite) TestRunWhenRoleIsInvalid() {
-	mockClient := new(mocks.MockVaultsmithClient)
-	suite.config.vaultRole = "InvalidRole"
-	mockClient.On("Authenticate", suite.config.vaultRole)
-
-	err := Run(mockClient, suite.config)
-	assert.Error(suite.T(), err)
-	assert.Contains(suite.T(), err.Error(), "failed authenticating with Vault:")
-	assert.Contains(suite.T(), err.Error(), fmt.Sprintf("entry for role %s not found", suite.config.vaultRole))
-	mockClient.AssertExpectations(suite.T())
-}
-
-func TestVaultsmithTestSuite(t *testing.T) {
-	suite.Run(t, new(VaultsmithTestSuite))
+	if ! strings.Contains(err.Error(), fmt.Sprintf("entry for role %s not found", config.vaultRole)) {
+		log.Fatalf("bad reason message '%s'", err.Error())
+	}
 }
