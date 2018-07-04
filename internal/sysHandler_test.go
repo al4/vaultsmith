@@ -6,8 +6,18 @@ import (
 	vaultApi "github.com/hashicorp/vault/api"
 	"testing"
 	"strings"
+	"os"
+	"path/filepath"
 )
 
+// calculate path to test fixtures (example/)
+func examplePath() string {
+	wd, _ := os.Getwd()
+	pathArray := strings.Split(wd, string(os.PathSeparator))
+	pathArray = pathArray[:len(pathArray) - 1]  // trims "internal"
+	path := append(pathArray, "example")
+	return strings.Join(path, string(os.PathSeparator))
+}
 
 func TestEnsureAuth(t *testing.T) {
 	// Not terribly testable as it doesn't return anything we can assert against
@@ -42,13 +52,17 @@ func TestPutPoliciesFromEmptyDir(t *testing.T) {
 
 func TestPutPoliciesFromExampleDir(t *testing.T) {
 	client := &mocks.MockVaultsmithClient{}
-	sh, err := NewSysHandler(client, "./example")
+	sh, err := NewSysHandler(client, examplePath())
 	if err != nil {
 		log.Fatalf("Failed to create SysHandler: %s", err)
 	}
-	err = sh.PutPoliciesFromDir("example/auth")
-	log.Println(err)
 
+	sysPath := filepath.Join(examplePath(), "sys")
+	err = sh.PutPoliciesFromDir(sysPath)
+
+	if err != nil {
+		log.Fatalf("Expected no error, got: %s", err)
+	}
 }
 
 func TestSysHandlerWalkFile(t *testing.T) {

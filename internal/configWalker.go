@@ -22,7 +22,7 @@ type ConfigWalker struct {
 func NewConfigWalker(client VaultsmithClient, configDir string) ConfigWalker {
 	sysHandler, err := NewSysHandler(client, filepath.Join(configDir, "sys"))
 	if err != nil {
-		log.Fatalf("could not create syshandler: %s", err)
+		log.Fatalf("Could not create syshandler: %s", err)
 	}
 
 	var handlerMap = map[string]PathHandler {
