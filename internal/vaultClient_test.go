@@ -3,14 +3,15 @@ package internal
 import (
 	"testing"
 	"log"
-	"github.com/starlingbank/vaultsmith/mocks"
+	vaultApi "github.com/hashicorp/vault/api"
 )
 
-func TestVaultClient(t *testing.T) {
-	c := mocks.MockVaultsmithClient{}
-	sh, err := NewSysHandler(&c, "")
+func TestAuthenticate(t *testing.T) {
+	clientConfig := &vaultApi.Config{}
+	client, err := vaultApi.NewClient(clientConfig)
 	if err != nil {
-		log.Fatalf("could not create dummy SysHandler: %s", err)
+		log.Fatal(err.Error())
+
 	}
-	log.Println(sh)
+	log.Println(client)
 }

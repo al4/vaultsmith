@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func TestWalkFile(t *testing.T) {
+func TestConfigHandlerWalkFile(t *testing.T) {
 	cw := ConfigWalker{
 		HandlerMap: map[string]PathHandler{
 			"auth": mockPathHandler{},

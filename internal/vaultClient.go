@@ -33,8 +33,8 @@ type VaultsmithClient interface {
 }
 
 type VaultClient struct {
-	client     *vaultApi.Client
-	awsHandler *credAws.CLIHandler
+	client  *vaultApi.Client
+	handler *credAws.CLIHandler
 }
 
 func NewVaultClient() (*VaultClient, error) {
@@ -59,8 +59,8 @@ func NewVaultClient() (*VaultClient, error) {
 	}
 
 	c := &VaultClient{
-		client: client,
-		awsHandler: &credAws.CLIHandler{},
+		client:  client,
+		handler: &credAws.CLIHandler{},
 	}
 
 	return c, nil
@@ -74,7 +74,7 @@ func (c *VaultClient) Authenticate(role string) error {
 		return nil
 	}
 
-	secret, err := c.awsHandler.Auth(c.client, map[string]string{"role": role})
+	secret, err := c.handler.Auth(c.client, map[string]string{"role": role})
 	if err != nil {
 		log.Printf("Auth error: %s", err)
 		return err
