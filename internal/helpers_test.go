@@ -15,7 +15,7 @@ func TestConvertAuthConfig(t *testing.T) {
 }
 
 // Test that TTLs are converted properly
-func TestConvertAuthConfigConvertsTTL(t *testing.T) {
+func TestConvertAuthConfigConvertsDefaultLeaseTTL(t *testing.T) {
 	expected := 70
 	in := vaultApi.AuthConfigInput{
 		DefaultLeaseTTL: "1m10s",
@@ -29,3 +29,16 @@ func TestConvertAuthConfigConvertsTTL(t *testing.T) {
 	}
 }
 
+func TestConvertAuthConfigConvertsMaxLeaseTTL(t *testing.T) {
+	expected := 70
+	in := vaultApi.AuthConfigInput{
+		MaxLeaseTTL: "1m10s",
+	}
+	out, err := ConvertAuthConfig(in)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if out.MaxLeaseTTL != expected {
+		log.Fatalf("Wrong MaxLeastTTL value %d, expected %d", out.MaxLeaseTTL, expected)
+	}
+}
