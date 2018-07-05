@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"io"
 	"log"
+	"github.com/starlingbank/vaultsmith/vaultClient"
 )
 
 // A PathHandler takes a path and applies the policies within
@@ -16,7 +17,7 @@ type PathHandler interface {
 
 // Base set of methods common to all PathHandlers
 type BasePathHandler struct {
-	client 				VaultsmithClient
+	client 				vaultClient.VaultsmithClient
 	rootPath 			string
 	liveAuthMap 		*map[string]*vaultApi.AuthMount
 	configuredAuthMap 	*map[string]*vaultApi.AuthMount

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"reflect"
-	"github.com/starlingbank/vaultsmith/internal"
+	"github.com/starlingbank/vaultsmith/vaultClient"
 )
 
 /*
@@ -17,13 +17,13 @@ import (
 
 type SysPolicyHandler struct {
 	BasePathHandler
-	client              internal.VaultsmithClient
+	client              vaultClient.VaultsmithClient
 	rootPath            string
 	livePolicyList      []string
 	configuredPolicyMap map[string]*string
 }
 
-func NewSysPolicyHandler(c internal.VaultsmithClient, rootPath string) (*SysPolicyHandler, error) {
+func NewSysPolicyHandler(c vaultClient.VaultsmithClient, rootPath string) (*SysPolicyHandler, error) {
 	// Build a map of currently active auth methods, so walkFile() can reference it
 	livePolicyList, err := c.ListPolicies()
 	if err != nil {

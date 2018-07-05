@@ -9,7 +9,7 @@ import (
 	"reflect"
 	vaultApi "github.com/hashicorp/vault/api"
 	"encoding/json"
-	"github.com/starlingbank/vaultsmith/internal"
+	"github.com/starlingbank/vaultsmith/vaultClient"
 )
 
 /*
@@ -19,13 +19,13 @@ import (
 
 type SysAuthHandler struct {
 	BasePathHandler
-	client 				internal.VaultsmithClient
+	client 				vaultClient.VaultsmithClient
 	rootPath 			string
 	liveAuthMap 		map[string]*vaultApi.AuthMount
 	configuredAuthMap 	map[string]*vaultApi.AuthMount
 }
 
-func NewSysAuthHandler(c internal.VaultsmithClient, rootPath string) (*SysAuthHandler, error) {
+func NewSysAuthHandler(c vaultClient.VaultsmithClient, rootPath string) (*SysAuthHandler, error) {
 	// Build a map of currently active auth methods, so walkFile() can reference it
 	liveAuthMap, err := c.ListAuth()
 	if err != nil {

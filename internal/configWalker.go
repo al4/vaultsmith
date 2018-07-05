@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 	"github.com/starlingbank/vaultsmith/handlers"
+	"github.com/starlingbank/vaultsmith/vaultClient"
 )
 
 type Walker interface {
@@ -16,11 +17,11 @@ type Walker interface {
 
 type ConfigWalker struct {
 	HandlerMap map[string]handlers.PathHandler
-	Client     VaultsmithClient
+	Client     vaultClient.VaultsmithClient
 	ConfigDir  string
 }
 
-func NewConfigWalker(client VaultsmithClient, configDir string) ConfigWalker {
+func NewConfigWalker(client vaultClient.VaultsmithClient, configDir string) ConfigWalker {
 	sysHandler, err := handlers.NewSysAuthHandler(client, filepath.Join(configDir, "sys"))
 	if err != nil {
 		log.Fatalf("Could not create syshandler: %s", err)

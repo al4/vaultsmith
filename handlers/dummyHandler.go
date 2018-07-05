@@ -2,16 +2,17 @@ package handlers
 
 import (
 	"log"
+	"github.com/starlingbank/vaultsmith/vaultClient"
 )
 
 // A minimal handler which does nothing, mainly for testing
 type DummyHandler struct {
 	BasePathHandler
-	client 				VaultsmithClient
+	client 				vaultClient.VaultsmithClient
 	rootPath 			string
 }
 
-func NewDummyHandler(c VaultsmithClient, rootPath string) (*DummyHandler, error) {
+func NewDummyHandler(c vaultClient.VaultsmithClient, rootPath string) (*DummyHandler, error) {
 	return &DummyHandler{
 		client: c,
 		rootPath: rootPath,
