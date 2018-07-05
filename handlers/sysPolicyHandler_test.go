@@ -4,6 +4,7 @@ import (
 	"github.com/starlingbank/vaultsmith/vaultClient"
 	"log"
 	"testing"
+	"reflect"
 )
 
 
@@ -98,6 +99,22 @@ func TestSysPolicyHandler_IsPolicyApplied_PresentButDifferent(t *testing.T) {
 }
 
 func TestSysPolicyHandler_RemoveUndeclaredPolicies(t *testing.T) {
-	
+	sph, err := NewSysPolicyHandler(&vaultClient.MockVaultsmithClient{}, "test")
+	if err != nil {
+		log.Fatalf("Failed to create SysAuthHandler: %s", err)
+	}
+
+	sph.livePolicyList = []string{"foo", "bar", "baz", "qux", "quux"}
+	sph.configuredPolicyList = []string{"foo", "bar", "baz"}
+
+	expected := []string{"qux", "quux"}
+	deleted, err := sph.RemoveUndeclaredPolicies()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if ! reflect.DeepEqual(deleted, expected) {
+		log.Fatalf("List of deleted policies does not match expected (%+v != %+v)",
+			deleted, expected)
+	}
 }
 

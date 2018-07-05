@@ -82,7 +82,8 @@ func (sh *SysPolicyHandler) PutPoliciesFromDir(path string) error {
 	if err != nil {
 		return err
 	}
-	return sh.RemoveUndeclaredPolicies()
+	_, err = sh.RemoveUndeclaredPolicies()
+	return err
 }
 
 func (sh *SysPolicyHandler) EnsurePolicy(policy SysPolicy) error {
@@ -98,7 +99,7 @@ func (sh *SysPolicyHandler) EnsurePolicy(policy SysPolicy) error {
 	return sh.client.PutPolicy(policy.Name, policy.Policy)
 }
 
-func(sh *SysPolicyHandler) RemoveUndeclaredPolicies() error {
+func(sh *SysPolicyHandler) RemoveUndeclaredPolicies() (deleted []string, err error) {
 	for _, liveName := range sh.livePolicyList {
 		found := false
 		for _, configuredName := range sh.configuredPolicyList {
@@ -111,9 +112,10 @@ func(sh *SysPolicyHandler) RemoveUndeclaredPolicies() error {
 		if ! found {
 			log.Printf("Deleting policy %s", liveName)
 			sh.client.DeletePolicy(liveName)
+			deleted = append(deleted, liveName)
 		}
 	}
-	return nil
+	return deleted, nil
 }
 
 // true if the policy exists on the server
