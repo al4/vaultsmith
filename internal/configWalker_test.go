@@ -23,6 +23,7 @@ func TestConfigHandlerWalkFile(t *testing.T) {
 	}
 }
 
+// test hasParentHandler for the true case
 func TestHasParentHandlerTrue(t *testing.T) {
 	cw := ConfigWalker{
 		HandlerMap: map[string]handlers.PathHandler{
@@ -36,6 +37,7 @@ func TestHasParentHandlerTrue(t *testing.T) {
 	}
 }
 
+// test hasParentHandler for the false case
 func TestHasParentHandlerFalse(t *testing.T) {
 	cw := ConfigWalker{
 		HandlerMap: map[string]handlers.PathHandler{
@@ -46,6 +48,20 @@ func TestHasParentHandlerFalse(t *testing.T) {
 	hasParent := cw.hasParentHandler("notparent/child")
 	if hasParent {
 		log.Fatal("Got true for hasParent(\"notparent/child\") call, should be false")
+	}
+}
+
+// test that we don't consider a directory to be a parent of itself
+func TestHasParentHandlerSelf(t *testing.T) {
+	cw := ConfigWalker{
+		HandlerMap: map[string]handlers.PathHandler{
+			"parent/child": &handlers.DummyHandler{},
+		},
+	}
+
+	hasParent := cw.hasParentHandler("parent/child")
+	if hasParent {
+		log.Fatal("Got true for hasParent(\"parent/child\") call, should be false (not parent of self).")
 	}
 }
 

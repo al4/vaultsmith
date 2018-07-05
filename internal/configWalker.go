@@ -47,7 +47,7 @@ func NewConfigWalker(client vaultClient.VaultsmithClient, configDir string) Conf
 
 func (cw ConfigWalker) Run() error {
 	// file will be a dir here unless a trailing slash was added
-	log.Printf("%+v", filepath.Join(cw.ConfigDir, "sys"))
+	log.Printf("Starting in directory %s", filepath.Join(cw.ConfigDir, "sys"))
 
 	err := cw.walkConfigDir(cw.ConfigDir, cw.HandlerMap)
 	if err != nil {
@@ -73,7 +73,6 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 
 	pathArray := strings.Split(relPath, string(os.PathSeparator))
 	if pathArray[0] == "." { // just to avoid a "no handler for path ." in log
-		log.Printf("Skipping %s", relPath)
 		return nil
 	}
 	//log.Printf("path: %s, relPath: %s", path, relPath)
@@ -87,7 +86,7 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 
 	handler, ok := cw.HandlerMap[relPath]
 	if ! ok {
-		log.Printf("no handler for path %s (file %s)", relPath, relPath)
+		log.Printf("No handler for path %s", relPath)
 		return nil
 	}
 	log.Printf("Processing %s", path)
@@ -97,8 +96,11 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 // Determine whether this directory is already covered by a parent handler
 func (cw ConfigWalker) hasParentHandler(path string) bool {
 	pathArr := strings.Split(path, string(os.PathSeparator))
-	for i := 0; i < len(pathArr) ; i++ {
+	for i := 0; i < len(pathArr) - 1; i++ {
 		s := strings.Join(pathArr[:i + 1], string(os.PathSeparator))
+		if s == path { // should be covered by -1 in for condition above, so just for extra safety
+			continue
+		}
 		if _, ok := cw.HandlerMap[s]; ok {
 			return true
 		}
