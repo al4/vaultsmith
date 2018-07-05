@@ -5,13 +5,14 @@ import (
 	"os"
 	"time"
 	"log"
+	"github.com/starlingbank/vaultsmith/handlers"
 )
 
 func TestConfigHandlerWalkFile(t *testing.T) {
 	cw := ConfigWalker{
-		HandlerMap: map[string]PathHandler{
-			"auth": &DummyHandler{},
-			"aws":  &DummyHandler{},
+		HandlerMap: map[string]handlers.PathHandler{
+			"auth": &handlers.DummyHandler{},
+			"aws":  &handlers.DummyHandler{},
 		},
 	}
 	f := &fakeFileInfo{}

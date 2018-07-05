@@ -1,4 +1,4 @@
-package mocks
+package vaultClient
 
 import (
 	"fmt"
@@ -33,6 +33,19 @@ func (*MockVaultsmithClient) ListAuth() (map[string]*vaultApi.AuthMount, error) 
 	return rv, nil
 }
 
-func (*MockVaultsmithClient) PutPolicy(string, string) error {
+func (*MockVaultsmithClient) ListPolicies() ([]string, error) {
+	rv := make([]string, 0)
+	return rv, nil
+}
+
+func (*MockVaultsmithClient) GetPolicy(name string) (string, error) {
+	return "{\"policy\": \"dummy\"}", nil
+}
+
+func (*MockVaultsmithClient) PutPolicy(name string, data string) error {
+	return nil
+}
+
+func (*MockVaultsmithClient) DeletePolicy(name string) (error) {
 	return nil
 }

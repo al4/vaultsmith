@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/starlingbank/vaultsmith/internal"
+	"github.com/starlingbank/vaultsmith/vaultClient"
 )
 
 var flags = flag.NewFlagSet("Vaultsmith", flag.ExitOnError)
@@ -62,20 +63,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var vaultClient *internal.VaultClient
-	vaultClient, err = internal.NewVaultClient()
+	var client *vaultClient.VaultClient
+	client, err = vaultClient.NewVaultClient()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = Run(vaultClient, config)
+	err = Run(client, config)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 }
 
-func Run(c internal.VaultsmithClient, config *VaultsmithConfig) error {
+func Run(c vaultClient.VaultsmithClient, config *VaultsmithConfig) error {
 	err := c.Authenticate(config.vaultRole)
 	if err != nil {
 		return fmt.Errorf("failed authenticating with Vault: %s", err)
