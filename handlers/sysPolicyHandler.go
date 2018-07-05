@@ -15,6 +15,12 @@ import (
 	configuration under sys
  */
 
+// fixed policies that should not be deleted from vault under any circumstances
+var fixedPolicies = map[string]bool {
+	"root": true,
+	"default": true,
+}
+
 type SysPolicyHandler struct {
 	BasePathHandler
 	client					vaultClient.VaultsmithClient
@@ -100,16 +106,24 @@ func (sh *SysPolicyHandler) EnsurePolicy(policy SysPolicy) error {
 }
 
 func(sh *SysPolicyHandler) RemoveUndeclaredPolicies() (deleted []string, err error) {
+	// only real reason to track the deleted policies is for testing as logs inform user
 	for _, liveName := range sh.livePolicyList {
+		if fixedPolicies[liveName] {
+			// never want to delete default or root
+			continue
+		}
+
+		// look for the policy in the configured list
 		found := false
 		for _, configuredName := range sh.configuredPolicyList {
 			if liveName == configuredName {
-				found = true
+				found = true // it's declared and should stay
 				break
 			}
 		}
 
 		if ! found {
+			// not declared, delete
 			log.Printf("Deleting policy %s", liveName)
 			sh.client.DeletePolicy(liveName)
 			deleted = append(deleted, liveName)
@@ -140,7 +154,6 @@ func (sh *SysPolicyHandler) isPolicyApplied(policy SysPolicy) (bool, error) {
 	if err != nil {
 		return false, nil
 	}
-	log.Printf("%+v", remotePolicy)
 
 	if reflect.DeepEqual(policy.Policy, remotePolicy) {
 		return true, nil
