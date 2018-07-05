@@ -22,13 +22,18 @@ type ConfigWalker struct {
 }
 
 func NewConfigWalker(client vaultClient.VaultsmithClient, configDir string) ConfigWalker {
-	sysHandler, err := handlers.NewSysAuthHandler(client, filepath.Join(configDir, "sys"))
+	sysAuthHandler, err := handlers.NewSysAuthHandler(client, filepath.Join(configDir, "sys", "auth"))
 	if err != nil {
-		log.Fatalf("Could not create syshandler: %s", err)
+		log.Fatalf("Could not create sysAuthHandler: %s", err)
+	}
+	sysPolicyHandler, err := handlers.NewSysPolicyHandler(client, filepath.Join(configDir, "sys", "policy"))
+	if err != nil {
+		log.Fatalf("Could not create sysPolicyHandler: %s", err)
 	}
 
 	var handlerMap = map[string]handlers.PathHandler {
-		"sys/auth": sysHandler,
+		"sys/auth": sysAuthHandler,
+		"sys/policy": sysPolicyHandler,
 	}
 	log.Printf("%+v", handlerMap)
 
