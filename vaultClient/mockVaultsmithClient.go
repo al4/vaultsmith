@@ -51,3 +51,4 @@ func (m *MockVaultsmithClient) PutPolicy(name string, data string) error {
 func (m *MockVaultsmithClient) DeletePolicy(name string) (error) {
 	return m.ReturnError
 }
+

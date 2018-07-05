@@ -33,6 +33,9 @@ type VaultsmithClient interface {
 	ListAuth() (map[string]*vaultApi.AuthMount, error)
 	ListPolicies() ([]string, error)
 	PutPolicy(string, string) error
+	Read(path string) (*vaultApi.Secret, error)
+	Write(path string, data map[string]interface{}) (*vaultApi.Secret, error)
+	List(path string) (*vaultApi.Secret, error)
 }
 
 type VaultClient struct {
@@ -125,4 +128,18 @@ func (c *VaultClient) PutPolicy(name string, data string) error {
 
 func (c *VaultClient) DeletePolicy(name string) (error) {
 	return c.client.Sys().DeletePolicy(name)
+}
+
+// Used by genericHandler
+func (c *VaultClient) Read(path string) (*vaultApi.Secret, error) {
+	return c.client.Logical().Read(path)
+}
+
+func (c *VaultClient) Write(path string, data map[string]interface{}) (*vaultApi.Secret, error) {
+	secret, err := c.client.Logical().Write(path, data)
+	return secret, err
+}
+
+func (c *VaultClient) List(path string) (*vaultApi.Secret, error) {
+	return c.client.Logical().List(path)
 }
