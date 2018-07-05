@@ -8,6 +8,8 @@ import (
 
 type MockVaultsmithClient struct {
 	mock.Mock
+	ReturnString string
+	ReturnError  error
 }
 
 func (m *MockVaultsmithClient) Authenticate(role string) error {
@@ -17,35 +19,35 @@ func (m *MockVaultsmithClient) Authenticate(role string) error {
 	} else if role == "InvalidRole" {
 		return fmt.Errorf("entry for role InvalidRole not found")
 	}
-	return nil
+	return m.ReturnError
 }
 
-func (*MockVaultsmithClient) DisableAuth(string) error {
-	return nil
+func (m *MockVaultsmithClient) DisableAuth(string) error {
+	return m.ReturnError
 }
 
-func (*MockVaultsmithClient) EnableAuth(path string, options *vaultApi.EnableAuthOptions) error {
-	return nil
+func (m *MockVaultsmithClient) EnableAuth(path string, options *vaultApi.EnableAuthOptions) error {
+	return m.ReturnError
 }
 
-func (*MockVaultsmithClient) ListAuth() (map[string]*vaultApi.AuthMount, error) {
+func (m *MockVaultsmithClient) ListAuth() (map[string]*vaultApi.AuthMount, error) {
 	rv := make(map[string]*vaultApi.AuthMount)
-	return rv, nil
+	return rv, m.ReturnError
 }
 
-func (*MockVaultsmithClient) ListPolicies() ([]string, error) {
+func (m *MockVaultsmithClient) ListPolicies() ([]string, error) {
 	rv := make([]string, 0)
-	return rv, nil
+	return rv, m.ReturnError
 }
 
-func (*MockVaultsmithClient) GetPolicy(name string) (string, error) {
-	return "{\"policy\": \"dummy\"}", nil
+func (m *MockVaultsmithClient) GetPolicy(name string) (string, error) {
+	return m.ReturnString, m.ReturnError
 }
 
-func (*MockVaultsmithClient) PutPolicy(name string, data string) error {
-	return nil
+func (m *MockVaultsmithClient) PutPolicy(name string, data string) error {
+	return m.ReturnError
 }
 
-func (*MockVaultsmithClient) DeletePolicy(name string) (error) {
-	return nil
+func (m *MockVaultsmithClient) DeletePolicy(name string) (error) {
+	return m.ReturnError
 }

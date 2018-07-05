@@ -7,7 +7,7 @@ import (
 )
 
 
-func TestPolicyExists(t *testing.T) {
+func TestSysPolicyHandler_PolicyExists(t *testing.T) {
 	// Not terribly testable as it doesn't return anything we can assert against
 	client := &vaultClient.MockVaultsmithClient{}
 	sph, err := NewSysPolicyHandler(client, "")
@@ -29,7 +29,7 @@ func TestPolicyExists(t *testing.T) {
 	}
 }
 
-func TestPolicyExistsFalse(t *testing.T) {
+func TestSysPolicyHandler_PolicyExistsFalse(t *testing.T) {
 	client := &vaultClient.MockVaultsmithClient{}
 	sph, err := NewSysPolicyHandler(client, "")
 	if err != nil {
@@ -50,20 +50,10 @@ func TestPolicyExistsFalse(t *testing.T) {
 	}
 }
 
-type getPolicyClient struct {
-	vaultClient.MockVaultsmithClient
-	returnValue string
-}
-
-func (c *getPolicyClient) GetPolicy(name string) (string, error) {
-	return c.returnValue, nil
-}
-
 // isPolicyApplied should return true when the policy is present and the content matches
-func TestIsPolicyApplied(t *testing.T) {
-	client := &getPolicyClient{
-		returnValue: "testPolicy",
-	}
+func TestSysPolicyHandler_IsPolicyApplied(t *testing.T) {
+	client := &vaultClient.MockVaultsmithClient{}
+	client.ReturnString = "testPolicy"
 	sph, err := NewSysPolicyHandler(client, "")
 	if err != nil {
 		log.Fatalf("Failed to create SysAuthHandler: %s", err)
@@ -84,10 +74,10 @@ func TestIsPolicyApplied(t *testing.T) {
 }
 
 // isPolicyApplied should return false when policy is present but content differs
-func TestIsPolicyApplied_PresentButDifferent(t *testing.T) {
-	client := &getPolicyClient{
-		returnValue: "testPolicy",
-	}
+func TestSysPolicyHandler_IsPolicyApplied_PresentButDifferent(t *testing.T) {
+	client := &vaultClient.MockVaultsmithClient{}
+	client.ReturnString = "testPolicy"
+
 	sph, err := NewSysPolicyHandler(client, "")
 	if err != nil {
 		log.Fatalf("Failed to create SysAuthHandler: %s", err)
@@ -106,3 +96,8 @@ func TestIsPolicyApplied_PresentButDifferent(t *testing.T) {
 		log.Fatalf("isPolicyApplied returns true, should be false in this case")
 	}
 }
+
+func TestSysPolicyHandler_RemoveUndeclaredPolicies(t *testing.T) {
+	
+}
+
