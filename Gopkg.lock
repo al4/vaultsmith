@@ -191,6 +191,7 @@
     "helper/compressutil",
     "helper/consts",
     "helper/errutil",
+    "helper/hclutil",
     "helper/jsonutil",
     "helper/locksutil",
     "helper/logging",
@@ -208,8 +209,8 @@
     "physical/inmem",
     "version"
   ]
-  revision = "3ee0802ed08cb7f4046c2151ec4671a076b76166"
-  version = "v0.10.2"
+  revision = "533003e27840d9646cb4e7d23b3a113895da1dd0"
+  version = "v0.10.3"
 
 [[projects]]
   branch = "master"
@@ -368,6 +369,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "36813c6bdad0ff191b8effb52e5e2c54fda2316ce628e6a6970b1ae3091222cf"
+  inputs-digest = "f9a941406372a301e6f676132a6cf81d8a10e12e448e7a78f8580bc2c4285b2f"
   solver-name = "gps-cdcl"
   solver-version = 1
