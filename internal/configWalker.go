@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path"
 	"strings"
+	"github.com/starlingbank/vaultsmith/handlers"
 )
 
 type Walker interface {
@@ -14,18 +15,18 @@ type Walker interface {
 }
 
 type ConfigWalker struct {
-	HandlerMap map[string]PathHandler
+	HandlerMap map[string]handlers.PathHandler
 	Client     VaultsmithClient
 	ConfigDir  string
 }
 
 func NewConfigWalker(client VaultsmithClient, configDir string) ConfigWalker {
-	sysHandler, err := NewSysAuthHandler(client, filepath.Join(configDir, "sys"))
+	sysHandler, err := handlers.NewSysAuthHandler(client, filepath.Join(configDir, "sys"))
 	if err != nil {
 		log.Fatalf("Could not create syshandler: %s", err)
 	}
 
-	var handlerMap = map[string]PathHandler {
+	var handlerMap = map[string]handlers.PathHandler {
 		"sys/auth": sysHandler,
 	}
 	log.Printf("%+v", handlerMap)
@@ -49,7 +50,7 @@ func (cw ConfigWalker) Run() error {
 	return nil
 }
 
-func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]PathHandler) error {
+func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]handlers.PathHandler) error {
 	err := filepath.Walk(path, cw.walkFile)
 	return err
 }
