@@ -11,8 +11,8 @@ import (
 func TestConfigHandlerWalkFile(t *testing.T) {
 	cw := ConfigWalker{
 		HandlerMap: map[string]handlers.PathHandler{
-			"auth": &handlers.DummyHandler{},
-			"aws":  &handlers.DummyHandler{},
+			"sys/auth": &handlers.DummyHandler{},
+			"auth/aws":  &handlers.DummyHandler{},
 		},
 	}
 	f := &fakeFileInfo{}

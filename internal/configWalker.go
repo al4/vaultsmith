@@ -58,24 +58,38 @@ func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]handlers
 
 // determine the handler and pass the root directory to it
 func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
-	//log.Printf("walking %s\n", path)
+	if ! f.IsDir() {  // only want to operate on directories
+		return nil
+	}
 	relPath, err := filepath.Rel(cw.ConfigDir, path)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not determine relative path of %s to %s: %s", path, cw.ConfigDir, err)
 	}
 
 	pathArray := strings.Split(relPath, string(os.PathSeparator))
-	if ! f.IsDir() || len(pathArray) != 1 || pathArray[0] == "." {
-		// we only want to operate on top-level directories, handler is responsible for walking
+	if pathArray[0] == "." { // just to avoid a "no handler for path ." in log
+		log.Printf("Skipping %s", relPath)
 		return nil
 	}
-	log.Printf("path: %s, relPath: %s", path, relPath)
+	//log.Printf("path: %s, relPath: %s", path, relPath)
 
-	handler, ok := cw.HandlerMap[pathArray[0]]
+	// Is there a handler for a higher level path? If so, we assume that it handles all child
+	// directories and thus we should not process these directories separately.
+	if hasParentHandler(relPath) {
+		return nil
+	}
+
+	handler, ok := cw.HandlerMap[relPath]
 	if ! ok {
-		log.Printf("no handler for path %s (file %s)", pathArray[0], relPath)
+		log.Printf("no handler for path %s (file %s)", relPath, relPath)
 		return nil
 	}
 	log.Printf("Processing %s", path)
 	return handler.PutPoliciesFromDir(path)
 }
+
+
+func hasParentHandler(string) bool {
+	return false
+}
+
