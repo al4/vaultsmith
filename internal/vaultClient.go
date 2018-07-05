@@ -26,9 +26,12 @@ put.
 // VaultsmithClient is an abstraction of hashicorp's vault api client
 type VaultsmithClient interface {
 	Authenticate(string) error
-	DisableAuth(string) error
+	DeletePolicy(name string) (error)
+	DisableAuth(string)	error
 	EnableAuth(path string, options *vaultApi.EnableAuthOptions) error
+	GetPolicy(name string) (string, error)
 	ListAuth() (map[string]*vaultApi.AuthMount, error)
+	ListPolicies() ([]string, error)
 	PutPolicy(string, string) error
 }
 
@@ -94,10 +97,7 @@ func (c *VaultClient) Authenticate(role string) error {
 	return nil
 }
 
-func (c *VaultClient) PutPolicy(name string, data string) error {
-	return c.client.Sys().PutPolicy(name, data)
-}
-
+// Used by sysAuthHandler
 func (c *VaultClient) EnableAuth(path string, options *vaultApi.EnableAuthOptions) error {
 	return c.client.Sys().EnableAuthWithOptions(path, options)
 }
@@ -108,4 +108,21 @@ func (c *VaultClient) ListAuth() (map[string]*vaultApi.AuthMount, error) {
 
 func (c *VaultClient) DisableAuth(path string) error {
 	return c.client.Sys().DisableAuth(path)
+}
+
+// Used by sysPolicyHandler
+func (c *VaultClient) ListPolicies() ([]string, error) {
+	return c.client.Sys().ListPolicies()
+}
+
+func (c *VaultClient) GetPolicy(name string) (string, error) {
+	return c.client.Sys().GetPolicy(name)
+}
+
+func (c *VaultClient) PutPolicy(name string, data string) error {
+	return c.client.Sys().PutPolicy(name, data)
+}
+
+func (c *VaultClient) DeletePolicy(name string) (error) {
+	return c.client.Sys().DeletePolicy(name)
 }
