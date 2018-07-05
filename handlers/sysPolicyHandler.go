@@ -17,10 +17,10 @@ import (
 
 type SysPolicyHandler struct {
 	BasePathHandler
-	client              vaultClient.VaultsmithClient
-	rootPath            string
-	livePolicyList      []string
-	configuredPolicyMap map[string]*string
+	client					vaultClient.VaultsmithClient
+	rootPath				string
+	livePolicyList			[]string
+	configuredPolicyList	[]string
 }
 
 type SysPolicy struct {
@@ -35,15 +35,11 @@ func NewSysPolicyHandler(c vaultClient.VaultsmithClient, rootPath string) (*SysP
 		return &SysPolicyHandler{}, err
 	}
 
-	// Create a mapping of configured auth methods, which we append to as we go,
-	// so we can disable those that are missing at the end
-	configuredPolicyMap := make(map[string]*string)
-
 	return &SysPolicyHandler{
-		client:              c,
-		rootPath:            rootPath,
-		livePolicyList:      livePolicyList,
-		configuredPolicyMap: configuredPolicyMap,
+		client:              	c,
+		rootPath:            	rootPath,
+		livePolicyList:      	livePolicyList,
+		configuredPolicyList:	[]string{},
 	}, nil
 }
 
@@ -90,6 +86,7 @@ func (sh *SysPolicyHandler) PutPoliciesFromDir(path string) error {
 }
 
 func (sh *SysPolicyHandler) EnsurePolicy(policy SysPolicy) error {
+	sh.configuredPolicyList = append(sh.configuredPolicyList, policy.Name)
 	applied, err := sh.isPolicyApplied(policy)
 	if err != nil {
 		return err
