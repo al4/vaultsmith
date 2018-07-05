@@ -12,11 +12,11 @@ import (
 )
 
 /*
-	SysHandler handles the creation/enabling of auth methods and policies, described in the
+	SysAuthHandler handles the creation/enabling of auth methods and policies, described in the
 	configuration under sys
  */
 
-type SysHandler struct {
+type SysAuthHandler struct {
 	BasePathHandler
 	client 				VaultsmithClient
 	rootPath 			string
@@ -24,18 +24,18 @@ type SysHandler struct {
 	configuredAuthMap 	map[string]*vaultApi.AuthMount
 }
 
-func NewSysHandler(c VaultsmithClient, rootPath string) (*SysHandler, error) {
+func NewSysAuthHandler(c VaultsmithClient, rootPath string) (*SysAuthHandler, error) {
 	// Build a map of currently active auth methods, so walkFile() can reference it
 	liveAuthMap, err := c.ListAuth()
 	if err != nil {
-		return &SysHandler{}, err
+		return &SysAuthHandler{}, err
 	}
 
 	// Create a mapping of configured auth methods, which we append to as we go,
 	// so we can disable those that are missing at the end
 	configuredAuthMap := make(map[string]*vaultApi.AuthMount)
 
-	return &SysHandler{
+	return &SysAuthHandler{
 		client: c,
 		rootPath: rootPath,
 		liveAuthMap: liveAuthMap,
@@ -43,7 +43,7 @@ func NewSysHandler(c VaultsmithClient, rootPath string) (*SysHandler, error) {
 	}, nil
 }
 
-func (sh *SysHandler) walkFile(path string, f os.FileInfo, err error) error {
+func (sh *SysAuthHandler) walkFile(path string, f os.FileInfo, err error) error {
 	if f == nil {
 		return fmt.Errorf("got nil FileInfo for %s, error: '%s'", path, err.Error())
 	}
@@ -82,7 +82,7 @@ func (sh *SysHandler) walkFile(path string, f os.FileInfo, err error) error {
 	return nil
 }
 
-func (sh *SysHandler) PutPoliciesFromDir(path string) error {
+func (sh *SysAuthHandler) PutPoliciesFromDir(path string) error {
 	err := filepath.Walk(path, sh.walkFile)
 	if err != nil {
 		return err
@@ -91,7 +91,7 @@ func (sh *SysHandler) PutPoliciesFromDir(path string) error {
 }
 
 // Ensure that this auth type is enabled and has the correct configuration
-func (sh *SysHandler) EnsureAuth(path string, enableOpts vaultApi.EnableAuthOptions) error {
+func (sh *SysAuthHandler) EnsureAuth(path string, enableOpts vaultApi.EnableAuthOptions) error {
 	// we need to convert to AuthConfigOutput in order to compare with existing config
 	var enableOptsAuthConfigOutput vaultApi.AuthConfigOutput
 	enableOptsAuthConfigOutput, err := ConvertAuthConfig(enableOpts.Config)
@@ -127,7 +127,7 @@ func (sh *SysHandler) EnsureAuth(path string, enableOpts vaultApi.EnableAuthOpti
 	return nil
 }
 
-func(sh *SysHandler) DisableUnconfiguredAuths() error {
+func(sh *SysAuthHandler) DisableUnconfiguredAuths() error {
 	// delete entries not in configured list
 	for k, authMount := range sh.liveAuthMap {
 		path := strings.Trim(k, "/") // vault appends a slash to paths
@@ -144,7 +144,7 @@ func(sh *SysHandler) DisableUnconfiguredAuths() error {
 }
 
 // return true if the localConfig is reflected in remoteConfig, else false
-func (sh *SysHandler) isConfigApplied(localConfig vaultApi.AuthConfigInput, remoteConfig vaultApi.AuthConfigOutput) (error, bool) {
+func (sh *SysAuthHandler) isConfigApplied(localConfig vaultApi.AuthConfigInput, remoteConfig vaultApi.AuthConfigOutput) (error, bool) {
 	// AuthConfigInput uses different types for TTL, which need to be converted
 	converted, err := ConvertAuthConfig(localConfig)
 	if err != nil {
