@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"github.com/starlingbank/vaultsmith/vaultClient"
-	"strings"
+	"encoding/json"
 )
 
 /*
@@ -21,6 +21,11 @@ type SysPolicyHandler struct {
 	rootPath            string
 	livePolicyList      []string
 	configuredPolicyMap map[string]*string
+}
+
+type SysPolicy struct {
+	Name	string
+	Policy	string `json:"policy"`
 }
 
 func NewSysPolicyHandler(c vaultClient.VaultsmithClient, rootPath string) (*SysPolicyHandler, error) {
@@ -54,7 +59,6 @@ func (sh *SysPolicyHandler) walkFile(path string, f os.FileInfo, err error) erro
 		return nil
 	}
 
-
 	log.Printf("Applying %s\n", path)
 	fileContents, err := sh.readFile(path)
 	if err != nil {
@@ -62,7 +66,14 @@ func (sh *SysPolicyHandler) walkFile(path string, f os.FileInfo, err error) erro
 	}
 
 	_, file := filepath.Split(path)
-	err = sh.EnsurePolicy(strings.Split(file, ".")[0], fileContents)
+	var policy SysPolicy
+	err = json.Unmarshal([]byte(fileContents), &policy)
+	if err != nil {
+		return fmt.Errorf("failed to parse json in %s: %s", path, err)
+	}
+	policy.Name = file
+
+	err = sh.EnsurePolicy(policy)
 	if err != nil {
 		return fmt.Errorf("failed to apply policy from %s: %s", path, err)
 	}
@@ -78,9 +89,9 @@ func (sh *SysPolicyHandler) PutPoliciesFromDir(path string) error {
 	return sh.RemoveUndeclaredPolicies()
 }
 
-func (sh *SysPolicyHandler) EnsurePolicy(name string, data string) error {
+func (sh *SysPolicyHandler) EnsurePolicy(policy SysPolicy) error {
 	// TODO does not check if policy exists
-	err := sh.client.PutPolicy(name, data)
+	err := sh.client.PutPolicy(policy.Name, policy.Policy)
 	if err != nil {
 		return err
 	}
