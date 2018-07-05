@@ -99,8 +99,20 @@ func (sh *SysPolicyHandler) EnsurePolicy(policy SysPolicy) error {
 }
 
 func(sh *SysPolicyHandler) RemoveUndeclaredPolicies() error {
-	// delete entries not in configured list
-	// TODO finish me
+	for _, liveName := range sh.livePolicyList {
+		found := false
+		for _, configuredName := range sh.configuredPolicyList {
+			if liveName == configuredName {
+				found = true
+				break
+			}
+		}
+
+		if ! found {
+			log.Printf("Deleting policy %s", liveName)
+			sh.client.DeletePolicy(liveName)
+		}
+	}
 	return nil
 }
 
