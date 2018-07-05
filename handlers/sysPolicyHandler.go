@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
-	"strings"
 	"reflect"
 	"github.com/starlingbank/vaultsmith/vaultClient"
+	"strings"
 )
 
 /*
@@ -54,13 +54,6 @@ func (sh *SysPolicyHandler) walkFile(path string, f os.FileInfo, err error) erro
 		return nil
 	}
 
-	dir, file := filepath.Split(path)
-	policyPath := strings.Join(strings.Split(dir, "/")[1:], "/")
-	//fmt.Printf("path: %s, file: %s\n", policyPath, file)
-	if ! strings.HasPrefix(policyPath, "sys/auth") {
-		log.Printf("File %s can not be handled yet\n", path)
-		return nil
-	}
 
 	log.Printf("Applying %s\n", path)
 	fileContents, err := sh.readFile(path)
@@ -68,9 +61,10 @@ func (sh *SysPolicyHandler) walkFile(path string, f os.FileInfo, err error) erro
 		return err
 	}
 
+	_, file := filepath.Split(path)
 	err = sh.EnsurePolicy(strings.Split(file, ".")[0], fileContents)
 	if err != nil {
-		return fmt.Errorf("error while ensuring auth for path %s: %s", path, err)
+		return fmt.Errorf("failed to apply policy from %s: %s", path, err)
 	}
 
 	return nil
@@ -84,12 +78,11 @@ func (sh *SysPolicyHandler) PutPoliciesFromDir(path string) error {
 	return sh.RemoveUndeclaredPolicies()
 }
 
-func (sh *SysPolicyHandler) EnsurePolicy(path string, data string) error {
+func (sh *SysPolicyHandler) EnsurePolicy(name string, data string) error {
 	// TODO does not check if policy exists
-	path = path + "/" // vault appends a slash to paths
-	err := sh.client.PutPolicy(path, data)
+	err := sh.client.PutPolicy(name, data)
 	if err != nil {
-		return fmt.Errorf("could not put policy from %s: %s", path, err)
+		return err
 	}
 	return nil
 }

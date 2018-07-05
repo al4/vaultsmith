@@ -51,7 +51,7 @@ func (cw ConfigWalker) Run() error {
 
 	err := cw.walkConfigDir(cw.ConfigDir, cw.HandlerMap)
 	if err != nil {
-		return fmt.Errorf("error walking config dir %s: %s", cw.ConfigDir, err)
+		return err
 	}
 	return nil
 }

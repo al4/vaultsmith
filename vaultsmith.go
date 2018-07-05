@@ -71,9 +71,9 @@ func main() {
 
 	err = Run(client, config)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error: %s", err)
 	}
-
+	log.Println("Success")
 }
 
 func Run(c vaultClient.VaultsmithClient, config *VaultsmithConfig) error {
@@ -87,11 +87,5 @@ func Run(c vaultClient.VaultsmithClient, config *VaultsmithConfig) error {
 	//	log.Fatal(err)
 	//}
 	cw := internal.NewConfigWalker(c, config.configDir)
-	err = cw.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println("Success")
-	return nil
+	return cw.Run()
 }
