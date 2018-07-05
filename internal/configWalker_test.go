@@ -23,6 +23,32 @@ func TestConfigHandlerWalkFile(t *testing.T) {
 	}
 }
 
+func TestHasParentHandlerTrue(t *testing.T) {
+	cw := ConfigWalker{
+		HandlerMap: map[string]handlers.PathHandler{
+			"parent": &handlers.DummyHandler{},
+		},
+	}
+
+	hasParent := cw.hasParentHandler("parent/child")
+	if ! hasParent {
+		log.Fatal("Got false for hasParent(\"parent/child\") call, should be true")
+	}
+}
+
+func TestHasParentHandlerFalse(t *testing.T) {
+	cw := ConfigWalker{
+		HandlerMap: map[string]handlers.PathHandler{
+			"parent": &handlers.DummyHandler{},
+		},
+	}
+
+	hasParent := cw.hasParentHandler("notparent/child")
+	if hasParent {
+		log.Fatal("Got true for hasParent(\"notparent/child\") call, should be false")
+	}
+}
+
 type fakeFileInfo struct {
 	dir      bool
 	basename string

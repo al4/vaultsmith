@@ -21,6 +21,8 @@ type ConfigWalker struct {
 	ConfigDir  string
 }
 
+// Instantiates a configWalker and the required handlers
+// TODO perhaps only instantiate if the path exists?
 func NewConfigWalker(client vaultClient.VaultsmithClient, configDir string) ConfigWalker {
 	sysAuthHandler, err := handlers.NewSysAuthHandler(client, filepath.Join(configDir, "sys", "auth"))
 	if err != nil {
@@ -78,7 +80,8 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 
 	// Is there a handler for a higher level path? If so, we assume that it handles all child
 	// directories and thus we should not process these directories separately.
-	if hasParentHandler(relPath) {
+	if cw.hasParentHandler(relPath) {
+		log.Printf("Skipping %s, handled by parent", relPath)
 		return nil
 	}
 
@@ -91,8 +94,15 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 	return handler.PutPoliciesFromDir(path)
 }
 
-
-func hasParentHandler(string) bool {
+// Determine whether this directory is already covered by a parent handler
+func (cw ConfigWalker) hasParentHandler(path string) bool {
+	pathArr := strings.Split(path, string(os.PathSeparator))
+	for i := 0; i < len(pathArr) ; i++ {
+		s := strings.Join(pathArr[:i + 1], string(os.PathSeparator))
+		if _, ok := cw.HandlerMap[s]; ok {
+			return true
+		}
+	}
 	return false
 }
 
