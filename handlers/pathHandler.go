@@ -1,4 +1,4 @@
-package internal
+package handlers
 
 import (
 	vaultApi "github.com/hashicorp/vault/api"
