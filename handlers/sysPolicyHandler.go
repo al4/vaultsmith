@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 	"reflect"
-	vaultApi "github.com/hashicorp/vault/api"
-	"encoding/json"
 	"github.com/starlingbank/vaultsmith/internal"
 )
 
@@ -19,28 +17,28 @@ import (
 
 type SysPolicyHandler struct {
 	BasePathHandler
-	client            internal.VaultsmithClient
-	rootPath          string
-	livePolicyMap     map[string]*vaultApi.AuthMount
-	configuredAuthMap map[string]*vaultApi.AuthMount
+	client              internal.VaultsmithClient
+	rootPath            string
+	livePolicyList      []string
+	configuredPolicyMap map[string]*string
 }
 
 func NewSysPolicyHandler(c internal.VaultsmithClient, rootPath string) (*SysPolicyHandler, error) {
 	// Build a map of currently active auth methods, so walkFile() can reference it
-	liveAuthMap, err := c.ListAuth()
+	livePolicyList, err := c.ListPolicies()
 	if err != nil {
 		return &SysPolicyHandler{}, err
 	}
 
 	// Create a mapping of configured auth methods, which we append to as we go,
 	// so we can disable those that are missing at the end
-	configuredAuthMap := make(map[string]*vaultApi.AuthMount)
+	configuredPolicyMap := make(map[string]*string)
 
 	return &SysPolicyHandler{
-		client:            c,
-		rootPath:          rootPath,
-		livePolicyMap:     liveAuthMap,
-		configuredAuthMap: configuredAuthMap,
+		client:              c,
+		rootPath:            rootPath,
+		livePolicyList:      livePolicyList,
+		configuredPolicyMap: configuredPolicyMap,
 	}, nil
 }
 
@@ -69,13 +67,8 @@ func (sh *SysPolicyHandler) walkFile(path string, f os.FileInfo, err error) erro
 	if err != nil {
 		return err
 	}
-	var enableOpts vaultApi.EnableAuthOptions
-	err = json.Unmarshal([]byte(fileContents), &enableOpts)
-	if err != nil {
-		return fmt.Errorf("could not parse json from file %s: %s", path, err)
-	}
 
-	err = sh.EnsureAuth(strings.Split(file, ".")[0], enableOpts)
+	err = sh.EnsurePolicy(strings.Split(file, ".")[0], fileContents)
 	if err != nil {
 		return fmt.Errorf("error while ensuring auth for path %s: %s", path, err)
 	}
@@ -91,67 +84,26 @@ func (sh *SysPolicyHandler) PutPoliciesFromDir(path string) error {
 	return sh.RemoveUndeclaredPolicies()
 }
 
-func (sh *SysPolicyHandler) EnsurePolicy(path string, enableOpts vaultApi.EnableAuthOptions) error {
-	// we need to convert to AuthConfigOutput in order to compare with existing config
-	var enableOptsAuthConfigOutput vaultApi.AuthConfigOutput
-	enableOptsAuthConfigOutput, err := ConvertAuthConfig(enableOpts.Config)
-	if err != nil {
-		return err
-	}
-
-	authMount := vaultApi.AuthMount{
-		Type:   enableOpts.Type,
-		Config: enableOptsAuthConfigOutput,
-	}
-	sh.configuredAuthMap[path] = &authMount
-
+func (sh *SysPolicyHandler) EnsurePolicy(path string, data string) error {
+	// TODO does not check if policy exists
 	path = path + "/" // vault appends a slash to paths
-	if liveAuth, ok := sh.livePolicyMap[path]; ok {
-		// If this path is present in our live config, we may not need to enable
-		err, applied := sh.isConfigApplied(enableOpts.Config, liveAuth.Config)
-		if err != nil {
-			return fmt.Errorf(
-				"could not determine whether configuration for auth mount %s was applied: %s",
-				enableOpts.Type, err)
-		}
-		if applied {
-			log.Printf("Configuration for authMount %s already applied\n", enableOpts.Type)
-			return nil
-		}
-	}
-	log.Printf("Enabling auth type %s\n", authMount.Type)
-	err = sh.client.EnableAuth(path, &enableOpts)
+	err := sh.client.PutPolicy(path, data)
 	if err != nil {
-		return fmt.Errorf("could not enable auth %s: %s", path, err)
+		return fmt.Errorf("could not put policy from %s: %s", path, err)
 	}
 	return nil
 }
 
 func(sh *SysPolicyHandler) RemoveUndeclaredPolicies() error {
 	// delete entries not in configured list
-	for k, authMount := range sh.livePolicyMap {
-		path := strings.Trim(k, "/") // vault appends a slash to paths
-		if _, ok := sh.configuredAuthMap[path]; ok {
-			continue  // present, do nothing
-		} else if authMount.Type == "token" {
-			continue  // cannot be disabled, would give http 400 if attempted
-		} else {
-			log.Printf("Disabling auth type %s\n", authMount.Type)
-			return sh.client.DisableAuth(authMount.Type)
-		}
-	}
+	// TODO finish me
 	return nil
 }
 
 // return true if the localConfig is reflected in remoteConfig, else false
-func (sh *SysPolicyHandler) isConfigApplied(localConfig vaultApi.AuthConfigInput, remoteConfig vaultApi.AuthConfigOutput) (error, bool) {
-	// AuthConfigInput uses different types for TTL, which need to be converted
-	converted, err := ConvertAuthConfig(localConfig)
-	if err != nil {
-		return err, false
-	}
-
-	if reflect.DeepEqual(converted, remoteConfig) {
+func (sh *SysPolicyHandler) isPolicyApplied(localPolicy string, remotePolicy string) (error, bool) {
+	// TODO this will probably not work
+	if reflect.DeepEqual(localPolicy, remotePolicy) {
 		return nil, true
 	} else {
 		return nil, false
