@@ -35,8 +35,6 @@ func NewConfigWalker(client vaultClient.VaultsmithClient, configDir string) Conf
 		"sys/auth": sysAuthHandler,
 		"sys/policy": sysPolicyHandler,
 	}
-	log.Printf("%+v", handlerMap)
-
 
 	return ConfigWalker{
 		HandlerMap: handlerMap,
