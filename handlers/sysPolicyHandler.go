@@ -90,12 +90,15 @@ func (sh *SysPolicyHandler) PutPoliciesFromDir(path string) error {
 }
 
 func (sh *SysPolicyHandler) EnsurePolicy(policy SysPolicy) error {
-	// TODO does not check if policy exists
-	err := sh.client.PutPolicy(policy.Name, policy.Policy)
+	applied, err := sh.isPolicyApplied(policy)
 	if err != nil {
 		return err
 	}
-	return nil
+	if applied {
+		log.Printf("Policy %s already applied", policy.Name)
+		return nil
+	}
+	return sh.client.PutPolicy(policy.Name, policy.Policy)
 }
 
 func(sh *SysPolicyHandler) RemoveUndeclaredPolicies() error {
@@ -104,12 +107,33 @@ func(sh *SysPolicyHandler) RemoveUndeclaredPolicies() error {
 	return nil
 }
 
-// return true if the localConfig is reflected in remoteConfig, else false
-func (sh *SysPolicyHandler) isPolicyApplied(localPolicy string, remotePolicy string) (error, bool) {
-	// TODO this will probably not work
-	if reflect.DeepEqual(localPolicy, remotePolicy) {
-		return nil, true
+// true if the policy exists on the server
+func (sh *SysPolicyHandler) policyExists(policy SysPolicy) bool {
+	//log.Printf("policy.Name: %s, policy list: %+v", policy.Name, sh.livePolicyList)
+	for _, p := range sh.livePolicyList {
+		if p == policy.Name	{
+			return true
+		}
+	}
+
+	return false
+}
+
+// true if the policy is applied on the server
+func (sh *SysPolicyHandler) isPolicyApplied(policy SysPolicy) (bool, error) {
+	if ! sh.policyExists(policy) {
+		return false, nil
+	}
+
+	remotePolicy, err := sh.client.GetPolicy(policy.Name)
+	if err != nil {
+		return false, nil
+	}
+	log.Printf("%+v", remotePolicy)
+
+	if reflect.DeepEqual(policy.Policy, remotePolicy) {
+		return true, nil
 	} else {
-		return nil, false
+		return false, nil
 	}
 }
