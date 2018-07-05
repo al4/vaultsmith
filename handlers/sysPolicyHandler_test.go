@@ -104,8 +104,8 @@ func TestSysPolicyHandler_RemoveUndeclaredPolicies(t *testing.T) {
 		log.Fatalf("Failed to create SysAuthHandler: %s", err)
 	}
 
-	sph.livePolicyList = []string{"foo", "bar", "baz", "qux", "quux"}
-	sph.configuredPolicyList = []string{"foo", "bar", "baz"}
+	sph.livePolicyList = []string{"foo", "qux", "bar", "baz", "quux"}
+	sph.configuredPolicyList = []string{"baz", "foo", "bar"}
 
 	expected := []string{"qux", "quux"}
 	deleted, err := sph.RemoveUndeclaredPolicies()
