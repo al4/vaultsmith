@@ -143,12 +143,12 @@ func (gh *GenericHandler) areKeysApplied(mapA map[string]interface{}, mapB map[s
 				continue
 			}
 		}
-		log.Printf(" ## %s not equal; %+v != %+v", key, mapA[key], mapB[key])
-
 		// covers cases such as "policy" == ["policy]
 		if IsSliceEquivalent(mapA[key], mapB[key]) {
 			continue
 		}
+		log.Printf(" ## %s not equal; %+v != %+v", key, mapA[key], mapB[key])
+
 		return false
 	}
 	return true

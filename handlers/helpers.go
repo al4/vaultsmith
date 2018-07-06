@@ -63,7 +63,6 @@ func IsTtlEquivalent(ttlA interface{}, ttlB interface{}) bool {
 		return false
 	}
 
-	log.Printf("\nA: %+v\nB: %+v\n", durA, durB)
 	if durA == durB {
 		return true
 	}
@@ -104,7 +103,6 @@ func convertToDuration(x interface{}) (time.Duration, error) {
 func IsSliceEquivalent(a interface{}, b interface{}) (equivalent bool) {
 	if reflect.TypeOf(a).Kind() == reflect.TypeOf(b).Kind() {
 		// just compare directly if type is the same
-		log.Println("direct compare")
 		return reflect.DeepEqual(a, b)
 	}
 
@@ -118,7 +116,6 @@ func IsSliceEquivalent(a interface{}, b interface{}) (equivalent bool) {
 		return firstElementEqual(b, a)
 	}
 
-	log.Println("returning false")
 	return false
 }
 
@@ -132,8 +129,22 @@ func firstElementEqual(slice interface{}, value interface{}) bool {
 		if t[0] == value && len(t) == 1 {
 			return true
 		}
+	case []interface{}:
+		s := reflect.ValueOf(t)
+		var val interface{}
+		for i := 0; i < s.Len(); i++ {
+			if i > 0 { // length > 1, cannot be equivalent
+				return false
+			}
+			if i == 0 {
+				val = fmt.Sprintf("%v", s.Index(i))
+			}
+		}
+		if val == value {
+			return true
+		}
 	default:
-		log.Fatalf("Unhandled type %s, please add this to the switch statement", t)
+		log.Fatalf("Unhandled type %T, please add this to the switch statement", t)
 	}
 
 	return false

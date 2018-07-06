@@ -91,12 +91,15 @@ func TestIsSliceEquivalent(t *testing.T) {
 		{ name: "equal int arr", valueA: []int{99}, valueB: []int{99}, expected: true },
 		{ name: "unequal int arr", valueA: []int{99}, valueB: []int{1}, expected: false },
 		{ name: "unequal int + int arr", valueA: []int{99}, valueB: 1, expected: false },
+
+		{ name: "equal string + interface", valueA: "foo", valueB: []interface{}{"foo"}, expected: true},
+		{ name: "unequal string + interface", valueA: "foo", valueB: []interface{}{"bar"}, expected: false},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			rv := IsSliceEquivalent(test.valueA, test.valueB)
 			if rv != test.expected {
-				log.Fatalf("Test case %q failed. A: %s, B: %s. Expected %b",
+				log.Fatalf("Test case %q failed. A: %s, B: %s. Expected %v",
 					test.name, test.valueA, test.valueB, test.expected)
 			}
 
