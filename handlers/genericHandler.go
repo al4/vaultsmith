@@ -31,6 +31,8 @@ func NewGenericHandler(c vaultClient.VaultsmithClient, globalRootPath string, ro
 		client: c,
 		globalRootPath: globalRootPath,
 		rootPath: rootPath,
+		liveDocMap: make(map[string]Document),
+		configuredDocMap: make(map[string]Document),
 	}, nil
 }
 
