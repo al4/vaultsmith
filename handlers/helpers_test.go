@@ -43,30 +43,61 @@ func TestConvertAuthConfigConvertsMaxLeaseTTL(t *testing.T) {
 	}
 }
 
-func TestIsTtlEqual_ints(t *testing.T) {
-	ttlA := 1
-	ttlB := 1
+func TestIsTtlEquivalent(t *testing.T) {
+	tests := []struct {
+		name string
+		ttlA interface{}
+		ttlB interface{}
+		expected bool
+	}{
+		{name: "strings", ttlA: "1m", ttlB: "1m", expected: true},
+		{name: "ints", ttlA: 60, ttlB: 60, expected: true},
+		{name: "string + int", ttlA: "1m", ttlB: 60, expected: true},
 
-	if ! IsTtlEqual(ttlA, ttlB) {
-		log.Fatal("Expected ttls to be equal")
+		{name: "unequal ints", ttlA: 10, ttlB: 20, expected: false},
+		{name: "unequal strings", ttlA: "1m", ttlB: "2m", expected: false},
+		{name: "unequal strings + int", ttlA: "1m", ttlB: 120, expected: false},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			rv := IsTtlEquivalent(test.ttlA, test.ttlB)
+			if rv != test.expected {
+				log.Fatalf("Test case %s failed. Expected %v, got %v. ttlA: %s, ttlB: %s",
+					test.name, test.expected, rv, test.ttlA, test.ttlB)
+			}
+
+		})
 	}
 }
 
-func TestIsTtlEqual_strings(t *testing.T) {
-	ttlA := "1m"
-	ttlB := "1m"
+func TestIsSliceEquivalent(t *testing.T) {
+	tests := []struct {
+		name string
+		valueA interface{}
+		valueB interface{}
+		expected bool
+	}{
+		{ name: "equal str", valueA: "foo", valueB: "foo", expected: true },
+		{ name: "equal str arr", valueA: []string{"foo"}, valueB: []string{"foo"}, expected: true },
+		{ name: "equal str + array", valueA: "foo", valueB: []string{"foo"}, expected: true },
 
-	if ! IsTtlEqual(ttlA, ttlB) {
-		log.Fatal("Expected ttls to be equal")
+		{ name: "unequal str", valueA: "foo", valueB: "bar", expected: false },
+		{ name: "unequal str arr", valueA: []string{"foo"}, valueB: []string{"bar"}, expected: false },
+		{ name: "unequal str + str array", valueA: "foo", valueB: []string{"bar"}, expected: false },
+
+		{ name: "equal int arr", valueA: []int{99}, valueB: []int{99}, expected: true },
+		{ name: "unequal int arr", valueA: []int{99}, valueB: []int{1}, expected: false },
+		{ name: "unequal int + int arr", valueA: []int{99}, valueB: 1, expected: false },
 	}
-}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			rv := IsSliceEquivalent(test.valueA, test.valueB)
+			if rv != test.expected {
+				log.Fatalf("Test case %q failed. A: %s, B: %s. Expected %b",
+					test.name, test.valueA, test.valueB, test.expected)
+			}
 
-func TestIsTtlEqual_intAndString(t *testing.T) {
-	ttlA := "1m"
-	ttlB := 60
-
-	if ! IsTtlEqual(ttlA, ttlB) {
-		log.Fatal("Expected ttls to be equal")
+		})
 	}
 }
 

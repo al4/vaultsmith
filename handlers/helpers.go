@@ -5,6 +5,7 @@ import (
 	"time"
 	"fmt"
 	"log"
+	"reflect"
 )
 
 // convert AuthConfigInput type to AuthConfigOutput type
@@ -49,7 +50,7 @@ func ConvertAuthConfig(input api.AuthConfigInput) (api.AuthConfigOutput, error) 
 }
 
 // Determine whether a string ttl is equal to an int ttl
-func IsTtlEqual(ttlA interface{}, ttlB interface{}) bool {
+func IsTtlEquivalent(ttlA interface{}, ttlB interface{}) bool {
 	durA, err := convertToDuration(ttlA)
 	if err != nil {
 		log.Printf("WARN: Error parsing %+v: %s", ttlA, err)
@@ -91,3 +92,43 @@ func convertToDuration(x interface{}) (time.Duration, error) {
 	return duration, nil
 
 }
+
+// determine whether an array is logically equivalent, e.g. [policy] == policy
+func IsSliceEquivalent(a interface{}, b interface{}) (equivalent bool) {
+	if reflect.TypeOf(a).Kind() == reflect.TypeOf(b).Kind() {
+		// just compare directly if type is the same
+		log.Println("direct compare")
+		return reflect.DeepEqual(a, b)
+	}
+
+	if reflect.TypeOf(a).Kind() == reflect.Slice {
+		// b must not be a slice, compare a[0] to it
+		return firstElementEqual(a, b)
+	}
+
+	if reflect.TypeOf(b).Kind() == reflect.Slice {
+		// a must not be a slice, compare b[0] to it
+		return firstElementEqual(b, a)
+	}
+
+	log.Println("returning false")
+	return false
+}
+
+func firstElementEqual(slice interface{}, value interface{}) bool {
+	switch t := slice.(type) {
+	case []string:
+		if t[0] == value && len(t) == 1 {
+			return true
+		}
+	case []int:
+		if t[0] == value && len(t) == 1 {
+			return true
+		}
+	default:
+		log.Fatalf("Unhandled type %s, please add this to the switch statement", t)
+	}
+
+	return false
+}
+

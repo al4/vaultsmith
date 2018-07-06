@@ -136,14 +136,19 @@ func (gh *GenericHandler) areKeysApplied(mapA map[string]interface{}, mapB map[s
 			continue  // value the same, skip further checks for this key
 		}
 
-		// this is a bit more complicated thanks to ttls and bundling into arrays :(
+		// this is a bit more complicated, thanks to ttls and bundling into arrays :(
 		if strings.Contains(key, "ttl") {
 			// check if the ttls are equivalent
-			if IsTtlEqual(mapA[key], mapB[key]) {
+			if IsTtlEquivalent(mapA[key], mapB[key]) {
 				continue
 			}
 		}
 		log.Printf(" ## %s not equal; %+v != %+v", key, mapA[key], mapB[key])
+
+		// covers cases such as "policy" == ["policy]
+		if IsSliceEquivalent(mapA[key], mapB[key]) {
+			continue
+		}
 		return false
 	}
 	return true
