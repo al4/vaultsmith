@@ -118,8 +118,6 @@ func (gh *GenericHandler) isDocApplied(doc Document) (bool, error) {
 	if secret == nil || secret.Data == nil {
 		return false, nil
 	}
-	log.Printf("local: %+v", doc.data)
-	log.Printf("remote: %+v", secret.Data)
 
 	return gh.areKeysApplied(doc.data, secret.Data), nil
 }
@@ -129,7 +127,6 @@ func (gh *GenericHandler) isDocApplied(doc Document) (bool, error) {
 func (gh *GenericHandler) areKeysApplied(mapA map[string]interface{}, mapB map[string]interface{}) bool {
 	for key := range mapA {
 		if _, ok := mapB[key]; ! ok {
-			log.Printf(" ** %s not present", key)
 			return false  // not present at all
 		}
 		if reflect.DeepEqual(mapA[key], mapB[key]) {
@@ -147,7 +144,7 @@ func (gh *GenericHandler) areKeysApplied(mapA map[string]interface{}, mapB map[s
 		if IsSliceEquivalent(mapA[key], mapB[key]) {
 			continue
 		}
-		log.Printf(" ## %s not equal; %+v != %+v", key, mapA[key], mapB[key])
+		log.Printf(" ## %q not equal; %+v(%T) != %+v(%T)", key, mapA[key], mapA[key], mapB[key], mapB[key])
 
 		return false
 	}
