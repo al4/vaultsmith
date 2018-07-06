@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"encoding/json"
+	"reflect"
 )
 
 type Document struct {
@@ -121,7 +122,26 @@ func (gh *GenericHandler) EnsureDoc(doc Document) error {
 	return err
 }
 
+// true if the document is on the server and matches the one configured
 func (gh *GenericHandler) isDocApplied(doc Document) (bool, error) {
+	secret, err := gh.client.Read(doc.path)
+	if err != nil {
+		// assume not applied, but what error?
+		// TODO only mask "missing" errors
+		log.Println("TODO: error is %s", err)
+		return false, nil
+	}
+	log.Printf("%+v", secret)
+	log.Printf("%+v", doc.data)
+
+	if secret.Data == nil {
+		return false, nil
+	}
+	log.Printf("%+v", secret.Data)
+
+	if reflect.DeepEqual(doc.data, secret.Data) {
+		return true, nil
+	}
 	return false, nil
 }
 

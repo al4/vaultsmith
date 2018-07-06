@@ -4,18 +4,25 @@ import (
 	"testing"
 	"github.com/starlingbank/vaultsmith/vaultClient"
 	"log"
+	vaultApi "github.com/hashicorp/vault/api"
 )
 
 func TestGenericHandler_isDocApplied_true(t *testing.T) {
-	client := &vaultClient.MockVaultsmithClient{}
-	gh, err := NewGenericHandler(client, "", "")
-	if err != nil {
-		log.Fatal("Failed to create generic handler")
-	}
-
 	testData := make(map[string]interface{})
 	testData["testKey"] = "testValue"
 	testDoc := Document{"test/path", testData}
+
+	testSecret := vaultApi.Secret{
+		Data: testData,
+	}
+	client := &vaultClient.MockVaultsmithClient{
+		ReturnSecret: &testSecret,
+	}
+
+	gh, err := NewGenericHandler(client, "N/A", "N/A")
+	if err != nil {
+		log.Fatal("Failed to create generic handler")
+	}
 
 	gh.liveDocMap["test/path"] = testDoc
 	gh.configuredDocMap["test/path"] = testDoc
