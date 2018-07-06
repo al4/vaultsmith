@@ -23,8 +23,6 @@ type GenericHandler struct {
 	rootPath 			string  // Where we walk from.
 	globalRootPath		string  // The top level config directory. We need this as the relative path
 								// is used to determine the vault write path.
-	liveDocMap			map[string]Document
-	configuredDocMap	map[string]Document
 }
 
 func NewGenericHandler(c vaultClient.VaultsmithClient, globalRootPath string, rootPath string) (*GenericHandler, error) {
@@ -32,8 +30,6 @@ func NewGenericHandler(c vaultClient.VaultsmithClient, globalRootPath string, ro
 		client: c,
 		globalRootPath: globalRootPath,
 		rootPath: rootPath,
-		liveDocMap: make(map[string]Document),
-		configuredDocMap: make(map[string]Document),
 	}, nil
 }
 
@@ -94,29 +90,18 @@ func (gh *GenericHandler) PutPoliciesFromDir(path string) error {
 	return err
 }
 
-// Fetch all documents under the root path and populate the liveDocMap
-func (gh *GenericHandler) fetchLiveDocMap() (err error) {
-	// TODO implement me
-	return
-}
-
-// Ensure the document is present and consisten
+// Ensure the document is present and consistent
 func (gh *GenericHandler) EnsureDoc(doc Document) error {
-	gh.configuredDocMap[doc.path] = doc
-
-	if d, ok := gh.liveDocMap[doc.path]; ! ok {
-		log.Println(d)
-		// not present, write this doc
-	}
-
 	applied, err := gh.isDocApplied(doc)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not determine if %q is applied: %s", doc.path, err)
 	}
+
 	if applied {
 		log.Printf("Document %s already applied", doc.path)
 		return nil
 	}
+
 	secret, err := gh.client.Write(doc.path, doc.data)
 	log.Println(secret)
 	return err
@@ -128,7 +113,7 @@ func (gh *GenericHandler) isDocApplied(doc Document) (bool, error) {
 	if err != nil {
 		// assume not applied, but what error?
 		// TODO only mask "missing" errors
-		log.Println("TODO: error is %s", err)
+		log.Printf("TODO: error is %s", err)
 		return false, nil
 	}
 	log.Printf("%+v", secret)
