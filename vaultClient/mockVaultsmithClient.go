@@ -10,6 +10,7 @@ type MockVaultsmithClient struct {
 	mock.Mock
 	ReturnString string
 	ReturnError  error
+	ReturnSecret *vaultApi.Secret
 }
 
 func (m *MockVaultsmithClient) Authenticate(role string) error {
@@ -52,3 +53,14 @@ func (m *MockVaultsmithClient) DeletePolicy(name string) (error) {
 	return m.ReturnError
 }
 
+func (m *MockVaultsmithClient) Read(path string) (*vaultApi.Secret, error) {
+	return m.ReturnSecret, m.ReturnError
+}
+
+func (m *MockVaultsmithClient) Write(path string, data map[string]interface{}) (*vaultApi.Secret, error) {
+	return m.ReturnSecret, m.ReturnError
+}
+
+func (m *MockVaultsmithClient) List(path string) (*vaultApi.Secret, error) {
+	return m.ReturnSecret, m.ReturnError
+}

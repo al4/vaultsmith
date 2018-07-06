@@ -136,8 +136,7 @@ func (c *VaultClient) Read(path string) (*vaultApi.Secret, error) {
 }
 
 func (c *VaultClient) Write(path string, data map[string]interface{}) (*vaultApi.Secret, error) {
-	secret, err := c.client.Logical().Write(path, data)
-	return secret, err
+	return c.client.Logical().Write(path, data)
 }
 
 func (c *VaultClient) List(path string) (*vaultApi.Secret, error) {
