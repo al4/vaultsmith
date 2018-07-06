@@ -63,9 +63,9 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 	if err != nil {
 		return fmt.Errorf("could not determine relative path of %s to %s: %s", path, gh.globalRootPath, err)
 	}
-	_, file := filepath.Split(path)
+	dir, file := filepath.Split(relPath)
 	fileName := strings.Split(file, ".")[0]  // sans extension
-	writePath := filepath.Join(relPath, fileName)
+	writePath := filepath.Join(dir, fileName)
 	log.Printf("writePath: %s", writePath)
 
 	doc := Document{
@@ -102,8 +102,8 @@ func (gh *GenericHandler) EnsureDoc(doc Document) error {
 		return nil
 	}
 
-	secret, err := gh.client.Write(doc.path, doc.data)
-	log.Println(secret)
+	log.Printf("Writing %q to server", doc.path)
+	_, err = gh.client.Write(doc.path, doc.data)
 	return err
 }
 
@@ -116,10 +116,8 @@ func (gh *GenericHandler) isDocApplied(doc Document) (bool, error) {
 		log.Printf("TODO: error is %s", err)
 		return false, nil
 	}
-	log.Printf("%+v", secret)
-	log.Printf("%+v", doc.data)
 
-	if secret.Data == nil {
+	if secret == nil || secret.Data == nil {
 		return false, nil
 	}
 	log.Printf("%+v", secret.Data)
