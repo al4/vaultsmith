@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/vault/api"
 	"time"
 	"fmt"
+	"log"
 )
 
 // convert AuthConfigInput type to AuthConfigOutput type
@@ -45,4 +46,48 @@ func ConvertAuthConfig(input api.AuthConfigInput) (api.AuthConfigOutput, error) 
 	}
 
 	return output, nil
+}
+
+// Determine whether a string ttl is equal to an int ttl
+func IsTtlEqual(ttlA interface{}, ttlB interface{}) bool {
+	durA, err := convertToDuration(ttlA)
+	if err != nil {
+		log.Printf("WARN: Error parsing %+v: %s", ttlA, err)
+		return false
+	}
+	durB, err := convertToDuration(ttlB)
+	if err != nil {
+		log.Printf("WARN: Error converting %+v to duration: %s", ttlA, err)
+		return false
+	}
+
+	log.Printf("\nA: %+v\nB: %+v\n", durA, durB)
+	if durA == durB {
+		return true
+	}
+
+	return false
+}
+
+// convert x to time.Duration. if x is an integer, we assume it is in seconds
+func convertToDuration(x interface{}) (time.Duration, error) {
+	var duration time.Duration
+	var err error
+
+	switch x.(type) {
+	case string:
+		duration, err = time.ParseDuration(x.(string))
+		if err != nil {
+			return 0, fmt.Errorf("%q can't be parsed as duration", x)
+		}
+	case int64:
+		duration = time.Duration(x.(int64)) * time.Second
+	case int:
+		duration = time.Duration(int64(x.(int))) * time.Second
+	default:
+		return 0, fmt.Errorf("type of '%+v' not handled", x)
+	}
+
+	return duration, nil
+
 }

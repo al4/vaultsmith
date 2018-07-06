@@ -42,3 +42,31 @@ func TestConvertAuthConfigConvertsMaxLeaseTTL(t *testing.T) {
 		log.Fatalf("Wrong MaxLeastTTL value %d, expected %d", out.MaxLeaseTTL, expected)
 	}
 }
+
+func TestIsTtlEqual_ints(t *testing.T) {
+	ttlA := 1
+	ttlB := 1
+
+	if ! IsTtlEqual(ttlA, ttlB) {
+		log.Fatal("Expected ttls to be equal")
+	}
+}
+
+func TestIsTtlEqual_strings(t *testing.T) {
+	ttlA := "1m"
+	ttlB := "1m"
+
+	if ! IsTtlEqual(ttlA, ttlB) {
+		log.Fatal("Expected ttls to be equal")
+	}
+}
+
+func TestIsTtlEqual_intAndString(t *testing.T) {
+	ttlA := "1m"
+	ttlB := 60
+
+	if ! IsTtlEqual(ttlA, ttlB) {
+		log.Fatal("Expected ttls to be equal")
+	}
+}
+

@@ -66,7 +66,6 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 	dir, file := filepath.Split(relPath)
 	fileName := strings.Split(file, ".")[0]  // sans extension
 	writePath := filepath.Join(dir, fileName)
-	log.Printf("writePath: %s", writePath)
 
 	doc := Document{
 		path: writePath,
@@ -98,7 +97,7 @@ func (gh *GenericHandler) EnsureDoc(doc Document) error {
 	}
 
 	if applied {
-		log.Printf("Document %s already applied", doc.path)
+		log.Printf("Document %q already applied", doc.path)
 		return nil
 	}
 
@@ -111,21 +110,43 @@ func (gh *GenericHandler) EnsureDoc(doc Document) error {
 func (gh *GenericHandler) isDocApplied(doc Document) (bool, error) {
 	secret, err := gh.client.Read(doc.path)
 	if err != nil {
-		// assume not applied, but what error?
-		// TODO only mask "missing" errors
-		log.Printf("TODO: error is %s", err)
+		// TODO assume not applied, but should handle specific errors differently
+		log.Printf("TODO: error on client.Read, assuming doc not present (%s)", err)
 		return false, nil
 	}
 
 	if secret == nil || secret.Data == nil {
 		return false, nil
 	}
-	log.Printf("%+v", secret.Data)
+	log.Printf("local: %+v", doc.data)
+	log.Printf("remote: %+v", secret.Data)
 
-	if reflect.DeepEqual(doc.data, secret.Data) {
-		return true, nil
+	return gh.areKeysApplied(doc.data, secret.Data), nil
+}
+
+// Ensure all key/value pairs in mapA are present and consistent in mapB
+// extra keys in remoteMap are ignored
+func (gh *GenericHandler) areKeysApplied(mapA map[string]interface{}, mapB map[string]interface{}) bool {
+	for key := range mapA {
+		if _, ok := mapB[key]; ! ok {
+			log.Printf(" ** %s not present", key)
+			return false  // not present at all
+		}
+		if reflect.DeepEqual(mapA[key], mapB[key]) {
+			continue  // value the same, skip further checks for this key
+		}
+
+		// this is a bit more complicated thanks to ttls and bundling into arrays :(
+		if strings.Contains(key, "ttl") {
+			// check if the ttls are equivalent
+			if IsTtlEqual(mapA[key], mapB[key]) {
+				continue
+			}
+		}
+		log.Printf(" ## %s not equal; %+v != %+v", key, mapA[key], mapB[key])
+		return false
 	}
-	return false, nil
+	return true
 }
 
 func (gh *GenericHandler) RemoveUndeclaredDocuments() (removed []string, err error){
