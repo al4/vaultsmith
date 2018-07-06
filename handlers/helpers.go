@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"encoding/json"
 )
 
 // convert AuthConfigInput type to AuthConfigOutput type
@@ -85,8 +86,14 @@ func convertToDuration(x interface{}) (time.Duration, error) {
 		duration = time.Duration(x.(int64)) * time.Second
 	case int:
 		duration = time.Duration(int64(x.(int))) * time.Second
+	case json.Number:
+		i, err := x.(json.Number).Int64()
+		if err != nil {
+			return 0, fmt.Errorf("Foo: %s", err.Error())
+		}
+		duration = time.Duration(i) * time.Second
 	default:
-		return 0, fmt.Errorf("type of '%+v' not handled", x)
+		return 0, fmt.Errorf("type of '%+v' not handled", reflect.TypeOf(x))
 	}
 
 	return duration, nil

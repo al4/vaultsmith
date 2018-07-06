@@ -4,6 +4,7 @@ import (
 	"testing"
 	vaultApi "github.com/hashicorp/vault/api"
 	"log"
+	"encoding/json"
 )
 
 func TestConvertAuthConfig(t *testing.T) {
@@ -57,6 +58,8 @@ func TestIsTtlEquivalent(t *testing.T) {
 		{name: "unequal ints", ttlA: 10, ttlB: 20, expected: false},
 		{name: "unequal strings", ttlA: "1m", ttlB: "2m", expected: false},
 		{name: "unequal strings + int", ttlA: "1m", ttlB: 120, expected: false},
+
+		{name: "json.Number + string", ttlA: json.Number("60"), ttlB: "1m", expected: true},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
