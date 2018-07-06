@@ -88,7 +88,7 @@ func convertToDuration(x interface{}) (time.Duration, error) {
 	case json.Number:
 		i, err := x.(json.Number).Int64()
 		if err != nil {
-			return 0, fmt.Errorf("Foo: %s", err.Error())
+			return 0, fmt.Errorf("could not parse %+v as json number: %s", x, err.Error())
 		}
 		duration = time.Duration(i) * time.Second
 	default:
