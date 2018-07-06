@@ -32,8 +32,13 @@ func NewConfigWalker(client vaultClient.VaultsmithClient, configDir string) Conf
 	if err != nil {
 		log.Fatalf("Could not create sysPolicyHandler: %s", err)
 	}
+	genericHandler, err := handlers.NewGenericHandler(client, configDir, filepath.Join(configDir, "auth"))
+	if err != nil {
+		log.Fatalf("Could not create genericHandler: %s", err)
+	}
 
 	var handlerMap = map[string]handlers.PathHandler {
+		"auth": genericHandler,
 		"sys/auth": sysAuthHandler,
 		"sys/policy": sysPolicyHandler,
 	}
@@ -47,7 +52,7 @@ func NewConfigWalker(client vaultClient.VaultsmithClient, configDir string) Conf
 
 func (cw ConfigWalker) Run() error {
 	// file will be a dir here unless a trailing slash was added
-	log.Printf("Starting in directory %s", filepath.Join(cw.ConfigDir, "sys"))
+	log.Printf("Starting in directory %s", cw.ConfigDir)
 
 	err := cw.walkConfigDir(cw.ConfigDir, cw.HandlerMap)
 	if err != nil {

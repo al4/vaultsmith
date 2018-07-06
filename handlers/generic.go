@@ -26,9 +26,10 @@ type GenericHandler struct {
 	configuredDocMap	map[string]Document
 }
 
-func NewGenericHandler(c vaultClient.VaultsmithClient, rootPath string) (*GenericHandler, error) {
+func NewGenericHandler(c vaultClient.VaultsmithClient, globalRootPath string, rootPath string) (*GenericHandler, error) {
 	return &GenericHandler{
 		client: c,
+		globalRootPath: globalRootPath,
 		rootPath: rootPath,
 	}, nil
 }
@@ -101,6 +102,7 @@ func (gh *GenericHandler) EnsureDoc(doc Document) error {
 	gh.configuredDocMap[doc.path] = doc
 
 	if d, ok := gh.liveDocMap[doc.path]; ! ok {
+		log.Println(d)
 		// not present, write this doc
 	}
 
@@ -118,7 +120,7 @@ func (gh *GenericHandler) EnsureDoc(doc Document) error {
 }
 
 func (gh *GenericHandler) isDocApplied(doc Document) (bool, error) {
-
+	return false, nil
 }
 
 func (gh *GenericHandler) RemoveUndeclaredDocuments() (removed []string, err error){
