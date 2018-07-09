@@ -141,6 +141,7 @@ func (gh *GenericHandler) areKeysApplied(mapA map[string]interface{}, mapB map[s
 			}
 		}
 		// covers cases such as "policy" == ["policy]
+		// logic is a bit scary, see function documentation
 		if IsSliceEquivalent(mapA[key], mapB[key]) {
 			continue
 		}

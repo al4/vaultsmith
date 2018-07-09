@@ -99,7 +99,8 @@ func convertToDuration(x interface{}) (time.Duration, error) {
 
 }
 
-// determine whether an array is logically equivalent, e.g. [policy] == policy
+// Determine whether an array is logically equivalent as far as Vault is concerned.
+// e.g. [policy] == policy
 func IsSliceEquivalent(a interface{}, b interface{}) (equivalent bool) {
 	if reflect.TypeOf(a).Kind() == reflect.TypeOf(b).Kind() {
 		// just compare directly if type is the same
@@ -119,6 +120,7 @@ func IsSliceEquivalent(a interface{}, b interface{}) (equivalent bool) {
 	return false
 }
 
+// Return true if value is equal to the first item in slice
 func firstElementEqual(slice interface{}, value interface{}) bool {
 	switch t := slice.(type) {
 	case []string:
@@ -137,6 +139,8 @@ func firstElementEqual(slice interface{}, value interface{}) bool {
 				return false
 			}
 			if i == 0 {
+				// This is a little scary in a strongly typed context, as we're parsing everything
+				// as a string. But in the context of vault API responses it should be OK...
 				val = fmt.Sprintf("%v", s.Index(i))
 			}
 		}
