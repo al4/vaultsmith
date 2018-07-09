@@ -9,6 +9,7 @@ import (
 	"strings"
 	"github.com/starlingbank/vaultsmith/handlers"
 	"github.com/starlingbank/vaultsmith/vaultClient"
+	"sort"
 )
 
 type Walker interface {
@@ -19,6 +20,7 @@ type ConfigWalker struct {
 	HandlerMap map[string]handlers.PathHandler
 	Client     vaultClient.VaultsmithClient
 	ConfigDir  string
+	Visited		map[string]bool
 }
 
 // Instantiates a configWalker and the required handlers
@@ -47,6 +49,7 @@ func NewConfigWalker(client vaultClient.VaultsmithClient, configDir string) Conf
 		HandlerMap: handlerMap,
 		Client: client,
 		ConfigDir: path.Clean(configDir),
+		Visited: map[string]bool{},
 	}
 }
 
@@ -62,6 +65,36 @@ func (cw ConfigWalker) Run() error {
 }
 
 func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]handlers.PathHandler) error {
+	// Process according to order
+	var paths []string
+	for p := range cw.HandlerMap {
+		paths = append(paths, p)
+	}
+
+	sort.Slice(paths, func(i, j int) bool {
+		h1 := cw.HandlerMap[paths[i]]
+		h2 := cw.HandlerMap[paths[j]]
+		// zero (default) values always last
+		if h1.Order() == 0 {
+			return false
+		}
+		if h2.Order() == 0 {
+			return true
+		}
+		return h1.Order() < h2.Order()
+	})
+
+	for _, v := range paths {
+		handler := cw.HandlerMap[v]
+		p := filepath.Join(path, v)
+		err := handler.PutPoliciesFromDir(p)
+		if err != nil {
+			return err
+		}
+		cw.Visited[p] = true
+	}
+
+	// Process other directories with the genericHandler
 	err := filepath.Walk(path, cw.walkFile)
 	return err
 }
@@ -69,6 +102,9 @@ func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]handlers
 // determine the handler and pass the root directory to it
 func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 	if ! f.IsDir() {  // only want to operate on directories
+		return nil
+	}
+	if visited, ok := cw.Visited[path]; ok && visited { // already been here
 		return nil
 	}
 	relPath, err := filepath.Rel(cw.ConfigDir, path)

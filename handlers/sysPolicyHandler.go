@@ -27,6 +27,7 @@ type SysPolicyHandler struct {
 	rootPath				string
 	livePolicyList			[]string
 	configuredPolicyList	[]string
+	order					int
 }
 
 type SysPolicy struct {
@@ -38,7 +39,7 @@ func NewSysPolicyHandler(c vaultClient.VaultsmithClient, rootPath string) (*SysP
 	// Build a map of currently active auth methods, so walkFile() can reference it
 	livePolicyList, err := c.ListPolicies()
 	if err != nil {
-		return &SysPolicyHandler{}, err
+		return &SysPolicyHandler{}, fmt.Errorf("error listing policies: %s", err)
 	}
 
 	return &SysPolicyHandler{
@@ -46,6 +47,7 @@ func NewSysPolicyHandler(c vaultClient.VaultsmithClient, rootPath string) (*SysP
 		rootPath:            	rootPath,
 		livePolicyList:      	livePolicyList,
 		configuredPolicyList:	[]string{},
+		order:					20,  // sys needs to be processed before other directories
 	}, nil
 }
 
@@ -160,4 +162,8 @@ func (sh *SysPolicyHandler) isPolicyApplied(policy SysPolicy) (bool, error) {
 	} else {
 		return false, nil
 	}
+}
+
+func (sh *SysPolicyHandler) Order() int {
+	return sh.order
 }

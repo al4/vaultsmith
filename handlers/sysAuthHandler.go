@@ -23,6 +23,7 @@ type SysAuthHandler struct {
 	rootPath 			string
 	liveAuthMap 		map[string]*vaultApi.AuthMount
 	configuredAuthMap 	map[string]*vaultApi.AuthMount
+	order				int
 }
 
 func NewSysAuthHandler(c vaultClient.VaultsmithClient, rootPath string) (*SysAuthHandler, error) {
@@ -41,6 +42,7 @@ func NewSysAuthHandler(c vaultClient.VaultsmithClient, rootPath string) (*SysAut
 		rootPath: rootPath,
 		liveAuthMap: liveAuthMap,
 		configuredAuthMap: configuredAuthMap,
+		order: 10,  // sys needs to be processed before other directories
 	}, nil
 }
 
@@ -157,4 +159,8 @@ func (sh *SysAuthHandler) isConfigApplied(localConfig vaultApi.AuthConfigInput, 
 	} else {
 		return nil, false
 	}
+}
+
+func (sh *SysAuthHandler) Order() int {
+	return sh.order
 }

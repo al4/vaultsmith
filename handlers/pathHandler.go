@@ -13,6 +13,7 @@ import (
 // A PathHandler takes a path and applies the policies within
 type PathHandler interface {
 	PutPoliciesFromDir(path string) error
+	Order() int
 }
 
 // Base set of methods common to all PathHandlers
@@ -21,9 +22,10 @@ type BasePathHandler struct {
 	rootPath 			string
 	liveAuthMap 		*map[string]*vaultApi.AuthMount
 	configuredAuthMap 	*map[string]*vaultApi.AuthMount
+	order				int  // order to process. 0 is treated as higher than (after) any positive int
 }
 
-func (sh *BasePathHandler) readFile(path string) (string, error) {
+func (h *BasePathHandler) readFile(path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		err = fmt.Errorf("error opening file: %s", err)
@@ -43,3 +45,7 @@ func (sh *BasePathHandler) readFile(path string) (string, error) {
 	return data, nil
 }
 
+
+func (h *BasePathHandler) Order() int {
+	return h.order
+}

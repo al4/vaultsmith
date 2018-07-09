@@ -156,3 +156,6 @@ func (gh *GenericHandler) RemoveUndeclaredDocuments() (removed []string, err err
 	return
 }
 
+func (gh *GenericHandler) Order() int {
+	return gh.order
+}
