@@ -47,7 +47,7 @@ func NewTemplatedDocument(filename string, mappingFile string) (t *TemplatedDocu
 	}, nil
 }
 
-// Return slice containing all "versions" of the document
+// Return slice containing all "versions" of the document, with template placeholders replaced
 func (t *TemplatedDocument) Render() (versions []string, err error) {
 	placeholders, err := t.findPlaceholders()
 	if err != nil {

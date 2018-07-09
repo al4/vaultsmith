@@ -86,3 +86,25 @@ func TestTemplatedDocument_Render(t *testing.T) {
 	}
 }
 
+func TestTemplatedDocument_Render_MultipleFoo(t *testing.T) {
+	mapping := []map[string]string{
+		{"foo": "A", "bar": "A"},
+	}
+
+	tf := TemplatedDocument{
+		Path:         "",
+		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
+		ValueMapList: mapping,
+		Content:      "foo is {{ foo }} bar is {{ bar }}. And foo is {{ foo }}",
+	}
+	contentSlice, err := tf.Render()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var exp string
+	exp = "foo is A bar is A. And foo is A"
+	if contentSlice[0] != exp {
+		log.Fatalf("Expected %q, got %q", exp, contentSlice[0])
+	}
+}
