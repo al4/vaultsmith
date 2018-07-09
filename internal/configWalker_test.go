@@ -6,6 +6,8 @@ import (
 	"time"
 	"log"
 	"github.com/starlingbank/vaultsmith/handlers"
+	"github.com/starlingbank/vaultsmith/vaultClient"
+	"reflect"
 )
 
 func TestConfigHandlerWalkFile(t *testing.T) {
@@ -63,6 +65,29 @@ func TestHasParentHandlerSelf(t *testing.T) {
 	if hasParent {
 		log.Fatal("Got true for hasParent(\"parent/child\") call, should be false (not parent of self).")
 	}
+}
+
+func TestSortedPaths(t *testing.T) {
+	fooH, err := handlers.NewDummyHandler(&vaultClient.MockVaultsmithClient{}, "", 30)
+	if err != nil { log.Fatal(err) }
+	barH, err := handlers.NewDummyHandler(&vaultClient.MockVaultsmithClient{}, "", 10)
+	if err != nil { log.Fatal(err) }
+	bozH, err := handlers.NewDummyHandler(&vaultClient.MockVaultsmithClient{}, "", 20)
+	if err != nil { log.Fatal(err) }
+
+	cw := ConfigWalker{
+		HandlerMap: map[string]handlers.PathHandler{
+			"foo": fooH,
+			"bar": barH,
+			"boz": bozH,
+		},
+	}
+	expected := []string{"bar", "boz", "foo"}
+	r := cw.sortedPaths()
+	if ! reflect.DeepEqual(r, expected) {
+		log.Fatalf("Unexpected slice result (out of order?). Expected %+v; Got: %+v", expected, r)
+	}
+
 }
 
 type fakeFileInfo struct {

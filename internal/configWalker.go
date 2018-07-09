@@ -64,9 +64,8 @@ func (cw ConfigWalker) Run() error {
 	return nil
 }
 
-func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]handlers.PathHandler) error {
-	// Process according to order
-	var paths []string
+// Return a sorted slice of paths based on the Order() of its handler
+func (cw ConfigWalker) sortedPaths() (paths []string) {
 	for p := range cw.HandlerMap {
 		paths = append(paths, p)
 	}
@@ -84,6 +83,12 @@ func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]handlers
 		return h1.Order() < h2.Order()
 	})
 
+	return paths
+}
+
+func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]handlers.PathHandler) error {
+	// Process according to <handler>.Order()
+	paths := cw.sortedPaths()
 	for _, v := range paths {
 		handler := cw.HandlerMap[v]
 		p := filepath.Join(path, v)

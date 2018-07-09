@@ -13,10 +13,11 @@ type DummyHandler struct {
 	order				int
 }
 
-func NewDummyHandler(c vaultClient.VaultsmithClient, rootPath string) (*DummyHandler, error) {
+func NewDummyHandler(c vaultClient.VaultsmithClient, rootPath string, order int) (*DummyHandler, error) {
 	return &DummyHandler{
 		client: c,
 		rootPath: rootPath,
+		order: order,
 	}, nil
 }
 
