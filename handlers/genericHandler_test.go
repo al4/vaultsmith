@@ -10,7 +10,7 @@ import (
 func TestGenericHandler_isDocApplied_true(t *testing.T) {
 	testData := make(map[string]interface{})
 	testData["testKey"] = "testValue"
-	testDoc := Document{"test/path", testData}
+	testDoc := GenericDocument{"test/path", testData}
 
 	returnSecret := vaultApi.Secret{
 		Data: testData,
@@ -38,7 +38,7 @@ func TestGenericHandler_isDocApplied_falseValue(t *testing.T) {
 	testDataB := make(map[string]interface{})
 
 	testDataA["testKey"] = "testValue"
-	testDoc := Document{"test/path", testDataA}
+	testDoc := GenericDocument{"test/path", testDataA}
 
 	testDataB["testKey"] = "otherValue"
 	returnSecret := vaultApi.Secret{

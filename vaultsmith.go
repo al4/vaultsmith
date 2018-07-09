@@ -12,18 +12,21 @@ import (
 )
 
 var flags = flag.NewFlagSet("Vaultsmith", flag.ExitOnError)
-var configDir string
-var vaultRole string
+var configDir		string
+var vaultRole		string
+var templateFile	string
 
 type VaultsmithConfig struct {
-	configDir	string
-	vaultRole	string
+	configDir		string
+	vaultRole		string
+	templateFile	string
 }
 
 func NewVaultsmithConfig() (*VaultsmithConfig, error) {
 	return &VaultsmithConfig{
-		configDir: configDir,
-		vaultRole: vaultRole,
+		configDir:		configDir,
+		vaultRole:		vaultRole,
+		templateFile:	templateFile,
 	}, nil
 }
 
@@ -34,6 +37,9 @@ func init() {
 	)
 	flags.StringVar(
 		&vaultRole, "role", "", "The Vault role to authenticate as",
+	)
+	flags.StringVar(
+		&templateFile, "templateFile", "example/template.json", "JSON file containing template mappings",
 	)
 
 	flags.Usage = func() {

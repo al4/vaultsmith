@@ -11,7 +11,7 @@ import (
 	"reflect"
 )
 
-type Document struct {
+type GenericDocument struct {
 	path string
 	data map[string]interface{}
 }
@@ -67,7 +67,7 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 	fileName := strings.Split(file, ".")[0]  // sans extension
 	writePath := filepath.Join(dir, fileName)
 
-	doc := Document{
+	doc := GenericDocument{
 		path: writePath,
 		data: data,
 	}
@@ -90,7 +90,7 @@ func (gh *GenericHandler) PutPoliciesFromDir(path string) error {
 }
 
 // Ensure the document is present and consistent
-func (gh *GenericHandler) EnsureDoc(doc Document) error {
+func (gh *GenericHandler) EnsureDoc(doc GenericDocument) error {
 	applied, err := gh.isDocApplied(doc)
 	if err != nil {
 		return fmt.Errorf("could not determine if %q is applied: %s", doc.path, err)
@@ -107,7 +107,7 @@ func (gh *GenericHandler) EnsureDoc(doc Document) error {
 }
 
 // true if the document is on the server and matches the one configured
-func (gh *GenericHandler) isDocApplied(doc Document) (bool, error) {
+func (gh *GenericHandler) isDocApplied(doc GenericDocument) (bool, error) {
 	secret, err := gh.client.Read(doc.path)
 	if err != nil {
 		// TODO assume not applied, but should handle specific errors differently
@@ -145,8 +145,7 @@ func (gh *GenericHandler) areKeysApplied(mapA map[string]interface{}, mapB map[s
 		if IsSliceEquivalent(mapA[key], mapB[key]) {
 			continue
 		}
-		log.Printf(" ## %q not equal; %+v(%T) != %+v(%T)", key, mapA[key], mapA[key], mapB[key], mapB[key])
-
+		//log.Printf(" ## %q not equal; %+v(%T) != %+v(%T)", key, mapA[key], mapA[key], mapB[key], mapB[key])
 		return false
 	}
 	return true

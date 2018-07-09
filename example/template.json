@@ -1,0 +1,6 @@
+[
+  {"service": "foo", "option": "value"},
+  {"service": "bar"},
+  {"service": "baz"},
+  {"service": "boz"}
+]

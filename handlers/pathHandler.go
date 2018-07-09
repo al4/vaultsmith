@@ -16,6 +16,8 @@ type PathHandler interface {
 	Order() int
 }
 
+type ValueMap map[string][]string
+
 // Base set of methods common to all PathHandlers
 type BasePathHandler struct {
 	client 				vaultClient.VaultsmithClient
@@ -44,7 +46,6 @@ func (h *BasePathHandler) readFile(path string) (string, error) {
 
 	return data, nil
 }
-
 
 func (h *BasePathHandler) Order() int {
 	return h.order
