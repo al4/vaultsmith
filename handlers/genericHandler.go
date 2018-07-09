@@ -9,6 +9,8 @@ import (
 	"strings"
 	"encoding/json"
 	"reflect"
+	"github.com/starlingbank/vaultsmith/templateDocument"
+	"github.com/starlingbank/vaultsmith/config"
 )
 
 type GenericDocument struct {
@@ -20,16 +22,18 @@ type GenericDocument struct {
 type GenericHandler struct {
 	BasePathHandler
 	client 				vaultClient.VaultsmithClient
-	rootPath 			string  // Where we walk from.
+	rootPath 			string  // Where we walk from
 	globalRootPath		string  // The top level config directory. We need this as the relative path
 								// is used to determine the vault write path.
+	mappingFile string
 }
 
-func NewGenericHandler(c vaultClient.VaultsmithClient, globalRootPath string, rootPath string) (*GenericHandler, error) {
+func NewGenericHandler(c vaultClient.VaultsmithClient, config config.VaultsmithConfig, rootPath string) (*GenericHandler, error) {
 	return &GenericHandler{
 		client: c,
-		globalRootPath: globalRootPath,
+		globalRootPath: config.ConfigDir,
 		rootPath: rootPath,
+		mappingFile: config.TemplateFile,
 	}, nil
 }
 
@@ -48,32 +52,41 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 	log.Printf("Applying %s\n", path)
 
 	// getting file contents
-	fileContents, err := gh.readFile(path)
+	td, err := templateDocument.NewTemplatedDocument(path, gh.mappingFile)
 	if err != nil {
-		return err
-	}
-	var data map[string]interface{}
-	err = json.Unmarshal([]byte(fileContents), &data)
-	if err != nil {
-		return fmt.Errorf("failed to parse json from file %q: %s", path, err)
+		return fmt.Errorf("failed to instantiate TemplateDocument: %s", err)
 	}
 
-	// determine write path
-	relPath, err := filepath.Rel(gh.globalRootPath, path)
+	templatedDocs, err := td.Render()
 	if err != nil {
-		return fmt.Errorf("could not determine relative path of %s to %s: %s", path, gh.globalRootPath, err)
+		return fmt.Errorf("failed to render document %q: %s", path, err)
 	}
-	dir, file := filepath.Split(relPath)
-	fileName := strings.Split(file, ".")[0]  // sans extension
-	writePath := filepath.Join(dir, fileName)
 
-	doc := GenericDocument{
-		path: writePath,
-		data: data,
-	}
-	err = gh.EnsureDoc(doc)
-	if err != nil {
-		return fmt.Errorf("failed to ensure document %q is applied: %s", path, err)
+	for _, content := range templatedDocs {
+		// this function now feels overloaded
+		var data map[string]interface{}
+		err = json.Unmarshal([]byte(content), &data)
+		if err != nil {
+			return fmt.Errorf("failed to parse json from file %q: %s", path, err)
+		}
+
+		// determine write path
+		relPath, err := filepath.Rel(gh.globalRootPath, path)
+		if err != nil {
+			return fmt.Errorf("could not determine relative path of %s to %s: %s", path, gh.globalRootPath, err)
+		}
+		dir, file := filepath.Split(relPath)
+		fileName := strings.Split(file, ".")[0]  // sans extension
+		writePath := filepath.Join(dir, fileName)
+
+		doc := GenericDocument{
+			path: writePath,
+			data: data,
+		}
+		err = gh.EnsureDoc(doc)
+		if err != nil {
+			return fmt.Errorf("failed to ensure document %q is applied: %s", path, err)
+		}
 	}
 
 	return nil

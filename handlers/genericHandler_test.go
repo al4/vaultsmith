@@ -5,6 +5,7 @@ import (
 	"github.com/starlingbank/vaultsmith/vaultClient"
 	"log"
 	vaultApi "github.com/hashicorp/vault/api"
+	"github.com/starlingbank/vaultsmith/config"
 )
 
 func TestGenericHandler_isDocApplied_true(t *testing.T) {
@@ -19,7 +20,7 @@ func TestGenericHandler_isDocApplied_true(t *testing.T) {
 		ReturnSecret: &returnSecret,
 	}
 
-	gh, err := NewGenericHandler(client, "N/A", "N/A")
+	gh, err := NewGenericHandler(client, config.VaultsmithConfig{}, "N/A")
 	if err != nil {
 		log.Fatal("Failed to create generic handler")
 	}
@@ -48,7 +49,7 @@ func TestGenericHandler_isDocApplied_falseValue(t *testing.T) {
 		ReturnSecret: &returnSecret,
 	}
 
-	gh, err := NewGenericHandler(client, "N/A", "N/A")
+	gh, err := NewGenericHandler(client, config.VaultsmithConfig{}, "N/A")
 	if err != nil {
 		log.Fatal("Failed to create generic handler")
 	}
@@ -65,7 +66,7 @@ func TestGenericHandler_isDocApplied_falseValue(t *testing.T) {
 func TestGenericHandler_areKeysApplied_true(t *testing.T) {
 	client := &vaultClient.MockVaultsmithClient{}
 
-	gh, err := NewGenericHandler(client, "N/A", "N/A")
+	gh, err := NewGenericHandler(client, config.VaultsmithConfig{}, "N/A")
 	if err != nil {
 		log.Fatal("Failed to create generic handler")
 	}
@@ -88,7 +89,7 @@ func TestGenericHandler_areKeysApplied_true(t *testing.T) {
 func TestGenericHandler_areKeysApplied_false(t *testing.T) {
 	client := &vaultClient.MockVaultsmithClient{}
 
-	gh, err := NewGenericHandler(client, "N/A", "N/A")
+	gh, err := NewGenericHandler(client, config.VaultsmithConfig{}, "N/A")
 	if err != nil {
 		log.Fatal("Failed to create generic handler")
 	}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/starlingbank/vaultsmith/internal"
 	"github.com/starlingbank/vaultsmith/vaultClient"
+	"github.com/starlingbank/vaultsmith/config"
 )
 
 var flags = flag.NewFlagSet("Vaultsmith", flag.ExitOnError)
@@ -16,17 +17,11 @@ var configDir		string
 var vaultRole		string
 var templateFile	string
 
-type VaultsmithConfig struct {
-	configDir		string
-	vaultRole		string
-	templateFile	string
-}
-
-func NewVaultsmithConfig() (*VaultsmithConfig, error) {
-	return &VaultsmithConfig{
-		configDir:		configDir,
-		vaultRole:		vaultRole,
-		templateFile:	templateFile,
+func NewVaultsmithConfig() (*config.VaultsmithConfig, error) {
+	return &config.VaultsmithConfig{
+		ConfigDir:		configDir,
+		VaultRole:		vaultRole,
+		TemplateFile:	templateFile,
 	}, nil
 }
 
@@ -64,7 +59,7 @@ func init() {
 func main() {
 	log.SetOutput(os.Stderr)
 
-	config, err := NewVaultsmithConfig()
+	conf, err := NewVaultsmithConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,15 +70,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = Run(client, config)
+	err = Run(client, conf)
 	if err != nil {
 		log.Fatalf("Error: %s", err)
 	}
 	log.Println("Success")
 }
 
-func Run(c vaultClient.VaultsmithClient, config *VaultsmithConfig) error {
-	err := c.Authenticate(config.vaultRole)
+func Run(c vaultClient.VaultsmithClient, config *config.VaultsmithConfig) error {
+	err := c.Authenticate(config.VaultRole)
 	if err != nil {
 		return fmt.Errorf("failed authenticating with Vault: %s", err)
 	}
@@ -92,6 +87,6 @@ func Run(c vaultClient.VaultsmithClient, config *VaultsmithConfig) error {
 	//if err != nil {
 	//	log.Fatal(err)
 	//}
-	cw := internal.NewConfigWalker(c, config.configDir)
+	cw := internal.NewConfigWalker(c, config.ConfigDir)
 	return cw.Run()
 }

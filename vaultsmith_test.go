@@ -6,17 +6,18 @@ import (
 	"testing"
 	"fmt"
 	"github.com/starlingbank/vaultsmith/vaultClient"
+	"github.com/starlingbank/vaultsmith/config"
 )
 
 func TestRunWhenVaultNotListening(t *testing.T) {
-	config := &VaultsmithConfig{
-		vaultRole: "ValidRole",
+	conf := &config.VaultsmithConfig{
+		VaultRole: "ValidRole",
 	}
 	mockClient := new(vaultClient.MockVaultsmithClient)
-	config.vaultRole = "ConnectionRefused"
-	mockClient.On("Authenticate", config.vaultRole)
+	conf.VaultRole = "ConnectionRefused"
+	mockClient.On("Authenticate", conf.VaultRole)
 
-	err := Run(mockClient, config)
+	err := Run(mockClient, conf)
 	if err == nil {
 		log.Fatal("Expected error, got nil")
 	}
@@ -29,14 +30,14 @@ func TestRunWhenVaultNotListening(t *testing.T) {
 }
 
 func TestRunWhenRoleIsInvalid(t *testing.T) {
-	config := &VaultsmithConfig{
-		vaultRole: "ValidRole",
+	conf := &config.VaultsmithConfig{
+		VaultRole: "ValidRole",
 	}
 	mockClient := new(vaultClient.MockVaultsmithClient)
-	config.vaultRole = "InvalidRole"
-	mockClient.On("Authenticate", config.vaultRole)
+	conf.VaultRole = "InvalidRole"
+	mockClient.On("Authenticate", conf.VaultRole)
 
-	err := Run(mockClient, config)
+	err := Run(mockClient, conf)
 	if err == nil {
 		log.Fatal("Expected error, got nil")
 	}
@@ -44,7 +45,7 @@ func TestRunWhenRoleIsInvalid(t *testing.T) {
 		log.Fatalf("bad failure message '%s'", err.Error())
 	}
 
-	if ! strings.Contains(err.Error(), fmt.Sprintf("entry for role %s not found", config.vaultRole)) {
+	if ! strings.Contains(err.Error(), fmt.Sprintf("entry for role %s not found", conf.VaultRole)) {
 		log.Fatalf("bad reason message '%s'", err.Error())
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/starlingbank/vaultsmith/handlers"
 	"github.com/starlingbank/vaultsmith/vaultClient"
 	"sort"
+	"github.com/starlingbank/vaultsmith/config"
 )
 
 type Walker interface {
@@ -34,7 +35,7 @@ func NewConfigWalker(client vaultClient.VaultsmithClient, configDir string) Conf
 	if err != nil {
 		log.Fatalf("Could not create sysPolicyHandler: %s", err)
 	}
-	genericHandler, err := handlers.NewGenericHandler(client, configDir, filepath.Join(configDir, "auth"))
+	genericHandler, err := handlers.NewGenericHandler(client, config.VaultsmithConfig{ConfigDir: configDir}, filepath.Join(configDir, "auth"))
 	if err != nil {
 		log.Fatalf("Could not create genericHandler: %s", err)
 	}

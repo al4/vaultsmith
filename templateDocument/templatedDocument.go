@@ -24,9 +24,9 @@ type TemplatedDocument struct {
 	matcher      *regexp.Regexp
 }
 
-func NewTemplatedDocument(filename string, mappingFile string) (t *TemplatedDocument, err error) {
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		return nil, fmt.Errorf("file %s does not exist", filename)
+func NewTemplatedDocument(filepath string, mappingFile string) (t *TemplatedDocument, err error) {
+	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("file %s does not exist", filepath)
 	}
 
 	var jsonMapping []map[string]string
@@ -41,7 +41,7 @@ func NewTemplatedDocument(filename string, mappingFile string) (t *TemplatedDocu
 		}
 	}
 	return &TemplatedDocument{
-		Path:         filename,
+		Path:         filepath,
 		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
 		ValueMapList: jsonMapping,
 	}, nil
@@ -49,6 +49,14 @@ func NewTemplatedDocument(filename string, mappingFile string) (t *TemplatedDocu
 
 // Return slice containing all "versions" of the document, with template placeholders replaced
 func (t *TemplatedDocument) Render() (versions []string, err error) {
+	// No need to read if Content already defined
+	if t.Content == "" {
+		_, err = t.read()
+		if err != nil {
+			return []string{}, err
+		}
+	}
+
 	placeholders, err := t.findPlaceholders()
 	if err != nil {
 		return []string{}, fmt.Errorf("error finding placeholders: %s", err)
@@ -68,8 +76,8 @@ func (t *TemplatedDocument) Render() (versions []string, err error) {
 }
 
 
-func (t *TemplatedDocument) read(filepath string) (string, error) {
-	file, err := os.Open(filepath)
+func (t *TemplatedDocument) read() (string, error) {
+	file, err := os.Open(t.Path)
 	if err != nil {
 		err = fmt.Errorf("error opening file: %s", err)
 		return "", err
@@ -84,6 +92,7 @@ func (t *TemplatedDocument) read(filepath string) (string, error) {
 	}
 
 	data := buf.String()
+	t.Content = data
 
 	return data, nil
 }
@@ -103,3 +112,4 @@ func (t *TemplatedDocument) findPlaceholders() (placeholders map[string]string, 
 
 	return placeholders, nil
 }
+
