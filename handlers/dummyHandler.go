@@ -10,19 +10,21 @@ type DummyHandler struct {
 	BasePathHandler
 	client 				vaultClient.VaultsmithClient
 	rootPath 			string  // path to handle
-	order				int  	// processing order
+	order				int
 }
 
 func NewDummyHandler(c vaultClient.VaultsmithClient, rootPath string) (*DummyHandler, error) {
 	return &DummyHandler{
 		client: c,
 		rootPath: rootPath,
-		order: 0,
 	}, nil
 }
 
-func (sh *DummyHandler) PutPoliciesFromDir(path string) error {
+func (h *DummyHandler) PutPoliciesFromDir(path string) error {
 	log.Printf("Dummy handler got path: %s", path)
 	return nil
 }
 
+func (h *DummyHandler) Order() int {
+	return h.order
+}
