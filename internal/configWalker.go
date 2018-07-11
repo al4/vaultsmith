@@ -35,7 +35,7 @@ func NewConfigWalker(client vault.Vault, configDir string) ConfigWalker {
 	if err != nil {
 		log.Fatalf("Could not create sysPolicyHandler: %s", err)
 	}
-	genericHandler, err := path_handlers.NewGenericHandler(client, config.VaultsmithConfig{ConfigDir: configDir}, filepath.Join(configDir, "auth"))
+	genericHandler, err := path_handlers.NewGenericHandler(client, config.VaultsmithConfig{DocumentPath: configDir}, filepath.Join(configDir, "auth"))
 	if err != nil {
 		log.Fatalf("Could not create genericHandler: %s", err)
 	}

@@ -13,22 +13,15 @@ import (
 )
 
 var flags = flag.NewFlagSet("Vaultsmith", flag.ExitOnError)
-var configDir		string
+var documentPath	string
 var vaultRole		string
 var templateFile	string
 
-func NewVaultsmithConfig() (*config.VaultsmithConfig, error) {
-	return &config.VaultsmithConfig{
-		ConfigDir:		configDir,
-		VaultRole:		vaultRole,
-		TemplateFile:	templateFile,
-	}, nil
-}
-
 func init() {
 	flags.StringVar(
-		// TODO: remove default value of "./example", could do bad things in prod
-		&configDir, "configDir", "./example", "The root directory of the configuration",
+		// TODO: remove default value of "./example", could do bad things in production
+		&documentPath, "document-path", "./example",
+		"The root directory of the configuration. Can be a local directory or http url to a gzipped tarball.",
 	)
 	flags.StringVar(
 		&vaultRole, "role", "", "The Vault role to authenticate as",
@@ -59,13 +52,14 @@ func init() {
 func main() {
 	log.SetOutput(os.Stderr)
 
-	conf, err := NewVaultsmithConfig()
-	if err != nil {
-		log.Fatal(err)
+	conf := &config.VaultsmithConfig{
+		DocumentPath: documentPath,
+		VaultRole:    vaultRole,
+		TemplateFile: templateFile,
 	}
 
 	var client *vault.Client
-	client, err = vault.NewVaultClient()
+	client, err := vault.NewVaultClient()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,6 +77,6 @@ func Run(c vault.Vault, config *config.VaultsmithConfig) error {
 		return fmt.Errorf("failed authenticating with Vault: %s", err)
 	}
 
-	cw := internal.NewConfigWalker(c, config.ConfigDir)
+	cw := internal.NewConfigWalker(c, config.DocumentPath)
 	return cw.Run()
 }

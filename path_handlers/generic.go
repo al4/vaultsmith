@@ -32,7 +32,7 @@ type GenericHandler struct {
 func NewGenericHandler(c vault.Vault, config config.VaultsmithConfig, rootPath string) (*GenericHandler, error) {
 	return &GenericHandler{
 		client: c,
-		globalRootPath: config.ConfigDir,
+		globalRootPath: config.DocumentPath,
 		rootPath: rootPath,
 		mappingFile: config.TemplateFile,
 	}, nil
