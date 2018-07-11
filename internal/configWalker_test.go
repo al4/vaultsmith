@@ -5,16 +5,16 @@ import (
 	"os"
 	"time"
 	"log"
-	"github.com/starlingbank/vaultsmith/handlers"
+	"github.com/starlingbank/vaultsmith/path_handlers"
 	"github.com/starlingbank/vaultsmith/vaultClient"
 	"reflect"
 )
 
 func TestConfigHandlerWalkFile(t *testing.T) {
 	cw := ConfigWalker{
-		HandlerMap: map[string]handlers.PathHandler{
-			"sys/auth": &handlers.Dummy{},
-			"auth/aws":  &handlers.Dummy{},
+		HandlerMap: map[string]path_handlers.PathHandler{
+			"sys/auth": &path_handlers.Dummy{},
+			"auth/aws":  &path_handlers.Dummy{},
 		},
 	}
 	f := &fakeFileInfo{}
@@ -28,8 +28,8 @@ func TestConfigHandlerWalkFile(t *testing.T) {
 // test hasParentHandler for the true case
 func TestHasParentHandlerTrue(t *testing.T) {
 	cw := ConfigWalker{
-		HandlerMap: map[string]handlers.PathHandler{
-			"parent": &handlers.Dummy{},
+		HandlerMap: map[string]path_handlers.PathHandler{
+			"parent": &path_handlers.Dummy{},
 		},
 	}
 
@@ -42,8 +42,8 @@ func TestHasParentHandlerTrue(t *testing.T) {
 // test hasParentHandler for the false case
 func TestHasParentHandlerFalse(t *testing.T) {
 	cw := ConfigWalker{
-		HandlerMap: map[string]handlers.PathHandler{
-			"parent": &handlers.Dummy{},
+		HandlerMap: map[string]path_handlers.PathHandler{
+			"parent": &path_handlers.Dummy{},
 		},
 	}
 
@@ -56,8 +56,8 @@ func TestHasParentHandlerFalse(t *testing.T) {
 // test that we don't consider a directory to be a parent of itself
 func TestHasParentHandlerSelf(t *testing.T) {
 	cw := ConfigWalker{
-		HandlerMap: map[string]handlers.PathHandler{
-			"parent/child": &handlers.Dummy{},
+		HandlerMap: map[string]path_handlers.PathHandler{
+			"parent/child": &path_handlers.Dummy{},
 		},
 	}
 
@@ -68,15 +68,15 @@ func TestHasParentHandlerSelf(t *testing.T) {
 }
 
 func TestSortedPaths(t *testing.T) {
-	fooH, err := handlers.NewDummyHandler(&vaultClient.MockVaultsmithClient{}, "", 30)
+	fooH, err := path_handlers.NewDummyHandler(&vaultClient.MockVaultsmithClient{}, "", 30)
 	if err != nil { log.Fatal(err) }
-	barH, err := handlers.NewDummyHandler(&vaultClient.MockVaultsmithClient{}, "", 10)
+	barH, err := path_handlers.NewDummyHandler(&vaultClient.MockVaultsmithClient{}, "", 10)
 	if err != nil { log.Fatal(err) }
-	bozH, err := handlers.NewDummyHandler(&vaultClient.MockVaultsmithClient{}, "", 20)
+	bozH, err := path_handlers.NewDummyHandler(&vaultClient.MockVaultsmithClient{}, "", 20)
 	if err != nil { log.Fatal(err) }
 
 	cw := ConfigWalker{
-		HandlerMap: map[string]handlers.PathHandler{
+		HandlerMap: map[string]path_handlers.PathHandler{
 			"foo": fooH,
 			"bar": barH,
 			"boz": bozH,

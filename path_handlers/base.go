@@ -1,4 +1,4 @@
-package handlers
+package path_handlers
 
 import (
 	vaultApi "github.com/hashicorp/vault/api"
@@ -26,7 +26,8 @@ type BaseHandler struct {
 	rootPath 			string
 	liveAuthMap 		*map[string]*vaultApi.AuthMount
 	configuredAuthMap 	*map[string]*vaultApi.AuthMount
-	order				int  // order to process. 0 is treated as higher than (after) any positive int
+	order				int  // order to process. Lower is earlier, with the exception of 0, which
+							 // is processed after any others with a positive integer
 }
 
 func (h *BaseHandler) readFile(path string) (string, error) {

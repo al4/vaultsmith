@@ -1,4 +1,4 @@
-package handlers
+package path_handlers
 
 import (
 	"testing"

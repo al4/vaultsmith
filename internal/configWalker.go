@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"path"
 	"strings"
-	"github.com/starlingbank/vaultsmith/handlers"
+	"github.com/starlingbank/vaultsmith/path_handlers"
 	"github.com/starlingbank/vaultsmith/vaultClient"
 	"sort"
 	"github.com/starlingbank/vaultsmith/config"
@@ -18,7 +18,7 @@ type Walker interface {
 }
 
 type ConfigWalker struct {
-	HandlerMap map[string]handlers.PathHandler
+	HandlerMap map[string]path_handlers.PathHandler
 	Client     vaultClient.VaultsmithClient
 	ConfigDir  string
 	Visited		map[string]bool
@@ -27,20 +27,20 @@ type ConfigWalker struct {
 // Instantiates a configWalker and the required handlers
 // TODO perhaps only instantiate if the path exists?
 func NewConfigWalker(client vaultClient.VaultsmithClient, configDir string) ConfigWalker {
-	sysAuthHandler, err := handlers.NewSysAuthHandler(client, filepath.Join(configDir, "sys", "auth"))
+	sysAuthHandler, err := path_handlers.NewSysAuthHandler(client, filepath.Join(configDir, "sys", "auth"))
 	if err != nil {
 		log.Fatalf("Could not create sysAuthHandler: %s", err)
 	}
-	sysPolicyHandler, err := handlers.NewSysPolicyHandler(client, filepath.Join(configDir, "sys", "policy"))
+	sysPolicyHandler, err := path_handlers.NewSysPolicyHandler(client, filepath.Join(configDir, "sys", "policy"))
 	if err != nil {
 		log.Fatalf("Could not create sysPolicyHandler: %s", err)
 	}
-	genericHandler, err := handlers.NewGenericHandler(client, config.VaultsmithConfig{ConfigDir: configDir}, filepath.Join(configDir, "auth"))
+	genericHandler, err := path_handlers.NewGenericHandler(client, config.VaultsmithConfig{ConfigDir: configDir}, filepath.Join(configDir, "auth"))
 	if err != nil {
 		log.Fatalf("Could not create genericHandler: %s", err)
 	}
 
-	var handlerMap = map[string]handlers.PathHandler {
+	var handlerMap = map[string]path_handlers.PathHandler {
 		"auth": genericHandler,
 		"sys/auth": sysAuthHandler,
 		"sys/policy": sysPolicyHandler,
@@ -87,7 +87,7 @@ func (cw ConfigWalker) sortedPaths() (paths []string) {
 	return paths
 }
 
-func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]handlers.PathHandler) error {
+func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]path_handlers.PathHandler) error {
 	// Process according to <handler>.Order()
 	paths := cw.sortedPaths()
 	for _, v := range paths {
