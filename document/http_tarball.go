@@ -10,7 +10,7 @@ import (
 	"net/url"
 )
 
-// Implements document.set
+// Implements document.Set
 type HttpTarball struct {
 	WorkDir	string
 	Url		*url.URL
@@ -72,6 +72,7 @@ func (p *HttpTarball) download() error {
 }
 
 func (p *HttpTarball) extract() (err error){
+	return
 }
 
 
