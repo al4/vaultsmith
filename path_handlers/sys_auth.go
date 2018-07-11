@@ -25,9 +25,9 @@ type SysAuth struct {
 	configuredAuthMap map[string]*vaultApi.AuthMount
 }
 
-func NewSysAuthHandler(c vault.Vault) (*SysAuth, error) {
+func NewSysAuthHandler(client vault.Vault, config PathHandlerConfig) (*SysAuth, error) {
 	// Build a map of currently active auth methods, so walkFile() can reference it
-	liveAuthMap, err := c.ListAuth()
+	liveAuthMap, err := client.ListAuth()
 	if err != nil {
 		return &SysAuth{}, err
 	}
@@ -37,7 +37,8 @@ func NewSysAuthHandler(c vault.Vault) (*SysAuth, error) {
 	configuredAuthMap := make(map[string]*vaultApi.AuthMount)
 
 	return &SysAuth{
-		client:            c,
+		client:            client,
+		config: 		   config,
 		liveAuthMap:       liveAuthMap,
 		configuredAuthMap: configuredAuthMap,
 	}, nil
@@ -56,15 +57,13 @@ func (sh *SysAuth) walkFile(path string, f os.FileInfo, err error) error {
 		return nil
 	}
 
-	dir, file := filepath.Split(path)
-	policyPath := strings.Join(strings.Split(dir, "/")[1:], "/")
-	fmt.Printf("path: %s, file: %s\n", policyPath, file)
+	_, file := filepath.Split(path)
+	policyPath := strings.TrimLeft(strings.TrimPrefix(path, sh.config.DocumentPath), "/")
 	if ! strings.HasPrefix(policyPath, "sys/auth") {
-		log.Printf("File %s can not be handled yet\n", path)
-		return nil
+		return fmt.Errorf("found file without sys/auth prefix: %s", policyPath)
 	}
 
-	log.Printf("Applying %s\n", path)
+	log.Printf("Applying %s\n", policyPath)
 	fileContents, err := sh.readFile(path)
 	if err != nil {
 		return err

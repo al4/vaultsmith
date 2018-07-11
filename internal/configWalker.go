@@ -53,7 +53,12 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 	sysAuthDir := filepath.Join(docPath, "sys", "auth")
 	if f, err := os.Stat(sysAuthDir); ! os.IsNotExist(err) {
 		if f.Mode().IsDir() {
-			sysAuthHandler, err := path_handlers.NewSysAuthHandler(client)
+			sysAuthHandler, err := path_handlers.NewSysAuthHandler(
+				client,
+				path_handlers.PathHandlerConfig{
+					DocumentPath: docPath,
+					Order: 10,
+				})
 			if err != nil {
 				log.Fatalf("Could not create sysAuthHandler: %s", err)
 			}
@@ -64,7 +69,12 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 	sysPolicyDir := filepath.Join(docPath, "sys", "policy")
 	if f, err := os.Stat(sysPolicyDir); ! os.IsNotExist(err) {
 		if f.Mode().IsDir() {
-			sysPolicyHandler, err := path_handlers.NewSysPolicyHandler(client)
+			sysPolicyHandler, err := path_handlers.NewSysPolicyHandler(
+				client,
+				path_handlers.PathHandlerConfig{
+					DocumentPath: docPath,
+					Order: 20,
+				})
 			if err != nil {
 				log.Fatalf("Could not create sysPolicyHandler: %s", err)
 			}

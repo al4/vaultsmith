@@ -34,17 +34,18 @@ type SysPolicy struct {
 	Policy	string `json:"policy"`
 }
 
-func NewSysPolicyHandler(c vault.Vault) (*SysPolicyHandler, error) {
+func NewSysPolicyHandler(client vault.Vault, config PathHandlerConfig) (*SysPolicyHandler, error) {
 	// Build a map of currently active auth methods, so walkFile() can reference it
-	livePolicyList, err := c.ListPolicies()
+	livePolicyList, err := client.ListPolicies()
 	if err != nil {
 		return &SysPolicyHandler{}, fmt.Errorf("error listing policies: %s", err)
 	}
 
 	return &SysPolicyHandler{
-		client:              	c,
-		livePolicyList:      	livePolicyList,
-		configuredPolicyList:	[]string{},
+		client:               client,
+		config:               config,
+		livePolicyList:       livePolicyList,
+		configuredPolicyList: []string{},
 	}, nil
 }
 
