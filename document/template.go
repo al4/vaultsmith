@@ -1,4 +1,4 @@
-package templateDocument
+package document
 
 import (
 	"regexp"
@@ -12,19 +12,22 @@ import (
 	"encoding/json"
 )
 
-type Template interface {
-	FindPlaceholders() ([]string, error)
+// This seems a little unnecessary
+type Renderer interface {
 	Render(map[string][]string, string) error
 }
 
-type TemplatedDocument struct {
+// Our Template is a document that contains placeholders, which can be rendered into a valid Vault
+// json document when provided with a ValueMapList
+type Template struct {
 	Path         string
 	Content      string
-	ValueMapList []map[string]string
-	matcher      *regexp.Regexp
+	ValueMapList []map[string]string	// List of "instances" of the document, mapping the
+										// key-values for each one
+	matcher      *regexp.Regexp // Regex to find placeholders
 }
 
-func NewTemplatedDocument(filepath string, mappingFile string) (t *TemplatedDocument, err error) {
+func NewTemplatedDocument(filepath string, mappingFile string) (t *Template, err error) {
 	if _, err := os.Stat(filepath); os.IsNotExist(err) {
 		return nil, fmt.Errorf("file %s does not exist", filepath)
 	}
@@ -33,14 +36,14 @@ func NewTemplatedDocument(filepath string, mappingFile string) (t *TemplatedDocu
 	if mappingFile != "" {
 		file, err := ioutil.ReadFile(mappingFile)
 		if err != nil {
-			return &TemplatedDocument{}, fmt.Errorf("could not read mapping file %s: %s", mappingFile, err)
+			return &Template{}, fmt.Errorf("could not read mapping file %s: %s", mappingFile, err)
 		}
 
 		if err := json.Unmarshal(file, &jsonMapping); err != nil {
-			return &TemplatedDocument{}, fmt.Errorf("could not unmarshall %s: %s", mappingFile, err)
+			return &Template{}, fmt.Errorf("could not unmarshall %s: %s", mappingFile, err)
 		}
 	}
-	return &TemplatedDocument{
+	return &Template{
 		Path:         filepath,
 		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
 		ValueMapList: jsonMapping,
@@ -48,7 +51,7 @@ func NewTemplatedDocument(filepath string, mappingFile string) (t *TemplatedDocu
 }
 
 // Return slice containing all "versions" of the document, with template placeholders replaced
-func (t *TemplatedDocument) Render() (versions []string, err error) {
+func (t *Template) Render() (versions []string, err error) {
 	// No need to read if Content already defined
 	if t.Content == "" {
 		_, err = t.read()
@@ -76,7 +79,7 @@ func (t *TemplatedDocument) Render() (versions []string, err error) {
 }
 
 
-func (t *TemplatedDocument) read() (string, error) {
+func (t *Template) read() (string, error) {
 	file, err := os.Open(t.Path)
 	if err != nil {
 		err = fmt.Errorf("error opening file: %s", err)
@@ -102,7 +105,7 @@ func (t *TemplatedDocument) read() (string, error) {
 //		Hello, {{ foo }}.
 // We would return:
 // 		map[string]string{"foo": "{{ foo }}"}
-func (t *TemplatedDocument) findPlaceholders() (placeholders map[string]string, err error) {
+func (t *Template) findPlaceholders() (placeholders map[string]string, err error) {
 	matches := t.matcher.FindAllStringSubmatch(t.Content, -1)
 	placeholders = make(map[string]string)
 

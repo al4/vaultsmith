@@ -1,4 +1,4 @@
-package templateDocument
+package document
 
 import (
 	"testing"
@@ -33,7 +33,7 @@ func TestTemplatedDocument_findPlaceholders(t *testing.T) {
 		{"baz": "boz"},
 	}
 
-	tf := TemplatedDocument{
+	tf := Template{
 		Path:         "",
 		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
 		ValueMapList: mapping,
@@ -63,7 +63,7 @@ func TestTemplatedDocument_Render(t *testing.T) {
 		{"foo": "B", "bar": "B"},
 	}
 
-	tf := TemplatedDocument{
+	tf := Template{
 		Path:         "",
 		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
 		ValueMapList: mapping,
@@ -91,7 +91,7 @@ func TestTemplatedDocument_Render_MultipleFoo(t *testing.T) {
 		{"foo": "A", "bar": "A"},
 	}
 
-	tf := TemplatedDocument{
+	tf := Template{
 		Path:         "",
 		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
 		ValueMapList: mapping,

@@ -1,30 +1,23 @@
-package fetcher
+package document
 
 import (
 	"fmt"
 	"os"
 	"net/http"
 	"io"
-	"net/url"
 	"log"
 	"strings"
+	"net/url"
 )
 
-type Package struct {
+// Implements document.set
+type HttpTarball struct {
 	WorkDir	string
 	Url		*url.URL
 }
 
-type Fetcher interface {
-	Fetch() error
-	Extract() error
-	ExtractPath() string
-	CleanUp()
-}
-
-
 // download tarball from Github
-func (p *Package) Fetch() (err error){
+func (p *HttpTarball) Get() (err error){
 	err = p.download()
 	if err != nil {
 		return fmt.Errorf("error downloading tarball %s", err)
@@ -32,15 +25,10 @@ func (p *Package) Fetch() (err error){
 	return nil
 }
 
-func (p *Package) Extract() (path string, err error){
-
-	return
-}
-
 // Return the path to the extracted files
 // This does not ensure that the extract has actually been performed, so there is no guarantee the
 // directory exists
-func (p *Package) ExtractPath() (path string){
+func (p *HttpTarball) Path() (path string){
 	s := strings.Split(
 		strings.TrimRight(p.Url.Path, "/"),
 		"/")
@@ -52,7 +40,7 @@ func (p *Package) ExtractPath() (path string){
 	return strings.Join(dirSlice, string(os.PathSeparator))
 }
 
-func (p *Package) CleanUp() {
+func (p *HttpTarball) CleanUp() {
 	log.Printf("Removing %s", p.WorkDir)
 	err := os.RemoveAll(p.WorkDir)
 	if err != nil {
@@ -61,8 +49,8 @@ func (p *Package) CleanUp() {
 	return
 }
 
-func (p *Package) download() error {
-	out, err := os.Create(p.filePath())
+func (p *HttpTarball) download() error {
+	out, err := os.Create(p.archivePath())
 	if err != nil {
 		return err
 	}
@@ -78,12 +66,16 @@ func (p *Package) download() error {
 	if err != nil {
 		return err
 	}
-	log.Printf("%v bytes written to %s", n, p.filePath())
+	log.Printf("%v bytes written to %s", n, p.archivePath())
 
 	return nil
 }
 
-func (p *Package) filePath() (path string) {
+func (p *HttpTarball) extract() (err error){
+}
+
+
+func (p *HttpTarball) archivePath() (path string) {
 	s := strings.Split(
 		strings.TrimRight(p.Url.Path, "/"),
 		"/")

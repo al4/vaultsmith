@@ -1,4 +1,4 @@
-package fetcher
+package document
 
 import (
 	"testing"
@@ -20,33 +20,33 @@ func (h *TestHttpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, h.DummyData)
 }
 
-func TestPackage_filePath(t *testing.T) {
+func TestHttpTarball_archivePath(t *testing.T) {
 	url, _ := url.Parse("https://example.com/test.tgz")
-	p := Package{
+	p := HttpTarball{
 		WorkDir: "/tmp/test",
 		Url: url,
 	}
 	exp := "/tmp/test/test.tgz"
-	r := p.filePath()
+	r := p.archivePath()
 	if r != exp {
 		log.Fatalf("Bad file path, expected %q, got %q", exp, r)
 	}
 }
 
-func TestPackage_ExtractPath(t *testing.T) {
+func TestHttpTarball_Path(t *testing.T) {
 	url, _ := url.Parse("https://example.com/test.tgz")
-	p := Package{
+	p := HttpTarball{
 		WorkDir: "/tmp/test",
 		Url: url,
 	}
 	exp := "/tmp/test/extract-test.tgz"
-	r := p.ExtractPath()
+	r := p.Path()
 	if r != exp {
 		log.Fatalf("Bad extract path, expected %q, got %q", exp, r)
 	}
 }
 
-func TestPackage_Fetch(t *testing.T) {
+func TestHttpTarball_Get(t *testing.T) {
 	expected := "dummy data"
 	ts := httptest.NewServer(&TestHttpHandler{
 		DummyData: expected,
@@ -56,18 +56,18 @@ func TestPackage_Fetch(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Could not create tempdir: %s", err)
 	}
-	p := Package{
+	p := HttpTarball{
 		WorkDir: tmpDir,
 		Url: url,
 	}
 
-	p.Fetch()
+	p.Get()
 	defer p.CleanUp()
 
-	if _, err := os.Stat(p.filePath()); os.IsNotExist(err) {
-		log.Fatalf("Expected file %s to exist", p.filePath())
+	if _, err := os.Stat(p.archivePath()); os.IsNotExist(err) {
+		log.Fatalf("Expected file %s to exist", p.archivePath())
 	}
-	c, err := ioutil.ReadFile(p.filePath())
+	c, err := ioutil.ReadFile(p.archivePath())
 	if err != nil {
 		log.Fatalf("Error reading file %s", err)
 	}
