@@ -13,6 +13,10 @@ import (
 	"github.com/starlingbank/vaultsmith/config"
 )
 
+
+// The ConfigWalker assumes it is in the root of the vault configuration to apply. As an example, it
+// would directly contain "sys" and "auth".
+
 type Walker interface {
 
 }
@@ -25,25 +29,42 @@ type ConfigWalker struct {
 }
 
 // Instantiates a configWalker and the required handlers
-// TODO perhaps only instantiate if the path exists?
 func NewConfigWalker(client vault.Vault, configDir string) ConfigWalker {
-	sysAuthHandler, err := path_handlers.NewSysAuthHandler(client, filepath.Join(configDir, "sys", "auth"))
-	if err != nil {
-		log.Fatalf("Could not create sysAuthHandler: %s", err)
-	}
-	sysPolicyHandler, err := path_handlers.NewSysPolicyHandler(client, filepath.Join(configDir, "sys", "policy"))
-	if err != nil {
-		log.Fatalf("Could not create sysPolicyHandler: %s", err)
-	}
-	genericHandler, err := path_handlers.NewGenericHandler(client, config.VaultsmithConfig{DocumentPath: configDir}, filepath.Join(configDir, "auth"))
+	// We handle any unknown directories with this one
+	genericHandler, err := path_handlers.NewGenericHandler(
+		client, config.VaultsmithConfig{DocumentPath: configDir}, filepath.Join(configDir, "auth"))
 	if err != nil {
 		log.Fatalf("Could not create genericHandler: %s", err)
 	}
 
-	var handlerMap = map[string]path_handlers.PathHandler {
-		"auth": genericHandler,
-		"sys/auth": sysAuthHandler,
-		"sys/policy": sysPolicyHandler,
+	var handlerMap = map[string]path_handlers.PathHandler{
+		"*": genericHandler,
+	}
+
+	sysAuthDir := filepath.Join(configDir, "sys", "auth")
+	if f, err := os.Stat(sysAuthDir); ! os.IsNotExist(err) {
+		if f.Mode().IsDir() {
+			log.Println("Instantiating handler for sys/auth")
+			sysAuthHandler, err := path_handlers.NewSysAuthHandler(
+				client, filepath.Join(configDir, "sys", "auth"))
+			if err != nil {
+				log.Fatalf("Could not create sysAuthHandler: %s", err)
+			}
+			handlerMap["sys/auth"] = sysAuthHandler
+		}
+	}
+
+	sysPolicyDir := filepath.Join(configDir, "sys", "policy")
+	if f, err := os.Stat(sysPolicyDir); ! os.IsNotExist(err) {
+		if f.Mode().IsDir() {
+			log.Println("Instantiating handler for sys/policy")
+			sysPolicyHandler, err := path_handlers.NewSysPolicyHandler(
+				client, filepath.Join(configDir, "sys", "policy"))
+			if err != nil {
+				log.Fatalf("Could not create sysPolicyHandler: %s", err)
+			}
+			handlerMap["sys/policy"] = sysPolicyHandler
+		}
 	}
 
 	return ConfigWalker{
@@ -107,6 +128,10 @@ func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]path_han
 
 // determine the handler and pass the root directory to it
 func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
+	if f == nil {
+		log.Printf("f nil for path %q", path)
+		return nil
+	}
 	if ! f.IsDir() {  // only want to operate on directories
 		return nil
 	}

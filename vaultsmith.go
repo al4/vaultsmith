@@ -123,7 +123,7 @@ func Run(c vault.Vault, config *config.VaultsmithConfig) error {
 	if err != nil {
 		return fmt.Errorf("could not create temp directory: %s", err)
 	}
-	defer os.RemoveAll(workDir)
+	defer os.Remove(workDir)
 
 	docSet, err := getDocumentSet(config.DocumentPath, workDir)
 	if err != nil {

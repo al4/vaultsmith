@@ -37,7 +37,6 @@ func (h *HttpTarball) Get() (err error){
 
 // Return the path to the extracted files. It does not guarantee that the path exists.
 func (h *HttpTarball) Path() (path string){
-	log.Println(h.LocalTarball)
 	return h.LocalTarball.documentPath()
 }
 

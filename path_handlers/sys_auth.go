@@ -48,7 +48,8 @@ func NewSysAuthHandler(c vault.Vault, rootPath string) (*SysAuth, error) {
 
 func (sh *SysAuth) walkFile(path string, f os.FileInfo, err error) error {
 	if f == nil {
-		return fmt.Errorf("got nil FileInfo for %s, error: '%s'", path, err.Error())
+		log.Printf("%q does not exist, skipping SysAuth handler. Error was %q", path, err.Error())
+		return nil
 	}
 	if err != nil {
 		return fmt.Errorf("error reading %s: %s", path, err)

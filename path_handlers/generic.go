@@ -40,7 +40,8 @@ func NewGenericHandler(c vault.Vault, config config.VaultsmithConfig, rootPath s
 
 func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error {
 	if f == nil {
-		return fmt.Errorf("got nil FileInfo for %q, error: '%s'", path, err.Error())
+		log.Printf("No path %q present, skipping", path)
+		return nil
 	}
 	if err != nil {
 		return fmt.Errorf("error reading %q: %s", path, err)

@@ -7,6 +7,7 @@ package document
 // Implements document.Set
 type LocalFiles struct {
 	WorkDir	string
+	Directory string
 }
 
 func (l *LocalFiles) Get() (err error){
@@ -16,7 +17,7 @@ func (l *LocalFiles) Get() (err error){
 
 // Return the path to the documents
 func (l *LocalFiles) Path() (path string){
-	return l.WorkDir
+	return l.Directory
 }
 
 func (l *LocalFiles) CleanUp() {
