@@ -29,22 +29,28 @@ type ConfigWalker struct {
 }
 
 // Instantiates a configWalker and the required handlers
+// TODO this mixes configuration and code, could be declared in a better way
 func NewConfigWalker(client vault.Vault, configDir string) ConfigWalker {
+	// Map configuration directories to specific path handlers
+	var handlerMap = map[string]path_handlers.PathHandler{}
+
+	// Instantiate our path handlers
 	// We handle any unknown directories with this one
 	genericHandler, err := path_handlers.NewGenericHandler(
 		client, config.VaultsmithConfig{DocumentPath: configDir}, filepath.Join(configDir, "auth"))
 	if err != nil {
 		log.Fatalf("Could not create genericHandler: %s", err)
 	}
+	handlerMap["*"] = genericHandler
 
-	var handlerMap = map[string]path_handlers.PathHandler{
-		"*": genericHandler,
-	}
+	// sys directories should never be generic, so apply a dummy at the top level
+	nullHandler, err := path_handlers.NewDummyHandler(client, "", 0)
+	handlerMap["sys"] = nullHandler
 
+	// The two sys path handlers
 	sysAuthDir := filepath.Join(configDir, "sys", "auth")
 	if f, err := os.Stat(sysAuthDir); ! os.IsNotExist(err) {
 		if f.Mode().IsDir() {
-			log.Println("Instantiating handler for sys/auth")
 			sysAuthHandler, err := path_handlers.NewSysAuthHandler(
 				client, filepath.Join(configDir, "sys", "auth"))
 			if err != nil {
@@ -57,7 +63,6 @@ func NewConfigWalker(client vault.Vault, configDir string) ConfigWalker {
 	sysPolicyDir := filepath.Join(configDir, "sys", "policy")
 	if f, err := os.Stat(sysPolicyDir); ! os.IsNotExist(err) {
 		if f.Mode().IsDir() {
-			log.Println("Instantiating handler for sys/policy")
 			sysPolicyHandler, err := path_handlers.NewSysPolicyHandler(
 				client, filepath.Join(configDir, "sys", "policy"))
 			if err != nil {
@@ -112,6 +117,10 @@ func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]path_han
 	// Process according to <handler>.Order()
 	paths := cw.sortedPaths()
 	for _, v := range paths {
+		if v == "*" {
+			// not a real path, just used to store our generic handler
+			continue
+		}
 		handler := cw.HandlerMap[v]
 		p := filepath.Join(path, v)
 		err := handler.PutPoliciesFromDir(p)
@@ -158,10 +167,11 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 
 	handler, ok := cw.HandlerMap[relPath]
 	if ! ok {
-		log.Printf("No handler for path %s", relPath)
-		return nil
+		log.Printf("Processing path %s using generic handler", relPath)
+		genericHandler := cw.HandlerMap["*"]
+		return genericHandler.PutPoliciesFromDir(path)
 	}
-	log.Printf("Processing %s", path)
+	log.Printf("Processing %s using %T handler", path, handler)
 	return handler.PutPoliciesFromDir(path)
 }
 

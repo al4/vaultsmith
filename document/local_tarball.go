@@ -9,6 +9,7 @@ import (
 	"archive/tar"
 	"io"
 	"log"
+	"io/ioutil"
 )
 
 // Implements document.Set
@@ -24,7 +25,24 @@ func (l *LocalTarball) Get() (err error) {
 
 // Return the path to the extracted files. It does not guarantee that they exist.
 func (l *LocalTarball) Path() (path string){
-	return l.documentPath()
+	// Most tarballs, including github tarballs, will contain a single directory with the archive
+	// contents
+	// TODO should probably have an option for this behaviour, what if a user only has one config dir?
+	entries, err := ioutil.ReadDir(l.documentPath())
+	if err != nil {
+		log.Printf("Error: Could not read directory %q: %s", l.documentPath(), err)
+		return ""
+	}
+	if len(entries) == 1  && entries[0].Name() != "sys" && entries[0].IsDir() {
+		// Probably a single dir, use it instead
+		return filepath.Join(l.documentPath(), entries[0].Name())
+	} else if len(entries) > 1 {
+		// More than one entry suggests we already have the correct path
+		return l.documentPath()
+	} else {
+		log.Printf("WARN: empty directory %s", l.documentPath())
+		return ""
+	}
 }
 
 func (l *LocalTarball) CleanUp() {
