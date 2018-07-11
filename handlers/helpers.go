@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 )
 
+// TODO this is small for now, but figure out how to organise these functions
+
 // convert AuthConfigInput type to AuthConfigOutput type
 // A potential problem with this is that the transformation doesn't use the same code that Vault
 // uses internally, so bugs are possible; but ParseDuration is pretty standard (and vault

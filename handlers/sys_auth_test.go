@@ -24,7 +24,7 @@ func TestEnsureAuth(t *testing.T) {
 	client := &vaultClient.MockVaultsmithClient{}
 	sh, err := NewSysAuthHandler(client, "")
 	if err != nil {
-		log.Fatalf("Failed to create SysAuthHandler: %s", err)
+		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
 
 	enableOpts := vaultApi.EnableAuthOptions{}
@@ -38,7 +38,7 @@ func TestPutPoliciesFromEmptyDir(t *testing.T) {
 	client := &vaultClient.MockVaultsmithClient{}
 	sh, err := NewSysAuthHandler(client, "")
 	if err != nil {
-		log.Fatalf("Failed to create SysAuthHandler: %s", err)
+		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
 	err = sh.PutPoliciesFromDir("")
 	if err == nil {
@@ -54,7 +54,7 @@ func TestPutPoliciesFromExampleDir(t *testing.T) {
 	client := &vaultClient.MockVaultsmithClient{}
 	sh, err := NewSysAuthHandler(client, examplePath())
 	if err != nil {
-		log.Fatalf("Failed to create SysAuthHandler: %s", err)
+		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
 
 	sysPath := filepath.Join(examplePath(), "sys")
@@ -69,7 +69,7 @@ func TestSysHandlerWalkFile(t *testing.T) {
 	//client := &vaultClient.MockVaultsmithClient{}
 	//sh, err := NewSysAuthHandler(client, "")
 	//if err != nil {
-	//	log.Fatalf("Failed to create SysAuthHandler: %s", err)
+	//	log.Fatalf("Failed to create SysAuth: %s", err)
 	//}
 
 }

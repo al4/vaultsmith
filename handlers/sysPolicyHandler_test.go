@@ -13,7 +13,7 @@ func TestSysPolicyHandler_PolicyExists(t *testing.T) {
 	client := &vaultClient.MockVaultsmithClient{}
 	sph, err := NewSysPolicyHandler(client, "")
 	if err != nil {
-		log.Fatalf("Failed to create SysAuthHandler: %s", err)
+		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
 
 	p := SysPolicy{
@@ -34,7 +34,7 @@ func TestSysPolicyHandler_PolicyExistsFalse(t *testing.T) {
 	client := &vaultClient.MockVaultsmithClient{}
 	sph, err := NewSysPolicyHandler(client, "")
 	if err != nil {
-		log.Fatalf("Failed to create SysAuthHandler: %s", err)
+		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
 
 	p := SysPolicy{
@@ -57,7 +57,7 @@ func TestSysPolicyHandler_IsPolicyApplied(t *testing.T) {
 	client.ReturnString = "testPolicy"
 	sph, err := NewSysPolicyHandler(client, "")
 	if err != nil {
-		log.Fatalf("Failed to create SysAuthHandler: %s", err)
+		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
 
 	p := SysPolicy{
@@ -81,7 +81,7 @@ func TestSysPolicyHandler_IsPolicyApplied_PresentButDifferent(t *testing.T) {
 
 	sph, err := NewSysPolicyHandler(client, "")
 	if err != nil {
-		log.Fatalf("Failed to create SysAuthHandler: %s", err)
+		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
 
 	p := SysPolicy{
@@ -101,7 +101,7 @@ func TestSysPolicyHandler_IsPolicyApplied_PresentButDifferent(t *testing.T) {
 func TestSysPolicyHandler_RemoveUndeclaredPolicies(t *testing.T) {
 	sph, err := NewSysPolicyHandler(&vaultClient.MockVaultsmithClient{}, "test")
 	if err != nil {
-		log.Fatalf("Failed to create SysAuthHandler: %s", err)
+		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
 
 	sph.livePolicyList = []string{"foo", "qux", "bar", "baz", "quux"}
