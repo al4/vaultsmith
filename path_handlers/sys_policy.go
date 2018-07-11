@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"github.com/starlingbank/vaultsmith/vault"
 	"encoding/json"
+	"strings"
 )
 
 /*
@@ -62,13 +63,18 @@ func (sh *SysPolicyHandler) walkFile(path string, f os.FileInfo, err error) erro
 		return nil
 	}
 
-	log.Printf("Applying %s\n", path)
+	_, file := filepath.Split(path)
+	policyPath := strings.TrimLeft(strings.TrimPrefix(path, sh.config.DocumentPath), "/")
+	if ! strings.HasPrefix(policyPath, "sys/policy") {
+		return fmt.Errorf("found file without sys/auth prefix: %s", policyPath)
+	}
+
+	log.Printf("Applying %s\n", policyPath)
 	fileContents, err := sh.readFile(path)
 	if err != nil {
 		return err
 	}
 
-	_, file := filepath.Split(path)
 	var policy SysPolicy
 	err = json.Unmarshal([]byte(fileContents), &policy)
 	if err != nil {

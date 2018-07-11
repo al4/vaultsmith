@@ -11,7 +11,7 @@ import (
 func TestSysPolicyHandler_PolicyExists(t *testing.T) {
 	// Not terribly testable as it doesn't return anything we can assert against
 	client := &vault.MockClient{}
-	sph, err := NewSysPolicyHandler(client)
+	sph, err := NewSysPolicyHandler(client, PathHandlerConfig{})
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
@@ -32,7 +32,7 @@ func TestSysPolicyHandler_PolicyExists(t *testing.T) {
 
 func TestSysPolicyHandler_PolicyExistsFalse(t *testing.T) {
 	client := &vault.MockClient{}
-	sph, err := NewSysPolicyHandler(client)
+	sph, err := NewSysPolicyHandler(client, PathHandlerConfig{})
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
@@ -55,7 +55,7 @@ func TestSysPolicyHandler_PolicyExistsFalse(t *testing.T) {
 func TestSysPolicyHandler_IsPolicyApplied(t *testing.T) {
 	client := &vault.MockClient{}
 	client.ReturnString = "testPolicy"
-	sph, err := NewSysPolicyHandler(client)
+	sph, err := NewSysPolicyHandler(client, PathHandlerConfig{})
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
@@ -79,7 +79,7 @@ func TestSysPolicyHandler_IsPolicyApplied_PresentButDifferent(t *testing.T) {
 	client := &vault.MockClient{}
 	client.ReturnString = "testPolicy"
 
-	sph, err := NewSysPolicyHandler(client)
+	sph, err := NewSysPolicyHandler(client, PathHandlerConfig{})
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
@@ -99,7 +99,7 @@ func TestSysPolicyHandler_IsPolicyApplied_PresentButDifferent(t *testing.T) {
 }
 
 func TestSysPolicyHandler_RemoveUndeclaredPolicies(t *testing.T) {
-	sph, err := NewSysPolicyHandler(&vault.MockClient{})
+	sph, err := NewSysPolicyHandler(&vault.MockClient{}, PathHandlerConfig{})
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}

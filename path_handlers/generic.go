@@ -9,7 +9,6 @@ import (
 	"strings"
 	"encoding/json"
 	"reflect"
-	"github.com/starlingbank/vaultsmith/config"
 	"github.com/starlingbank/vaultsmith/document"
 	"time"
 )
@@ -24,13 +23,12 @@ type GenericHandler struct {
 	BaseHandler
 	client      vault.Vault
 	config		PathHandlerConfig
-	mappingFile string
 }
 
-func NewGenericHandler(c vault.Vault, config config.VaultsmithConfig) (*GenericHandler, error) {
+func NewGenericHandler(c vault.Vault, config PathHandlerConfig) (*GenericHandler, error) {
 	return &GenericHandler{
 		client: c,
-		mappingFile: config.TemplateFile,
+		config: config,
 	}, nil
 }
 
@@ -47,10 +45,11 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 		return nil
 	}
 
-	log.Printf("Applying %s\n", path)
+	docPath := strings.TrimLeft(strings.TrimPrefix(path, gh.config.DocumentPath), "/")
+	log.Printf("Applying %s\n", docPath)
 
 	// getting file contents
-	td, err := document.NewTemplate(path, gh.mappingFile)
+	td, err := document.NewTemplate(path, gh.config.MappingFile)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate TemplateDocument: %s", err)
 	}
@@ -71,7 +70,8 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 		// determine write path
 		relPath, err := filepath.Rel(gh.config.DocumentPath, path)
 		if err != nil {
-			return fmt.Errorf("could not determine relative path of %s to %s: %s", path, gh.config.DocumentPath, err)
+			return fmt.Errorf("could not determine relative path of %s to %s: %s",
+				path, gh.config.DocumentPath, err)
 		}
 		dir, file := filepath.Split(relPath)
 		fileName := strings.Split(file, ".")[0]  // sans extension
@@ -272,6 +272,5 @@ func convertToDuration(x interface{}) (time.Duration, error) {
 	}
 
 	return duration, nil
-
 }
 

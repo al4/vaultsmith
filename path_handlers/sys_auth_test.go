@@ -19,10 +19,10 @@ func examplePath() string {
 	return strings.Join(path, string(os.PathSeparator))
 }
 
-func TestEnsureAuth(t *testing.T) {
+func TestSysAuth_EnsureAuth(t *testing.T) {
 	// Not terribly testable as it doesn't return anything we can assert against
 	client := &vault.MockClient{}
-	sh, err := NewSysAuthHandler(client)
+	sh, err := NewSysAuthHandler(client, PathHandlerConfig{})
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
@@ -34,9 +34,10 @@ func TestEnsureAuth(t *testing.T) {
 	}
 }
 
-func TestPutPoliciesFromEmptyDir(t *testing.T) {
+func TestSysAuth_PutPoliciesFromDir_Empty(t *testing.T) {
+	// Should do nothing without error
 	client := &vault.MockClient{}
-	sh, err := NewSysAuthHandler(client)
+	sh, err := NewSysAuthHandler(client, PathHandlerConfig{})
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
@@ -46,22 +47,24 @@ func TestPutPoliciesFromEmptyDir(t *testing.T) {
 	}
 }
 
-func TestPutPoliciesFromExampleDir(t *testing.T) {
+func TestSysAuth_PutPoliciesFromDir_Example(t *testing.T) {
 	client := &vault.MockClient{}
-	sh, err := NewSysAuthHandler(client)
+	sh, err := NewSysAuthHandler(client, PathHandlerConfig{
+		DocumentPath: examplePath(),
+	})
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
 
-	sysPath := filepath.Join(examplePath(), "sys")
+	sysPath := filepath.Join(examplePath(), "sys/auth")
 	err = sh.PutPoliciesFromDir(sysPath)
 
 	if err != nil {
-		log.Fatalf("Expected no error, got: %s", err)
+		log.Fatalf("Expected no error, got %q", err)
 	}
 }
 
-func TestSysHandlerWalkFile(t *testing.T) {
+func TestSysAuth_WalkFile(t *testing.T) {
 	//client := &vaultClient.MockClient{}
 	//sh, err := NewSysAuthHandler(client, "")
 	//if err != nil {

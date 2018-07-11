@@ -36,7 +36,12 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 
 	// Instantiate our path handlers
 	// We handle any unknown directories with this one
-	genericHandler, err := path_handlers.NewGenericHandler(client, config)
+	genericHandler, err := path_handlers.NewGenericHandler(
+		client,
+		path_handlers.PathHandlerConfig{
+			DocumentPath: docPath,
+			MappingFile: config.TemplateFile,
+		})
 	if err != nil {
 		log.Fatalf("Could not create genericHandler: %s", err)
 	}
@@ -182,7 +187,12 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 		return genericHandler.PutPoliciesFromDir(path)
 	}
 	log.Printf("Processing %s using %T handler", path, handler)
-	return handler.PutPoliciesFromDir(path)
+	err = handler.PutPoliciesFromDir(path)
+	if err != nil {
+		return err
+	}
+	cw.Visited[path] = true
+	return nil
 }
 
 // Determine whether this directory is already covered by a parent handler
