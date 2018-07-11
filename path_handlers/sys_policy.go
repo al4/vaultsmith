@@ -23,11 +23,10 @@ var fixedPolicies = map[string]bool {
 
 type SysPolicyHandler struct {
 	BaseHandler
-	client               vault.Vault
-	rootPath             string
-	livePolicyList       []string
-	configuredPolicyList []string
-	order                int
+	client					vault.Vault
+	config					PathHandlerConfig
+	livePolicyList			[]string
+	configuredPolicyList	[]string
 }
 
 type SysPolicy struct {
@@ -35,7 +34,7 @@ type SysPolicy struct {
 	Policy	string `json:"policy"`
 }
 
-func NewSysPolicyHandler(c vault.Vault, rootPath string) (*SysPolicyHandler, error) {
+func NewSysPolicyHandler(c vault.Vault) (*SysPolicyHandler, error) {
 	// Build a map of currently active auth methods, so walkFile() can reference it
 	livePolicyList, err := c.ListPolicies()
 	if err != nil {
@@ -44,10 +43,8 @@ func NewSysPolicyHandler(c vault.Vault, rootPath string) (*SysPolicyHandler, err
 
 	return &SysPolicyHandler{
 		client:              	c,
-		rootPath:            	rootPath,
 		livePolicyList:      	livePolicyList,
 		configuredPolicyList:	[]string{},
-		order:					20,  // sys needs to be processed before other directories
 	}, nil
 }
 

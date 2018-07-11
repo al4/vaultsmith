@@ -55,7 +55,7 @@ func init() {
 func main() {
 	log.SetOutput(os.Stderr)
 
-	conf := &config.VaultsmithConfig{
+	conf := config.VaultsmithConfig{
 		DocumentPath: documentPath,
 		VaultRole:    vaultRole,
 		TemplateFile: templateFile,
@@ -113,7 +113,7 @@ func getDocumentSet(path string, workDir string) (docSet document.Set, err error
 	}
 }
 
-func Run(c vault.Vault, config *config.VaultsmithConfig) error {
+func Run(c vault.Vault, config config.VaultsmithConfig) error {
 	err := c.Authenticate(config.VaultRole)
 	if err != nil {
 		return fmt.Errorf("failed authenticating with Vault: %s", err)
@@ -132,6 +132,6 @@ func Run(c vault.Vault, config *config.VaultsmithConfig) error {
 	docSet.Get()
 	defer docSet.CleanUp()
 
-	cw := internal.NewConfigWalker(c, docSet.Path())
+	cw := internal.NewConfigWalker(c, config, docSet.Path())
 	return cw.Run()
 }

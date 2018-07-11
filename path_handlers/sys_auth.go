@@ -20,13 +20,12 @@ import (
 type SysAuth struct {
 	BaseHandler
 	client            vault.Vault
-	rootPath          string
+	config			  PathHandlerConfig
 	liveAuthMap       map[string]*vaultApi.AuthMount
 	configuredAuthMap map[string]*vaultApi.AuthMount
-	order             int
 }
 
-func NewSysAuthHandler(c vault.Vault, rootPath string) (*SysAuth, error) {
+func NewSysAuthHandler(c vault.Vault) (*SysAuth, error) {
 	// Build a map of currently active auth methods, so walkFile() can reference it
 	liveAuthMap, err := c.ListAuth()
 	if err != nil {
@@ -38,11 +37,9 @@ func NewSysAuthHandler(c vault.Vault, rootPath string) (*SysAuth, error) {
 	configuredAuthMap := make(map[string]*vaultApi.AuthMount)
 
 	return &SysAuth{
-		client: c,
-		rootPath: rootPath,
-		liveAuthMap: liveAuthMap,
+		client:            c,
+		liveAuthMap:       liveAuthMap,
 		configuredAuthMap: configuredAuthMap,
-		order: 10,  // sys needs to be processed before other directories
 	}, nil
 }
 
@@ -61,7 +58,7 @@ func (sh *SysAuth) walkFile(path string, f os.FileInfo, err error) error {
 
 	dir, file := filepath.Split(path)
 	policyPath := strings.Join(strings.Split(dir, "/")[1:], "/")
-	//fmt.Printf("path: %s, file: %s\n", policyPath, file)
+	fmt.Printf("path: %s, file: %s\n", policyPath, file)
 	if ! strings.HasPrefix(policyPath, "sys/auth") {
 		log.Printf("File %s can not be handled yet\n", path)
 		return nil

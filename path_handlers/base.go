@@ -10,7 +10,10 @@ import (
 	"github.com/starlingbank/vaultsmith/vault"
 )
 
-// Path is the Interface
+type PathHandlerConfig struct {
+	DocumentPath string  // path to the base of the vault documents
+	Order int //
+}
 
 // A PathHandler takes a path and applies the policies within
 type PathHandler interface {

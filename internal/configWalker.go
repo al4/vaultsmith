@@ -30,14 +30,13 @@ type ConfigWalker struct {
 
 // Instantiates a configWalker and the required handlers
 // TODO this mixes configuration and code, could be declared in a better way
-func NewConfigWalker(client vault.Vault, configDir string) ConfigWalker {
+func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath string) ConfigWalker {
 	// Map configuration directories to specific path handlers
 	var handlerMap = map[string]path_handlers.PathHandler{}
 
 	// Instantiate our path handlers
 	// We handle any unknown directories with this one
-	genericHandler, err := path_handlers.NewGenericHandler(
-		client, config.VaultsmithConfig{DocumentPath: configDir}, filepath.Join(configDir, "auth"))
+	genericHandler, err := path_handlers.NewGenericHandler(client, config)
 	if err != nil {
 		log.Fatalf("Could not create genericHandler: %s", err)
 	}
@@ -45,14 +44,16 @@ func NewConfigWalker(client vault.Vault, configDir string) ConfigWalker {
 
 	// sys directories should never be generic, so apply a dummy at the top level
 	nullHandler, err := path_handlers.NewDummyHandler(client, "", 0)
+	if err != nil {
+		log.Fatalf("Error instantiating null handler: %s", err)
+	}
 	handlerMap["sys"] = nullHandler
 
 	// The two sys path handlers
-	sysAuthDir := filepath.Join(configDir, "sys", "auth")
+	sysAuthDir := filepath.Join(docPath, "sys", "auth")
 	if f, err := os.Stat(sysAuthDir); ! os.IsNotExist(err) {
 		if f.Mode().IsDir() {
-			sysAuthHandler, err := path_handlers.NewSysAuthHandler(
-				client, filepath.Join(configDir, "sys", "auth"))
+			sysAuthHandler, err := path_handlers.NewSysAuthHandler(client)
 			if err != nil {
 				log.Fatalf("Could not create sysAuthHandler: %s", err)
 			}
@@ -60,11 +61,10 @@ func NewConfigWalker(client vault.Vault, configDir string) ConfigWalker {
 		}
 	}
 
-	sysPolicyDir := filepath.Join(configDir, "sys", "policy")
+	sysPolicyDir := filepath.Join(docPath, "sys", "policy")
 	if f, err := os.Stat(sysPolicyDir); ! os.IsNotExist(err) {
 		if f.Mode().IsDir() {
-			sysPolicyHandler, err := path_handlers.NewSysPolicyHandler(
-				client, filepath.Join(configDir, "sys", "policy"))
+			sysPolicyHandler, err := path_handlers.NewSysPolicyHandler(client)
 			if err != nil {
 				log.Fatalf("Could not create sysPolicyHandler: %s", err)
 			}
@@ -75,7 +75,7 @@ func NewConfigWalker(client vault.Vault, configDir string) ConfigWalker {
 	return ConfigWalker{
 		HandlerMap: handlerMap,
 		Client: client,
-		ConfigDir: path.Clean(configDir),
+		ConfigDir: path.Clean(docPath),
 		Visited: map[string]bool{},
 	}
 }

@@ -22,7 +22,7 @@ func examplePath() string {
 func TestEnsureAuth(t *testing.T) {
 	// Not terribly testable as it doesn't return anything we can assert against
 	client := &vault.MockClient{}
-	sh, err := NewSysAuthHandler(client, "")
+	sh, err := NewSysAuthHandler(client)
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
@@ -36,7 +36,7 @@ func TestEnsureAuth(t *testing.T) {
 
 func TestPutPoliciesFromEmptyDir(t *testing.T) {
 	client := &vault.MockClient{}
-	sh, err := NewSysAuthHandler(client, "")
+	sh, err := NewSysAuthHandler(client)
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
@@ -48,7 +48,7 @@ func TestPutPoliciesFromEmptyDir(t *testing.T) {
 
 func TestPutPoliciesFromExampleDir(t *testing.T) {
 	client := &vault.MockClient{}
-	sh, err := NewSysAuthHandler(client, examplePath())
+	sh, err := NewSysAuthHandler(client)
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}

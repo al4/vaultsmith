@@ -10,7 +10,7 @@ import (
 )
 
 func TestRunWhenVaultNotListening(t *testing.T) {
-	conf := &config.VaultsmithConfig{
+	conf := config.VaultsmithConfig{
 		VaultRole: "ValidRole",
 	}
 	mockClient := new(vault.MockClient)
@@ -30,7 +30,7 @@ func TestRunWhenVaultNotListening(t *testing.T) {
 }
 
 func TestRunWhenRoleIsInvalid(t *testing.T) {
-	conf := &config.VaultsmithConfig{
+	conf := config.VaultsmithConfig{
 		VaultRole: "ValidRole",
 	}
 	mockClient := new(vault.MockClient)
