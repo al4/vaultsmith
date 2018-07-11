@@ -14,6 +14,7 @@ import (
 type HttpTarball struct {
 	WorkDir	string
 	Url		*url.URL
+	fetched	bool
 }
 
 // download tarball from Github
@@ -25,19 +26,9 @@ func (p *HttpTarball) Get() (err error){
 	return nil
 }
 
-// Return the path to the extracted files
-// This does not ensure that the extract has actually been performed, so there is no guarantee the
-// directory exists
+// Return the path to the extracted files. It does not guarantee that they exist.
 func (p *HttpTarball) Path() (path string){
-	s := strings.Split(
-		strings.TrimRight(p.Url.Path, "/"),
-		"/")
-
-	dir := strings.TrimRight(p.WorkDir, string(os.PathSeparator))
-	subdir := "extract-" + s[len(s) - 1]
-
-	dirSlice := []string{dir, subdir}
-	return strings.Join(dirSlice, string(os.PathSeparator))
+	return p.documentPath()
 }
 
 func (p *HttpTarball) CleanUp() {
@@ -50,6 +41,7 @@ func (p *HttpTarball) CleanUp() {
 }
 
 func (p *HttpTarball) download() error {
+	log.Printf("Downloading from %s to %s", p.Url.String(), p.archivePath())
 	out, err := os.Create(p.archivePath())
 	if err != nil {
 		return err
@@ -88,3 +80,14 @@ func (p *HttpTarball) archivePath() (path string) {
 	return strings.Join(ns, string(os.PathSeparator))
 }
 
+func (p *HttpTarball) documentPath() (path string) {
+	s := strings.Split(
+		strings.TrimRight(p.Url.Path, "/"),
+		"/")
+
+	dir := strings.TrimRight(p.WorkDir, string(os.PathSeparator))
+	subdir := "extract-" + s[len(s) - 1]
+
+	dirSlice := []string{dir, subdir}
+	return strings.Join(dirSlice, string(os.PathSeparator))
+}

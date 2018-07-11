@@ -10,6 +10,9 @@ import (
 	"github.com/starlingbank/vaultsmith/internal"
 	"github.com/starlingbank/vaultsmith/vault"
 	"github.com/starlingbank/vaultsmith/config"
+	"net/url"
+	"github.com/starlingbank/vaultsmith/document"
+	"io/ioutil"
 )
 
 var flags = flag.NewFlagSet("Vaultsmith", flag.ExitOnError)
@@ -71,12 +74,47 @@ func main() {
 	log.Println("Success")
 }
 
+// Return the appropriate document.Set for the given path
+func getDocumentSet(path string) (docSet document.Set, err error) {
+	u, err := url.Parse(path)
+	if err != nil {
+		log.Println(err)
+	}
+
+	switch u.Scheme {
+	case "":
+		docSet = &document.LocalFiles{
+			WorkDir: path,
+		}
+	case "http", "https":
+		workDir, err := ioutil.TempDir(os.TempDir(), "vaultsmith-")
+		if err != nil {
+			return nil, fmt.Errorf("could not create temp directory: %s", err)
+		}
+		docSet = &document.HttpTarball{
+			WorkDir: workDir,
+			Url: u,
+		}
+	default:
+		return nil, fmt.Errorf("unhandled scheme %q", u.Scheme)
+	}
+
+	return docSet, err
+}
+
 func Run(c vault.Vault, config *config.VaultsmithConfig) error {
 	err := c.Authenticate(config.VaultRole)
 	if err != nil {
 		return fmt.Errorf("failed authenticating with Vault: %s", err)
 	}
 
-	cw := internal.NewConfigWalker(c, config.DocumentPath)
+	docSet, err := getDocumentSet(config.DocumentPath)
+	if err != nil {
+		return err
+	}
+	docSet.Get()
+	defer docSet.CleanUp()
+
+	cw := internal.NewConfigWalker(c, docSet.Path())
 	return cw.Run()
 }
