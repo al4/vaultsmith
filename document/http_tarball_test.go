@@ -34,13 +34,20 @@ func TestHttpTarball_archivePath(t *testing.T) {
 }
 
 func TestHttpTarball_Path(t *testing.T) {
-	url, _ := url.Parse("https://example.com/test.tgz")
-	p := HttpTarball{
+	url, _ := url.Parse("https://example.com/test-foo-1.tgz")
+	h := &HttpTarball{
 		WorkDir: "/tmp/test",
 		Url: url,
+		// In the real world, LocalTarball is instantiated by Get()
+		LocalTarball: LocalTarball{
+			WorkDir: "/tmp/testDir",
+			ArchivePath: "/foo/test-foo-1.tgz",
+		},
 	}
-	exp := "/tmp/test/extract-test.tgz"
-	r := p.Path()
+	log.Println(h.LocalTarball)
+
+	exp := "/tmp/testDir/test-foo-1-extract"
+	r := h.Path()
 	if r != exp {
 		log.Fatalf("Bad extract path, expected %q, got %q", exp, r)
 	}
@@ -77,5 +84,8 @@ func TestHttpTarball_Get(t *testing.T) {
 	if string(c) != expected + "\n" {
 		log.Fatalf("Expected file contents to be %q, got %q", expected, c)
 	}
+}
+
+func TestHttpTarball_extract(t *testing.T) {
 }
 
