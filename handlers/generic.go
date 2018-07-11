@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"github.com/starlingbank/vaultsmith/config"
 	"github.com/starlingbank/vaultsmith/document"
+	"time"
 )
 
 type GenericDocument struct {
@@ -155,7 +156,7 @@ func (gh *GenericHandler) areKeysApplied(mapA map[string]interface{}, mapB map[s
 		}
 		// covers cases such as "policy" == ["policy]
 		// logic is a bit scary, see function documentation
-		if IsSliceEquivalent(mapA[key], mapB[key]) {
+		if isSliceEquivalent(mapA[key], mapB[key]) {
 			continue
 		}
 		//log.Printf(" ## %q not equal; %+v(%T) != %+v(%T)", key, mapA[key], mapA[key], mapB[key], mapB[key])
@@ -172,3 +173,108 @@ func (gh *GenericHandler) RemoveUndeclaredDocuments() (removed []string, err err
 func (gh *GenericHandler) Order() int {
 	return gh.order
 }
+
+// Determine whether an array is logically equivalent as far as Vault is concerned.
+// e.g. [policy] == policy
+func isSliceEquivalent(a interface{}, b interface{}) (equivalent bool) {
+	if reflect.TypeOf(a).Kind() == reflect.TypeOf(b).Kind() {
+		// just compare directly if type is the same
+		return reflect.DeepEqual(a, b)
+	}
+
+	if reflect.TypeOf(a).Kind() == reflect.Slice {
+		// b must not be a slice, compare a[0] to it
+		return firstElementEqual(a, b)
+	}
+
+	if reflect.TypeOf(b).Kind() == reflect.Slice {
+		// a must not be a slice, compare b[0] to it
+		return firstElementEqual(b, a)
+	}
+
+	return false
+}
+
+// Return true if value is equal to the first item in slice
+func firstElementEqual(slice interface{}, value interface{}) bool {
+	switch t := slice.(type) {
+	case []string:
+		if t[0] == value && len(t) == 1 {
+			return true
+		}
+	case []int:
+		if t[0] == value && len(t) == 1 {
+			return true
+		}
+	case []interface{}:
+		s := reflect.ValueOf(t)
+		var val interface{}
+		for i := 0; i < s.Len(); i++ {
+			if i > 0 { // length > 1, cannot be equivalent
+				return false
+			}
+			if i == 0 {
+				// This is a little scary in a strongly typed context, as we're parsing everything
+				// as a string. But in the context of vault API responses it should be OK...
+				val = fmt.Sprintf("%v", s.Index(i))
+			}
+		}
+		if val == value {
+			return true
+		}
+	default:
+		log.Fatalf("Unhandled type %T, please add this to the switch statement", t)
+	}
+
+	return false
+}
+
+// Determine whether a string ttl is equal to an int ttl
+func IsTtlEquivalent(ttlA interface{}, ttlB interface{}) bool {
+	durA, err := convertToDuration(ttlA)
+	if err != nil {
+		log.Printf("WARN: Error parsing %+v: %s", ttlA, err)
+		return false
+	}
+	durB, err := convertToDuration(ttlB)
+	if err != nil {
+		log.Printf("WARN: Error converting %+v to duration: %s", ttlA, err)
+		return false
+	}
+
+	if durA == durB {
+		return true
+	}
+
+	return false
+}
+
+// convert x to time.Duration. if x is an integer, we assume it is in seconds
+func convertToDuration(x interface{}) (time.Duration, error) {
+	var duration time.Duration
+	var err error
+
+	switch x.(type) {
+	case string:
+		duration, err = time.ParseDuration(x.(string))
+		if err != nil {
+			return 0, fmt.Errorf("%q can't be parsed as duration", x)
+		}
+	case int64:
+		duration = time.Duration(x.(int64)) * time.Second
+	case int:
+		duration = time.Duration(int64(x.(int))) * time.Second
+	case json.Number:
+		i, err := x.(json.Number).Int64()
+		if err != nil {
+			return 0, fmt.Errorf("could not parse %+v as json number: %s", x, err.Error())
+		}
+		duration = time.Duration(i) * time.Second
+	default:
+		return 0, fmt.Errorf("type of '%+v' not handled", reflect.TypeOf(x))
+	}
+
+	return duration, nil
+
+}
+
