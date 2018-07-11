@@ -9,8 +9,8 @@ import (
 	"strings"
 	"encoding/json"
 	"reflect"
-	"github.com/starlingbank/vaultsmith/templateDocument"
 	"github.com/starlingbank/vaultsmith/config"
+	"github.com/starlingbank/vaultsmith/document"
 )
 
 type GenericDocument struct {
@@ -52,7 +52,7 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 	log.Printf("Applying %s\n", path)
 
 	// getting file contents
-	td, err := templateDocument.NewTemplatedDocument(path, gh.mappingFile)
+	td, err := document.NewTemplate(path, gh.mappingFile)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate TemplateDocument: %s", err)
 	}

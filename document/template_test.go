@@ -19,7 +19,7 @@ func examplePath() string {
 }
 
 func TestNewTemplatedDocument(t *testing.T) {
-	_, err := NewTemplatedDocument(
+	_, err := NewTemplate(
 		filepath.Join(examplePath(), "sys/policy/read_service.json"),
 		filepath.Join(examplePath(), "template.json"))
 	if err != nil {

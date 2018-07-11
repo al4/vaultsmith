@@ -27,7 +27,7 @@ type Template struct {
 	matcher      *regexp.Regexp // Regex to find placeholders
 }
 
-func NewTemplatedDocument(filepath string, mappingFile string) (t *Template, err error) {
+func NewTemplate(filepath string, mappingFile string) (t *Template, err error) {
 	if _, err := os.Stat(filepath); os.IsNotExist(err) {
 		return nil, fmt.Errorf("file %s does not exist", filepath)
 	}
