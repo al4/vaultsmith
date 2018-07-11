@@ -1,7 +1,7 @@
 package path_handlers
 
 import (
-	"github.com/starlingbank/vaultsmith/vaultClient"
+	"github.com/starlingbank/vaultsmith/vault"
 	"log"
 	"os"
 	"fmt"
@@ -22,14 +22,14 @@ type GenericDocument struct {
 // The generic handler simply writes the files to the path they are stored in
 type GenericHandler struct {
 	BaseHandler
-	client 				vaultClient.VaultsmithClient
-	rootPath 			string  // Where we walk from
-	globalRootPath		string  // The top level config directory. We need this as the relative path
+	client         vault.Vault
+	rootPath       string  // Where we walk from
+	globalRootPath string  // The top level config directory. We need this as the relative path
 								// is used to determine the vault write path.
 	mappingFile string
 }
 
-func NewGenericHandler(c vaultClient.VaultsmithClient, config config.VaultsmithConfig, rootPath string) (*GenericHandler, error) {
+func NewGenericHandler(c vault.Vault, config config.VaultsmithConfig, rootPath string) (*GenericHandler, error) {
 	return &GenericHandler{
 		client: c,
 		globalRootPath: config.ConfigDir,

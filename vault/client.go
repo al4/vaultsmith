@@ -1,4 +1,4 @@
-package vaultClient
+package vault
 
 import (
 	"errors"
@@ -23,8 +23,8 @@ put.
 */
 
 
-// VaultsmithClient is an abstraction of hashicorp's vault api client
-type VaultsmithClient interface {
+// Vault is an abstraction of hashicorp's vault api client
+type Vault interface {
 	Authenticate(string) error
 	DeletePolicy(name string) (error)
 	DisableAuth(string)	error
@@ -38,12 +38,12 @@ type VaultsmithClient interface {
 	List(path string) (*vaultApi.Secret, error)
 }
 
-type VaultClient struct {
+type Client struct {
 	client  *vaultApi.Client
 	handler *credAws.CLIHandler
 }
 
-func NewVaultClient() (*VaultClient, error) {
+func NewVaultClient() (*Client, error) {
 	config := vaultApi.Config{
 		HttpClient: &http.Client{
 			Transport: &http.Transport{
@@ -64,7 +64,7 @@ func NewVaultClient() (*VaultClient, error) {
 		log.Fatal(err)
 	}
 
-	c := &VaultClient{
+	c := &Client{
 		client:  client,
 		handler: &credAws.CLIHandler{},
 	}
@@ -72,7 +72,7 @@ func NewVaultClient() (*VaultClient, error) {
 	return c, nil
 }
 
-func (c *VaultClient) Authenticate(role string) error {
+func (c *Client) Authenticate(role string) error {
 
 	if c.client.Token() != "" {
 		// Already authenticated. Supposedly.
@@ -101,44 +101,44 @@ func (c *VaultClient) Authenticate(role string) error {
 }
 
 // Used by sysAuthHandler
-func (c *VaultClient) EnableAuth(path string, options *vaultApi.EnableAuthOptions) error {
+func (c *Client) EnableAuth(path string, options *vaultApi.EnableAuthOptions) error {
 	return c.client.Sys().EnableAuthWithOptions(path, options)
 }
 
-func (c *VaultClient) ListAuth() (map[string]*vaultApi.AuthMount, error) {
+func (c *Client) ListAuth() (map[string]*vaultApi.AuthMount, error) {
 	return c.client.Sys().ListAuth()
 }
 
-func (c *VaultClient) DisableAuth(path string) error {
+func (c *Client) DisableAuth(path string) error {
 	return c.client.Sys().DisableAuth(path)
 }
 
 // Used by sysPolicyHandler
-func (c *VaultClient) ListPolicies() ([]string, error) {
+func (c *Client) ListPolicies() ([]string, error) {
 	return c.client.Sys().ListPolicies()
 }
 
-func (c *VaultClient) GetPolicy(name string) (string, error) {
+func (c *Client) GetPolicy(name string) (string, error) {
 	return c.client.Sys().GetPolicy(name)
 }
 
-func (c *VaultClient) PutPolicy(name string, data string) error {
+func (c *Client) PutPolicy(name string, data string) error {
 	return c.client.Sys().PutPolicy(name, data)
 }
 
-func (c *VaultClient) DeletePolicy(name string) (error) {
+func (c *Client) DeletePolicy(name string) (error) {
 	return c.client.Sys().DeletePolicy(name)
 }
 
 // Used by genericHandler
-func (c *VaultClient) Read(path string) (*vaultApi.Secret, error) {
+func (c *Client) Read(path string) (*vaultApi.Secret, error) {
 	return c.client.Logical().Read(path)
 }
 
-func (c *VaultClient) Write(path string, data map[string]interface{}) (*vaultApi.Secret, error) {
+func (c *Client) Write(path string, data map[string]interface{}) (*vaultApi.Secret, error) {
 	return c.client.Logical().Write(path, data)
 }
 
-func (c *VaultClient) List(path string) (*vaultApi.Secret, error) {
+func (c *Client) List(path string) (*vaultApi.Secret, error) {
 	return c.client.Logical().List(path)
 }

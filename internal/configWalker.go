@@ -8,7 +8,7 @@ import (
 	"path"
 	"strings"
 	"github.com/starlingbank/vaultsmith/path_handlers"
-	"github.com/starlingbank/vaultsmith/vaultClient"
+	"github.com/starlingbank/vaultsmith/vault"
 	"sort"
 	"github.com/starlingbank/vaultsmith/config"
 )
@@ -19,14 +19,14 @@ type Walker interface {
 
 type ConfigWalker struct {
 	HandlerMap map[string]path_handlers.PathHandler
-	Client     vaultClient.VaultsmithClient
+	Client     vault.Vault
 	ConfigDir  string
-	Visited		map[string]bool
+	Visited    map[string]bool
 }
 
 // Instantiates a configWalker and the required handlers
 // TODO perhaps only instantiate if the path exists?
-func NewConfigWalker(client vaultClient.VaultsmithClient, configDir string) ConfigWalker {
+func NewConfigWalker(client vault.Vault, configDir string) ConfigWalker {
 	sysAuthHandler, err := path_handlers.NewSysAuthHandler(client, filepath.Join(configDir, "sys", "auth"))
 	if err != nil {
 		log.Fatalf("Could not create sysAuthHandler: %s", err)

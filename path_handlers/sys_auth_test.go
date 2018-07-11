@@ -7,7 +7,7 @@ import (
 	"strings"
 	"os"
 	"path/filepath"
-	"github.com/starlingbank/vaultsmith/vaultClient"
+	"github.com/starlingbank/vaultsmith/vault"
 )
 
 // calculate path to test fixtures (example/)
@@ -21,7 +21,7 @@ func examplePath() string {
 
 func TestEnsureAuth(t *testing.T) {
 	// Not terribly testable as it doesn't return anything we can assert against
-	client := &vaultClient.MockVaultsmithClient{}
+	client := &vault.MockClient{}
 	sh, err := NewSysAuthHandler(client, "")
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
@@ -35,7 +35,7 @@ func TestEnsureAuth(t *testing.T) {
 }
 
 func TestPutPoliciesFromEmptyDir(t *testing.T) {
-	client := &vaultClient.MockVaultsmithClient{}
+	client := &vault.MockClient{}
 	sh, err := NewSysAuthHandler(client, "")
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
@@ -51,7 +51,7 @@ func TestPutPoliciesFromEmptyDir(t *testing.T) {
 }
 
 func TestPutPoliciesFromExampleDir(t *testing.T) {
-	client := &vaultClient.MockVaultsmithClient{}
+	client := &vault.MockClient{}
 	sh, err := NewSysAuthHandler(client, examplePath())
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
@@ -66,7 +66,7 @@ func TestPutPoliciesFromExampleDir(t *testing.T) {
 }
 
 func TestSysHandlerWalkFile(t *testing.T) {
-	//client := &vaultClient.MockVaultsmithClient{}
+	//client := &vaultClient.MockClient{}
 	//sh, err := NewSysAuthHandler(client, "")
 	//if err != nil {
 	//	log.Fatalf("Failed to create SysAuth: %s", err)

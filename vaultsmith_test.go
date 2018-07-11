@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 	"fmt"
-	"github.com/starlingbank/vaultsmith/vaultClient"
+	"github.com/starlingbank/vaultsmith/vault"
 	"github.com/starlingbank/vaultsmith/config"
 )
 
@@ -13,7 +13,7 @@ func TestRunWhenVaultNotListening(t *testing.T) {
 	conf := &config.VaultsmithConfig{
 		VaultRole: "ValidRole",
 	}
-	mockClient := new(vaultClient.MockVaultsmithClient)
+	mockClient := new(vault.MockClient)
 	conf.VaultRole = "ConnectionRefused"
 	mockClient.On("Authenticate", conf.VaultRole)
 
@@ -33,7 +33,7 @@ func TestRunWhenRoleIsInvalid(t *testing.T) {
 	conf := &config.VaultsmithConfig{
 		VaultRole: "ValidRole",
 	}
-	mockClient := new(vaultClient.MockVaultsmithClient)
+	mockClient := new(vault.MockClient)
 	conf.VaultRole = "InvalidRole"
 	mockClient.On("Authenticate", conf.VaultRole)
 

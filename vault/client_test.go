@@ -1,4 +1,4 @@
-package vaultClient
+package vault
 
 import (
 	"testing"

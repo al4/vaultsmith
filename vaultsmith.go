@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/starlingbank/vaultsmith/internal"
-	"github.com/starlingbank/vaultsmith/vaultClient"
+	"github.com/starlingbank/vaultsmith/vault"
 	"github.com/starlingbank/vaultsmith/config"
 )
 
@@ -64,8 +64,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var client *vaultClient.VaultClient
-	client, err = vaultClient.NewVaultClient()
+	var client *vault.Client
+	client, err = vault.NewVaultClient()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -77,16 +77,12 @@ func main() {
 	log.Println("Success")
 }
 
-func Run(c vaultClient.VaultsmithClient, config *config.VaultsmithConfig) error {
+func Run(c vault.Vault, config *config.VaultsmithConfig) error {
 	err := c.Authenticate(config.VaultRole)
 	if err != nil {
 		return fmt.Errorf("failed authenticating with Vault: %s", err)
 	}
 
-	//err = sysHandler.PutPoliciesFromDir("./example")
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
 	cw := internal.NewConfigWalker(c, config.ConfigDir)
 	return cw.Run()
 }

@@ -6,7 +6,7 @@ import (
 	"log"
 	"path/filepath"
 	"reflect"
-	"github.com/starlingbank/vaultsmith/vaultClient"
+	"github.com/starlingbank/vaultsmith/vault"
 	"encoding/json"
 )
 
@@ -23,11 +23,11 @@ var fixedPolicies = map[string]bool {
 
 type SysPolicyHandler struct {
 	BaseHandler
-	client					vaultClient.VaultsmithClient
-	rootPath				string
-	livePolicyList			[]string
-	configuredPolicyList	[]string
-	order					int
+	client               vault.Vault
+	rootPath             string
+	livePolicyList       []string
+	configuredPolicyList []string
+	order                int
 }
 
 type SysPolicy struct {
@@ -35,7 +35,7 @@ type SysPolicy struct {
 	Policy	string `json:"policy"`
 }
 
-func NewSysPolicyHandler(c vaultClient.VaultsmithClient, rootPath string) (*SysPolicyHandler, error) {
+func NewSysPolicyHandler(c vault.Vault, rootPath string) (*SysPolicyHandler, error) {
 	// Build a map of currently active auth methods, so walkFile() can reference it
 	livePolicyList, err := c.ListPolicies()
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"io"
 	"log"
-	"github.com/starlingbank/vaultsmith/vaultClient"
+	"github.com/starlingbank/vaultsmith/vault"
 )
 
 // Path is the Interface
@@ -22,11 +22,11 @@ type ValueMap map[string][]string
 
 // Set of methods common to all PathHandlers
 type BaseHandler struct {
-	client 				vaultClient.VaultsmithClient
-	rootPath 			string
-	liveAuthMap 		*map[string]*vaultApi.AuthMount
-	configuredAuthMap 	*map[string]*vaultApi.AuthMount
-	order				int  // order to process. Lower is earlier, with the exception of 0, which
+	client            vault.Vault
+	rootPath          string
+	liveAuthMap       *map[string]*vaultApi.AuthMount
+	configuredAuthMap *map[string]*vaultApi.AuthMount
+	order             int  // order to process. Lower is earlier, with the exception of 0, which
 							 // is processed after any others with a positive integer
 }
 

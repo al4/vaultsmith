@@ -1,7 +1,7 @@
 package path_handlers
 
 import (
-	"github.com/starlingbank/vaultsmith/vaultClient"
+	"github.com/starlingbank/vaultsmith/vault"
 	"log"
 	"testing"
 	"reflect"
@@ -10,7 +10,7 @@ import (
 
 func TestSysPolicyHandler_PolicyExists(t *testing.T) {
 	// Not terribly testable as it doesn't return anything we can assert against
-	client := &vaultClient.MockVaultsmithClient{}
+	client := &vault.MockClient{}
 	sph, err := NewSysPolicyHandler(client, "")
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
@@ -31,7 +31,7 @@ func TestSysPolicyHandler_PolicyExists(t *testing.T) {
 }
 
 func TestSysPolicyHandler_PolicyExistsFalse(t *testing.T) {
-	client := &vaultClient.MockVaultsmithClient{}
+	client := &vault.MockClient{}
 	sph, err := NewSysPolicyHandler(client, "")
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
@@ -53,7 +53,7 @@ func TestSysPolicyHandler_PolicyExistsFalse(t *testing.T) {
 
 // isPolicyApplied should return true when the policy is present and the content matches
 func TestSysPolicyHandler_IsPolicyApplied(t *testing.T) {
-	client := &vaultClient.MockVaultsmithClient{}
+	client := &vault.MockClient{}
 	client.ReturnString = "testPolicy"
 	sph, err := NewSysPolicyHandler(client, "")
 	if err != nil {
@@ -76,7 +76,7 @@ func TestSysPolicyHandler_IsPolicyApplied(t *testing.T) {
 
 // isPolicyApplied should return false when policy is present but content differs
 func TestSysPolicyHandler_IsPolicyApplied_PresentButDifferent(t *testing.T) {
-	client := &vaultClient.MockVaultsmithClient{}
+	client := &vault.MockClient{}
 	client.ReturnString = "testPolicy"
 
 	sph, err := NewSysPolicyHandler(client, "")
@@ -99,7 +99,7 @@ func TestSysPolicyHandler_IsPolicyApplied_PresentButDifferent(t *testing.T) {
 }
 
 func TestSysPolicyHandler_RemoveUndeclaredPolicies(t *testing.T) {
-	sph, err := NewSysPolicyHandler(&vaultClient.MockVaultsmithClient{}, "test")
+	sph, err := NewSysPolicyHandler(&vault.MockClient{}, "test")
 	if err != nil {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}

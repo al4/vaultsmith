@@ -6,7 +6,7 @@ import (
 	"time"
 	"log"
 	"github.com/starlingbank/vaultsmith/path_handlers"
-	"github.com/starlingbank/vaultsmith/vaultClient"
+	"github.com/starlingbank/vaultsmith/vault"
 	"reflect"
 )
 
@@ -68,11 +68,11 @@ func TestHasParentHandlerSelf(t *testing.T) {
 }
 
 func TestSortedPaths(t *testing.T) {
-	fooH, err := path_handlers.NewDummyHandler(&vaultClient.MockVaultsmithClient{}, "", 30)
+	fooH, err := path_handlers.NewDummyHandler(&vault.MockClient{}, "", 30)
 	if err != nil { log.Fatal(err) }
-	barH, err := path_handlers.NewDummyHandler(&vaultClient.MockVaultsmithClient{}, "", 10)
+	barH, err := path_handlers.NewDummyHandler(&vault.MockClient{}, "", 10)
 	if err != nil { log.Fatal(err) }
-	bozH, err := path_handlers.NewDummyHandler(&vaultClient.MockVaultsmithClient{}, "", 20)
+	bozH, err := path_handlers.NewDummyHandler(&vault.MockClient{}, "", 20)
 	if err != nil { log.Fatal(err) }
 
 	cw := ConfigWalker{

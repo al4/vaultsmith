@@ -2,7 +2,7 @@ package path_handlers
 
 import (
 	"testing"
-	"github.com/starlingbank/vaultsmith/vaultClient"
+	"github.com/starlingbank/vaultsmith/vault"
 	"log"
 	vaultApi "github.com/hashicorp/vault/api"
 	"github.com/starlingbank/vaultsmith/config"
@@ -17,7 +17,7 @@ func TestGeneric_isDocApplied_true(t *testing.T) {
 	returnSecret := vaultApi.Secret{
 		Data: testData,
 	}
-	client := &vaultClient.MockVaultsmithClient{
+	client := &vault.MockClient{
 		ReturnSecret: &returnSecret,
 	}
 
@@ -46,7 +46,7 @@ func TestGeneric_isDocApplied_falseValue(t *testing.T) {
 	returnSecret := vaultApi.Secret{
 		Data: testDataB,
 	}
-	client := &vaultClient.MockVaultsmithClient{
+	client := &vault.MockClient{
 		ReturnSecret: &returnSecret,
 	}
 
@@ -65,7 +65,7 @@ func TestGeneric_isDocApplied_falseValue(t *testing.T) {
 }
 
 func TestGeneric_areKeysApplied_true(t *testing.T) {
-	client := &vaultClient.MockVaultsmithClient{}
+	client := &vault.MockClient{}
 
 	gh, err := NewGenericHandler(client, config.VaultsmithConfig{}, "N/A")
 	if err != nil {
@@ -88,7 +88,7 @@ func TestGeneric_areKeysApplied_true(t *testing.T) {
 }
 
 func TestGeneric_areKeysApplied_false(t *testing.T) {
-	client := &vaultClient.MockVaultsmithClient{}
+	client := &vault.MockClient{}
 
 	gh, err := NewGenericHandler(client, config.VaultsmithConfig{}, "N/A")
 	if err != nil {
