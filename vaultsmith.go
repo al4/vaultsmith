@@ -75,31 +75,42 @@ func main() {
 }
 
 // Return the appropriate document.Set for the given path
-func getDocumentSet(path string) (docSet document.Set, err error) {
+func getDocumentSet(path string, workDir string) (docSet document.Set, err error) {
 	u, err := url.Parse(path)
 	if err != nil {
 		log.Println(err)
 	}
 
 	switch u.Scheme {
-	case "":
-		docSet = &document.LocalFiles{
-			WorkDir: path,
-		}
 	case "http", "https":
-		workDir, err := ioutil.TempDir(os.TempDir(), "vaultsmith-")
-		if err != nil {
-			return nil, fmt.Errorf("could not create temp directory: %s", err)
-		}
-		docSet = &document.HttpTarball{
+		return &document.HttpTarball{
 			WorkDir: workDir,
 			Url: u,
-		}
+		}, nil
+	case "", "file":
+		// local filesystem, handled below
 	default:
+		// what is this?
 		return nil, fmt.Errorf("unhandled scheme %q", u.Scheme)
 	}
 
-	return docSet, err
+	// From here we are assuming path points to the local file system
+	p, err := os.Stat(path)
+	switch mode := p.Mode(); { case mode.IsDir():
+		// Should be an directory of files
+		return &document.LocalFiles{
+			WorkDir: workDir,
+			Directory: path,
+		}, nil
+	case mode.IsRegular():
+		// Should be an archive
+		return &document.LocalTarball{
+			WorkDir: workDir,
+			ArchivePath: path,
+		}, nil
+	default:
+		return nil, fmt.Errorf("don't know what to do with mode %s", mode)
+	}
 }
 
 func Run(c vault.Vault, config *config.VaultsmithConfig) error {
@@ -108,7 +119,13 @@ func Run(c vault.Vault, config *config.VaultsmithConfig) error {
 		return fmt.Errorf("failed authenticating with Vault: %s", err)
 	}
 
-	docSet, err := getDocumentSet(config.DocumentPath)
+	workDir, err := ioutil.TempDir(os.TempDir(), "vaultsmith-")
+	if err != nil {
+		return fmt.Errorf("could not create temp directory: %s", err)
+	}
+	defer os.RemoveAll(workDir)
+
+	docSet, err := getDocumentSet(config.DocumentPath, workDir)
 	if err != nil {
 		return err
 	}
