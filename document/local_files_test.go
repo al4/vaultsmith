@@ -6,7 +6,7 @@ import (
 )
 
 func TestLocalFiles_Get(t *testing.T) {
-	l := LocalFiles{"."}
+	l := LocalFiles{".", "."}
 	if err := l.Get(); err != nil {
 		log.Fatalf("Error running Get: %s", err)
 	}
@@ -14,7 +14,7 @@ func TestLocalFiles_Get(t *testing.T) {
 
 func TestLocalFiles_Path(t *testing.T) {
 	exp := "."
-	l := LocalFiles{WorkDir: exp}
+	l := LocalFiles{Directory: "."}
 	r := l.Path()
 	if r != "." {
 		log.Fatalf("Expected %q, got %s", r, exp)
@@ -22,6 +22,6 @@ func TestLocalFiles_Path(t *testing.T) {
 }
 
 func TestLocalFiles_CleanUp(t *testing.T) {
-	l := LocalFiles{"."}
+	l := LocalFiles{Directory: "."}
 	l.CleanUp()
 }

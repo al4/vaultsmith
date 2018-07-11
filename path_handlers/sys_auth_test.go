@@ -41,13 +41,9 @@ func TestPutPoliciesFromEmptyDir(t *testing.T) {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
 	err = sh.PutPoliciesFromDir("")
-	if err == nil {
-		log.Fatal("Expected error, got nil")
+	if err != nil {
+		log.Fatalf("Expected nil, got error %s", err.Error())
 	}
-	if ! strings.Contains(err.Error(), "FileInfo") {
-		log.Fatalf("Expected error about nil FileInfo, got '%s'", err.Error())
-	}
-
 }
 
 func TestPutPoliciesFromExampleDir(t *testing.T) {
