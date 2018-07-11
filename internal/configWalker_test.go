@@ -13,8 +13,8 @@ import (
 func TestConfigHandlerWalkFile(t *testing.T) {
 	cw := ConfigWalker{
 		HandlerMap: map[string]handlers.PathHandler{
-			"sys/auth": &handlers.DummyHandler{},
-			"auth/aws":  &handlers.DummyHandler{},
+			"sys/auth": &handlers.Dummy{},
+			"auth/aws":  &handlers.Dummy{},
 		},
 	}
 	f := &fakeFileInfo{}
@@ -29,7 +29,7 @@ func TestConfigHandlerWalkFile(t *testing.T) {
 func TestHasParentHandlerTrue(t *testing.T) {
 	cw := ConfigWalker{
 		HandlerMap: map[string]handlers.PathHandler{
-			"parent": &handlers.DummyHandler{},
+			"parent": &handlers.Dummy{},
 		},
 	}
 
@@ -43,7 +43,7 @@ func TestHasParentHandlerTrue(t *testing.T) {
 func TestHasParentHandlerFalse(t *testing.T) {
 	cw := ConfigWalker{
 		HandlerMap: map[string]handlers.PathHandler{
-			"parent": &handlers.DummyHandler{},
+			"parent": &handlers.Dummy{},
 		},
 	}
 
@@ -57,7 +57,7 @@ func TestHasParentHandlerFalse(t *testing.T) {
 func TestHasParentHandlerSelf(t *testing.T) {
 	cw := ConfigWalker{
 		HandlerMap: map[string]handlers.PathHandler{
-			"parent/child": &handlers.DummyHandler{},
+			"parent/child": &handlers.Dummy{},
 		},
 	}
 

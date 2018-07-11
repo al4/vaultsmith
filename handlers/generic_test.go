@@ -8,7 +8,7 @@ import (
 	"github.com/starlingbank/vaultsmith/config"
 )
 
-func TestGenericHandler_isDocApplied_true(t *testing.T) {
+func TestGeneric_isDocApplied_true(t *testing.T) {
 	testData := make(map[string]interface{})
 	testData["testKey"] = "testValue"
 	testDoc := GenericDocument{"test/path", testData}
@@ -34,7 +34,7 @@ func TestGenericHandler_isDocApplied_true(t *testing.T) {
 	}
 }
 
-func TestGenericHandler_isDocApplied_falseValue(t *testing.T) {
+func TestGeneric_isDocApplied_falseValue(t *testing.T) {
 	testDataA := make(map[string]interface{})
 	testDataB := make(map[string]interface{})
 
@@ -63,7 +63,7 @@ func TestGenericHandler_isDocApplied_falseValue(t *testing.T) {
 	}
 }
 
-func TestGenericHandler_areKeysApplied_true(t *testing.T) {
+func TestGeneric_areKeysApplied_true(t *testing.T) {
 	client := &vaultClient.MockVaultsmithClient{}
 
 	gh, err := NewGenericHandler(client, config.VaultsmithConfig{}, "N/A")
@@ -86,7 +86,7 @@ func TestGenericHandler_areKeysApplied_true(t *testing.T) {
 
 }
 
-func TestGenericHandler_areKeysApplied_false(t *testing.T) {
+func TestGeneric_areKeysApplied_false(t *testing.T) {
 	client := &vaultClient.MockVaultsmithClient{}
 
 	gh, err := NewGenericHandler(client, config.VaultsmithConfig{}, "N/A")

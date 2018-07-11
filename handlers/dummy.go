@@ -6,26 +6,26 @@ import (
 )
 
 // A minimal handler which does nothing, mainly for testing
-type DummyHandler struct {
+type Dummy struct {
 	BasePathHandler
 	client 				vaultClient.VaultsmithClient
 	rootPath 			string  // path to handle
 	order				int
 }
 
-func NewDummyHandler(c vaultClient.VaultsmithClient, rootPath string, order int) (*DummyHandler, error) {
-	return &DummyHandler{
+func NewDummyHandler(c vaultClient.VaultsmithClient, rootPath string, order int) (*Dummy, error) {
+	return &Dummy{
 		client: c,
 		rootPath: rootPath,
 		order: order,
 	}, nil
 }
 
-func (h *DummyHandler) PutPoliciesFromDir(path string) error {
+func (h *Dummy) PutPoliciesFromDir(path string) error {
 	log.Printf("Dummy handler got path: %s", path)
 	return nil
 }
 
-func (h *DummyHandler) Order() int {
+func (h *Dummy) Order() int {
 	return h.order
 }
