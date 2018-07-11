@@ -9,7 +9,7 @@ import (
 
 func TestReadFile(t *testing.T) {
 	var expectStr = "foo"
-	ph := &BasePathHandler{}
+	ph := &BaseHandler{}
 	file, _ := ioutil.TempFile(".", "test-PathHandler-")
 	err := ioutil.WriteFile(file.Name(), []byte(expectStr), os.FileMode(int(0664)))
 	if err != nil {

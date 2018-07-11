@@ -22,7 +22,7 @@ var fixedPolicies = map[string]bool {
 }
 
 type SysPolicyHandler struct {
-	BasePathHandler
+	BaseHandler
 	client					vaultClient.VaultsmithClient
 	rootPath				string
 	livePolicyList			[]string

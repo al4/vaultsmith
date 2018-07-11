@@ -18,7 +18,7 @@ import (
  */
 
 type SysAuthHandler struct {
-	BasePathHandler
+	BaseHandler
 	client 				vaultClient.VaultsmithClient
 	rootPath 			string
 	liveAuthMap 		map[string]*vaultApi.AuthMount

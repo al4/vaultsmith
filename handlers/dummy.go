@@ -7,7 +7,7 @@ import (
 
 // A minimal handler which does nothing, mainly for testing
 type Dummy struct {
-	BasePathHandler
+	BaseHandler
 	client 				vaultClient.VaultsmithClient
 	rootPath 			string  // path to handle
 	order				int

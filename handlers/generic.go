@@ -20,7 +20,7 @@ type GenericDocument struct {
 
 // The generic handler simply writes the files to the path they are stored in
 type GenericHandler struct {
-	BasePathHandler
+	BaseHandler
 	client 				vaultClient.VaultsmithClient
 	rootPath 			string  // Where we walk from
 	globalRootPath		string  // The top level config directory. We need this as the relative path
