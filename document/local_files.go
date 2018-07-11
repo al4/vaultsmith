@@ -1,5 +1,9 @@
 package document
 
+
+// LocalFiles effectively serves as a dummy implementation, as the rest of vaultsmith is designed
+// to operate on a directory of files.
+
 // Implements document.Set
 type LocalFiles struct {
 	WorkDir	string

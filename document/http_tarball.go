@@ -42,11 +42,12 @@ func (h *HttpTarball) Path() (path string){
 }
 
 func (h *HttpTarball) CleanUp() {
-	log.Printf("Removing %s", h.WorkDir)
+	log.Printf("Removing %s", h.archivePath())
 	err := os.RemoveAll(h.WorkDir)
 	if err != nil {
 		log.Println(err)
 	}
+	h.LocalTarball.CleanUp()
 	return
 }
 
