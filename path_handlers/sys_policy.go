@@ -85,7 +85,7 @@ func (sh *SysPolicyHandler) walkFile(path string, f os.FileInfo, err error) erro
 
 	for _, td := range templatedDocs {
 		writeName := templatePath(policyPath, td.Name)
-		log.Printf("Applying %s", writeName)
+		log.Printf("Applying %q", writeName)
 
 		policy := SysPolicy{
 			Name: writeName,
@@ -120,7 +120,7 @@ func (sh *SysPolicyHandler) EnsurePolicy(policy SysPolicy) error {
 		return err
 	}
 	if applied {
-		log.Printf("Policy %s already applied", policy.Name)
+		log.Printf("Policy %q already applied", policy.Name)
 		return nil
 	}
 	return sh.client.PutPolicy(policy.Name, policy.Policy)

@@ -67,6 +67,48 @@ func TestHasParentHandlerSelf(t *testing.T) {
 	}
 }
 
+// Should return true when there is no child handler
+func TestConfigWalker_hasChildHandler(t *testing.T) {
+	cw := ConfigWalker{
+		HandlerMap: map[string]path_handlers.PathHandler{
+			"base/parent/child": &path_handlers.Dummy{},
+		},
+	}
+
+	hasChild := cw.hasChildHandler("base/parent")
+	if ! hasChild {
+		log.Fatal("Got false for hasChildHandler call, should be true")
+	}
+}
+
+// Should return false when there is no child handler
+func TestConfigWalker_hasChildHandler_false(t *testing.T) {
+	cw := ConfigWalker{
+		HandlerMap: map[string]path_handlers.PathHandler{
+			"foo": &path_handlers.Dummy{},
+		},
+	}
+
+	hasChild := cw.hasChildHandler("base/parent")
+	if hasChild {
+		log.Fatal("Got true for hasChildHandler call, should be false")
+	}
+}
+
+// Should not consider itself to be a child handler
+func TestConfigWalker_hasChildHandler_self(t *testing.T) {
+	cw := ConfigWalker{
+		HandlerMap: map[string]path_handlers.PathHandler{
+			"foo/bar": &path_handlers.Dummy{},
+		},
+	}
+
+	hasChild := cw.hasChildHandler("foo/bar")
+	if hasChild {
+		log.Fatal("Got true for hasChildHandler call, should be false")
+	}
+}
+
 func TestSortedPaths(t *testing.T) {
 	fooH, err := path_handlers.NewDummyHandler(&vault.MockClient{}, "", 30)
 	if err != nil { log.Fatal(err) }

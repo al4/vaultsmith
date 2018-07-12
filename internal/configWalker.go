@@ -177,14 +177,15 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 
 	// Is there a handler for a higher level path? If so, we assume that it handles all child
 	// directories and thus we should not process these directories separately.
-	if cw.hasParentHandler(relPath) {
-		log.Printf("Skipping %s, handled by parent", relPath)
+	// Likewise if there is a handler on a lower level, we should not assign the higher levels to
+	// any specific handler or it would recurse in.
+	if cw.hasParentHandler(relPath) || cw.hasChildHandler(relPath) {
 		return nil
 	}
 
 	handler, ok := cw.HandlerMap[relPath]
 	if ok {
-		log.Printf("Processing %s using %T handler", path, handler)
+		log.Printf("Processing %q using %T handler", path, handler)
 		return handler.PutPoliciesFromDir(path)
 	}
 
@@ -200,7 +201,7 @@ func (cw ConfigWalker) hasParentHandler(path string) bool {
 	pathArr := strings.Split(path, string(os.PathSeparator))
 	for i := 0; i < len(pathArr) - 1; i++ {
 		s := strings.Join(pathArr[:i + 1], string(os.PathSeparator))
-		if s == path { // should be covered by -1 in for condition above, so just for extra safety
+		if s == path { // should be covered by -1 in for condition above; just for extra safety
 			continue
 		}
 		if _, ok := cw.HandlerMap[s]; ok {
@@ -210,3 +211,13 @@ func (cw ConfigWalker) hasParentHandler(path string) bool {
 	return false
 }
 
+// Determine whether this directory has any children covered by a handler
+func (cw ConfigWalker) hasChildHandler(path string) bool {
+	// Crude, but if the path is within that of a handler, it's a match
+	for k := range cw.HandlerMap {
+		if k == path { continue }
+		if strings.Contains(k, path) { return true }
+	}
+
+	return false
+}

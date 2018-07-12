@@ -61,7 +61,7 @@ func (sh *SysAuth) walkFile(path string, f os.FileInfo, err error) error {
 		return fmt.Errorf("found file without sys/auth prefix: %s", policyPath)
 	}
 
-	log.Printf("Applying %s\n", policyPath)
+	log.Printf("Applying %q", policyPath)
 	fileContents, err := sh.readFile(path)
 	if err != nil { return err}
 
@@ -112,7 +112,7 @@ func (sh *SysAuth) ensureAuth(path string, enableOpts vaultApi.EnableAuthOptions
 				enableOpts.Type, err)
 		}
 		if applied {
-			log.Printf("Configuration for authMount %s already applied\n", enableOpts.Type)
+			log.Printf("Configuration for authMount %q already applied", enableOpts.Type)
 			return nil
 		}
 	}
