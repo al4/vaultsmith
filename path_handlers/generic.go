@@ -15,7 +15,6 @@ import (
 
 // Required information to write a document to vault
 type VaultDocument struct {
-	name string
 	path string
 	data map[string]interface{}
 }
@@ -59,33 +58,25 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 	}
 
 	// common variables for write path
-	relPath, err := filepath.Rel(gh.config.DocumentPath, path)
+	apiPath, err := apiPath(gh.config.DocumentPath, path)
 	if err != nil {
 		return fmt.Errorf("could not determine relative path of %s to %s: %s",
 			path, gh.config.DocumentPath, err)
 	}
-	dir, file := filepath.Split(relPath)
-	fileName := strings.Split(file , ".")[0]
 
-	for name, content := range templatedDocs {
+	for _, td := range templatedDocs {
 		// parse our document data as json
 		var data map[string]interface{}
-		err = json.Unmarshal([]byte(content), &data)
+		err = json.Unmarshal([]byte(td.Content), &data)
 		if err != nil {
 			return fmt.Errorf("failed to parse json from file %q: %s", path, err)
 		}
 
-		var docName string
-		if name == "" { // this is the only instance, or purposely unlabelled
-			docName = fileName
-		} else { // need to write each one to a separate path
-			docName = fmt.Sprintf("%s_%s", fileName, name)
-		}
-		writePath := filepath.Join(dir, docName)
-		log.Printf("Applying %q", docName)
+		writePath := templatePath(apiPath, td.Name)
+
+		log.Printf("Applying %q", writePath)
 
 		doc := VaultDocument{
-			name: docName,
 			path: writePath,
 			data: data,
 		}

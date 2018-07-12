@@ -26,10 +26,16 @@ type Template struct {
 	matcher      *regexp.Regexp		// Regex to find placeholders
 }
 
-// The structure of our json (with the array)
+// The structure of our json (within the array)
 type TemplateConfig struct {
 	Name 		string 				`json:"name"`
 	Variables	map[string]string 	`json:"variables"`
+}
+
+// A rendered template which we can write to vault
+type RenderedTemplate struct {
+	Name string
+	Content string
 }
 
 func NewTemplate(filepath string, mappingFile string) (t *Template, err error) {
@@ -56,7 +62,7 @@ func NewTemplate(filepath string, mappingFile string) (t *Template, err error) {
 }
 
 // Return slice containing all "versions" of the document, with template placeholders replaced
-func (t *Template) Render() (versions map[string]string, err error) {
+func (t *Template) Render() (renderedTemplates []RenderedTemplate, err error) {
 	// No need to read if Content already defined
 	if t.Content == "" {
 		_, err = t.read()
@@ -65,16 +71,16 @@ func (t *Template) Render() (versions map[string]string, err error) {
 		}
 	}
 
-	versions = make(map[string]string)
+	renderedTemplates = []RenderedTemplate{}
 
 	placeholders, err := t.findPlaceholders()
 	if err != nil {
-		return versions, fmt.Errorf("error finding placeholders: %s", err)
+		return renderedTemplates, fmt.Errorf("error finding placeholders: %s", err)
 	}
 
 	if len(placeholders) == 0 {  // no placeholders in this file, just return content
-		return map[string]string{
-			"": t.Content,
+		return []RenderedTemplate{
+			{Content: t.Content},
 		},nil
 	}
 
@@ -83,12 +89,14 @@ func (t *Template) Render() (versions map[string]string, err error) {
 		for k, v := range placeholders {
 			c = strings.Replace(c, v, templateConfig.Variables[k], -1)
 		}
-		versions[templateConfig.Name] = c
+		renderedTemplates = append(renderedTemplates, RenderedTemplate{
+			Name: templateConfig.Name,
+			Content: c,
+		})
 	}
 
-	return versions, nil
+	return renderedTemplates, nil
 }
-
 
 func (t *Template) read() (string, error) {
 	file, err := os.Open(t.Path)

@@ -69,20 +69,20 @@ func TestTemplatedDocument_Render(t *testing.T) {
 		ValueMapList: mapping,
 		Content:      "foo is {{ foo }} bar is {{ bar }}.",
 	}
-	contentMap, err := tf.Render()
+	renderedTemplates, err := tf.Render()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	var exp string
 	exp = "foo is A bar is A."
-	if contentMap["one"] != exp {
-		log.Fatalf("Expected %q, got %q", exp, contentMap["one"])
+	if renderedTemplates[0].Content != exp {
+		log.Fatalf("Expected %q, got %q", exp, renderedTemplates[0].Content)
 	}
 
 	exp = "foo is B bar is B."
-	if contentMap["two"] != exp {
-		log.Fatalf("Expected %q, got %q", exp, contentMap["two"])
+	if renderedTemplates[1].Content != exp {
+		log.Fatalf("Expected %q, got %q", exp, renderedTemplates[1].Content)
 	}
 }
 
@@ -97,14 +97,14 @@ func TestTemplatedDocument_Render_MultipleFoo(t *testing.T) {
 		ValueMapList: mapping,
 		Content:      "foo is {{ foo }} bar is {{ bar }}. And foo is {{ foo }}",
 	}
-	contentMap, err := tf.Render()
+	renderedTemplates, err := tf.Render()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	var exp string
 	exp = "foo is A bar is A. And foo is A"
-	if contentMap["test"] != exp {
-		log.Fatalf("Expected %q, got %q", exp, contentMap["test"])
+	if renderedTemplates[0].Content != exp {
+		log.Fatalf("Expected %q, got %q", exp, renderedTemplates[0].Content)
 	}
 }
