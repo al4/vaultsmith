@@ -187,6 +187,7 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 	}
 
 	// At this point, we have a directory, which has no handler assigned to itself or any parent
+	// But we don't know about children
 	log.Printf("Processing path %s using generic handler", relPath)
 	genericHandler := cw.HandlerMap["*"]
 	return genericHandler.PutPoliciesFromDir(path)

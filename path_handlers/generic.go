@@ -58,7 +58,7 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 		return fmt.Errorf("failed to render document %q: %s", path, err)
 	}
 
-	// variables for write path
+	// common variables for write path
 	relPath, err := filepath.Rel(gh.config.DocumentPath, path)
 	if err != nil {
 		return fmt.Errorf("could not determine relative path of %s to %s: %s",
@@ -107,18 +107,15 @@ func (gh *GenericHandler) PutPoliciesFromDir(path string) error {
 
 // Ensure the document is present and consistent
 func (gh *GenericHandler) EnsureDoc(doc VaultDocument) error {
-	applied, err := gh.isDocApplied(doc)
-	if err != nil {
+	if applied, err := gh.isDocApplied(doc); err != nil {
 		return fmt.Errorf("could not determine if %q is applied: %s", doc.path, err)
-	}
-
-	if applied {
+	} else if applied {
 		log.Printf("Document %q already applied", doc.path)
 		return nil
 	}
 
 	log.Printf("Writing %q to server", doc.path)
-	_, err = gh.client.Write(doc.path, doc.data)
+	_, err := gh.client.Write(doc.path, doc.data)
 	return err
 }
 
