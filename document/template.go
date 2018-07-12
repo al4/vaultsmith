@@ -78,7 +78,8 @@ func (t *Template) Render() (renderedTemplates []RenderedTemplate, err error) {
 		return renderedTemplates, fmt.Errorf("error finding placeholders: %s", err)
 	}
 
-	if len(placeholders) == 0 {  // no placeholders in this file, just return content
+	if len(placeholders) == 0 || len(t.ValueMapList) == 0 {
+		// no placeholders or values to map, return a single result with the original content
 		return []RenderedTemplate{
 			{Content: t.Content},
 		},nil

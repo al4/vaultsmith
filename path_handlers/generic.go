@@ -73,14 +73,14 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 		}
 
 		writePath := templatePath(apiPath, td.Name)
-
 		log.Printf("Applying %q", writePath)
 
 		doc := VaultDocument{
 			path: writePath,
 			data: data,
 		}
-		return gh.ensureDoc(doc)
+		err := gh.ensureDoc(doc)
+		if err != nil { return err }
 	}
 
 	return nil

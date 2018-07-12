@@ -63,6 +63,7 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 				path_handlers.PathHandlerConfig{
 					DocumentPath: docPath,
 					Order: 10,
+					MappingFile: config.TemplateFile,
 				})
 			if err != nil {
 				log.Fatalf("Could not create sysAuthHandler: %s", err)
@@ -79,6 +80,7 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 				path_handlers.PathHandlerConfig{
 					DocumentPath: docPath,
 					Order: 20,
+					MappingFile: config.TemplateFile,
 				})
 			if err != nil {
 				log.Fatalf("Could not create sysPolicyHandler: %s", err)

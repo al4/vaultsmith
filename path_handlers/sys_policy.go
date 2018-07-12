@@ -9,11 +9,14 @@ import (
 	"github.com/starlingbank/vaultsmith/vault"
 	"encoding/json"
 	"strings"
+	"github.com/starlingbank/vaultsmith/document"
 )
 
 /*
 	SysPolicyHandler handles the creation/enabling of auth methods and policies, described in the
 	configuration under sys
+
+	Unlike SysAuthHandler, it supports templating
  */
 
 // fixed policies that should not be deleted from vault under any circumstances
@@ -63,28 +66,39 @@ func (sh *SysPolicyHandler) walkFile(path string, f os.FileInfo, err error) erro
 		return nil
 	}
 
-	_, file := filepath.Split(path)
-	policyPath := strings.TrimLeft(strings.TrimPrefix(path, sh.config.DocumentPath), "/")
-	if ! strings.HasPrefix(policyPath, "sys/policy") {
-		return fmt.Errorf("found file without sys/policy prefix: %s", policyPath)
+	// getting file contents
+	td, err := document.NewTemplate(path, sh.config.MappingFile)
+	if err != nil {
+		return fmt.Errorf("failed to instantiate TemplateDocument: %s", err)
+	}
+	templatedDocs, err := td.Render()
+	if err != nil {
+		return fmt.Errorf("failed to render document %q: %s", path, err)
 	}
 
-	log.Printf("Applying %s\n", policyPath)
-	fileContents, err := sh.readFile(path)
-	if err != nil {
-		return err
+	apiPath, err := apiPath(sh.config.DocumentPath, path)
+	if err != nil { return err }
+	if ! strings.HasPrefix(apiPath, "sys/policy") {
+		return fmt.Errorf("found file without sys/policy prefix: %s", apiPath)
 	}
+	policyPath := strings.TrimPrefix(apiPath, "sys/policy/")
 
-	var policy SysPolicy
-	err = json.Unmarshal([]byte(fileContents), &policy)
-	if err != nil {
-		return fmt.Errorf("failed to parse json in %s: %s", path, err)
-	}
-	policy.Name = file
+	for _, td := range templatedDocs {
+		writeName := templatePath(policyPath, td.Name)
+		log.Printf("Applying %s", writeName)
 
-	err = sh.EnsurePolicy(policy)
-	if err != nil {
-		return fmt.Errorf("failed to apply policy from %s: %s", path, err)
+		policy := SysPolicy{
+			Name: writeName,
+		}
+		err = json.Unmarshal([]byte(td.Content), &policy)
+		if err != nil {
+			return fmt.Errorf("failed to parse json from %s: %s", path, err)
+		}
+
+		err = sh.EnsurePolicy(policy)
+		if err != nil {
+			return fmt.Errorf("failed to apply policy at %s: %s", apiPath, err)
+		}
 	}
 
 	return nil
