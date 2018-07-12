@@ -66,7 +66,7 @@ func (sh *SysPolicyHandler) walkFile(path string, f os.FileInfo, err error) erro
 	_, file := filepath.Split(path)
 	policyPath := strings.TrimLeft(strings.TrimPrefix(path, sh.config.DocumentPath), "/")
 	if ! strings.HasPrefix(policyPath, "sys/policy") {
-		return fmt.Errorf("found file without sys/auth prefix: %s", policyPath)
+		return fmt.Errorf("found file without sys/policy prefix: %s", policyPath)
 	}
 
 	log.Printf("Applying %s\n", policyPath)

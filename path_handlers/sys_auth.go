@@ -53,28 +53,26 @@ func (sh *SysAuth) walkFile(path string, f os.FileInfo, err error) error {
 		return fmt.Errorf("error reading %s: %s", path, err)
 	}
 	// not doing anything with dirs
-	if f.IsDir() {
-		return nil
-	}
+	if f.IsDir() { return nil }
 
-	_, file := filepath.Split(path)
-	policyPath := strings.TrimLeft(strings.TrimPrefix(path, sh.config.DocumentPath), "/")
+	policyPath, err := apiPath(sh.config.DocumentPath, path)
+	if err != nil { return err }
 	if ! strings.HasPrefix(policyPath, "sys/auth") {
 		return fmt.Errorf("found file without sys/auth prefix: %s", policyPath)
 	}
 
 	log.Printf("Applying %s\n", policyPath)
 	fileContents, err := sh.readFile(path)
-	if err != nil {
-		return err
-	}
+	if err != nil { return err}
+
 	var enableOpts vaultApi.EnableAuthOptions
 	err = json.Unmarshal([]byte(fileContents), &enableOpts)
 	if err != nil {
 		return fmt.Errorf("could not parse json from file %s: %s", path, err)
 	}
 
-	err = sh.EnsureAuth(strings.Split(file, ".")[0], enableOpts)
+	sysAuthPath := strings.TrimPrefix(policyPath, "sys/auth/") + "/"
+	err = sh.EnsureAuth(sysAuthPath, enableOpts)
 	if err != nil {
 		return fmt.Errorf("error while ensuring auth for path %s: %s", path, err)
 	}
@@ -105,7 +103,6 @@ func (sh *SysAuth) EnsureAuth(path string, enableOpts vaultApi.EnableAuthOptions
 	}
 	sh.configuredAuthMap[path] = &authMount
 
-	path = path + "/" // vault appends a slash to paths
 	if liveAuth, ok := sh.liveAuthMap[path]; ok {
 		// If this path is present in our live config, we may not need to enable
 		err, applied := sh.isConfigApplied(enableOpts.Config, liveAuth.Config)
@@ -119,7 +116,7 @@ func (sh *SysAuth) EnsureAuth(path string, enableOpts vaultApi.EnableAuthOptions
 			return nil
 		}
 	}
-	log.Printf("Enabling auth type %s\n", authMount.Type)
+	log.Printf("Enabling auth type %s at %s", authMount.Type, path)
 	err = sh.client.EnableAuth(path, &enableOpts)
 	if err != nil {
 		return fmt.Errorf("could not enable auth %s: %s", path, err)
@@ -129,15 +126,17 @@ func (sh *SysAuth) EnsureAuth(path string, enableOpts vaultApi.EnableAuthOptions
 
 func(sh *SysAuth) DisableUnconfiguredAuths() error {
 	// delete entries not in configured list
-	for k, authMount := range sh.liveAuthMap {
-		path := strings.Trim(k, "/") // vault appends a slash to paths
+	for path, authMount := range sh.liveAuthMap {
 		if _, ok := sh.configuredAuthMap[path]; ok {
 			continue  // present, do nothing
 		} else if authMount.Type == "token" {
 			continue  // cannot be disabled, would give http 400 if attempted
 		} else {
-			log.Printf("Disabling auth type %s\n", authMount.Type)
-			return sh.client.DisableAuth(authMount.Type)
+			log.Printf("Disabling auth type %s at %s", authMount.Type, path)
+			err := sh.client.DisableAuth(path)
+			if err != nil {
+				return fmt.Errorf("failed to disable authMount at %s: %s", path, err)
+			}
 		}
 	}
 	return nil
