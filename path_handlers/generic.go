@@ -80,7 +80,7 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 			path: writePath,
 			data: data,
 		}
-		return gh.EnsureDoc(doc)
+		return gh.ensureDoc(doc)
 	}
 
 	return nil
@@ -97,7 +97,7 @@ func (gh *GenericHandler) PutPoliciesFromDir(path string) error {
 }
 
 // Ensure the document is present and consistent
-func (gh *GenericHandler) EnsureDoc(doc VaultDocument) error {
+func (gh *GenericHandler) ensureDoc(doc VaultDocument) error {
 	if applied, err := gh.isDocApplied(doc); err != nil {
 		return fmt.Errorf("could not determine if %q is applied: %s", doc.path, err)
 	} else if applied {

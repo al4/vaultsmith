@@ -28,9 +28,9 @@ func TestSysAuth_EnsureAuth(t *testing.T) {
 	}
 
 	enableOpts := vaultApi.EnableAuthOptions{}
-	err = sh.EnsureAuth("foo", enableOpts)
+	err = sh.ensureAuth("foo", enableOpts)
 	if err != nil {
-		log.Fatalf("Error calling EnsureAuth: %s", err)
+		log.Fatalf("Error calling ensureAuth: %s", err)
 	}
 }
 

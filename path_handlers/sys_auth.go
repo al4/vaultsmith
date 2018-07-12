@@ -72,7 +72,7 @@ func (sh *SysAuth) walkFile(path string, f os.FileInfo, err error) error {
 	}
 
 	sysAuthPath := strings.TrimPrefix(policyPath, "sys/auth/") + "/"
-	err = sh.EnsureAuth(sysAuthPath, enableOpts)
+	err = sh.ensureAuth(sysAuthPath, enableOpts)
 	if err != nil {
 		return fmt.Errorf("error while ensuring auth for path %s: %s", path, err)
 	}
@@ -89,7 +89,7 @@ func (sh *SysAuth) PutPoliciesFromDir(path string) error {
 }
 
 // Ensure that this auth type is enabled and has the correct configuration
-func (sh *SysAuth) EnsureAuth(path string, enableOpts vaultApi.EnableAuthOptions) error {
+func (sh *SysAuth) ensureAuth(path string, enableOpts vaultApi.EnableAuthOptions) error {
 	// we need to convert to AuthConfigOutput in order to compare with existing config
 	var enableOptsAuthConfigOutput vaultApi.AuthConfigOutput
 	enableOptsAuthConfigOutput, err := ConvertAuthConfig(enableOpts.Config)
