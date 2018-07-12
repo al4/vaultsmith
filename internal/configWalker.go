@@ -181,18 +181,15 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 	}
 
 	handler, ok := cw.HandlerMap[relPath]
-	if ! ok {
-		log.Printf("Processing path %s using generic handler", relPath)
-		genericHandler := cw.HandlerMap["*"]
-		return genericHandler.PutPoliciesFromDir(path)
+	if ok {
+		log.Printf("Processing %s using %T handler", path, handler)
+		return handler.PutPoliciesFromDir(path)
 	}
-	log.Printf("Processing %s using %T handler", path, handler)
-	err = handler.PutPoliciesFromDir(path)
-	if err != nil {
-		return err
-	}
-	cw.Visited[path] = true
-	return nil
+
+	// At this point, we have a directory, which has no handler assigned to itself or any parent
+	log.Printf("Processing path %s using generic handler", relPath)
+	genericHandler := cw.HandlerMap["*"]
+	return genericHandler.PutPoliciesFromDir(path)
 }
 
 // Determine whether this directory is already covered by a parent handler

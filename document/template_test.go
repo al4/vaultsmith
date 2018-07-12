@@ -28,9 +28,9 @@ func TestNewTemplatedDocument(t *testing.T) {
 }
 
 func TestTemplatedDocument_findPlaceholders(t *testing.T) {
-	mapping := []map[string]string{
-		{"foo": "bar"},
-		{"baz": "boz"},
+	mapping := []TemplateConfig{
+		{ Name: "foo", Variables: map[string]string{"foo": "bar"} },
+		{ Name: "baz", Variables: map[string]string{"baz": "boz"} },
 	}
 
 	tf := Template{
@@ -58,9 +58,9 @@ func TestTemplatedDocument_findPlaceholders(t *testing.T) {
 }
 
 func TestTemplatedDocument_Render(t *testing.T) {
-	mapping := []map[string]string{
-		{"foo": "A", "bar": "A"},
-		{"foo": "B", "bar": "B"},
+	mapping := []TemplateConfig{
+		{ Name: "one", Variables: map[string]string{"foo": "A", "bar": "A"} },
+		{ Name: "two", Variables: map[string]string{"foo": "B", "bar": "B"} },
 	}
 
 	tf := Template{
@@ -69,26 +69,26 @@ func TestTemplatedDocument_Render(t *testing.T) {
 		ValueMapList: mapping,
 		Content:      "foo is {{ foo }} bar is {{ bar }}.",
 	}
-	contentSlice, err := tf.Render()
+	contentMap, err := tf.Render()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	var exp string
 	exp = "foo is A bar is A."
-	if contentSlice[0] != exp {
-		log.Fatalf("Expected %q, got %q", exp, contentSlice[0])
+	if contentMap["one"] != exp {
+		log.Fatalf("Expected %q, got %q", exp, contentMap["one"])
 	}
 
 	exp = "foo is B bar is B."
-	if contentSlice[1] != exp {
-		log.Fatalf("Expected %q, got %q", exp, contentSlice[1])
+	if contentMap["two"] != exp {
+		log.Fatalf("Expected %q, got %q", exp, contentMap["two"])
 	}
 }
 
 func TestTemplatedDocument_Render_MultipleFoo(t *testing.T) {
-	mapping := []map[string]string{
-		{"foo": "A", "bar": "A"},
+	mapping := []TemplateConfig{
+		{ Name: "test", Variables: map[string]string{"foo": "A", "bar": "A"} },
 	}
 
 	tf := Template{
@@ -97,14 +97,14 @@ func TestTemplatedDocument_Render_MultipleFoo(t *testing.T) {
 		ValueMapList: mapping,
 		Content:      "foo is {{ foo }} bar is {{ bar }}. And foo is {{ foo }}",
 	}
-	contentSlice, err := tf.Render()
+	contentMap, err := tf.Render()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	var exp string
 	exp = "foo is A bar is A. And foo is A"
-	if contentSlice[0] != exp {
-		log.Fatalf("Expected %q, got %q", exp, contentSlice[0])
+	if contentMap["test"] != exp {
+		log.Fatalf("Expected %q, got %q", exp, contentMap["test"])
 	}
 }

@@ -22,9 +22,14 @@ type Renderer interface {
 type Template struct {
 	Path         string
 	Content      string
-	ValueMapList []map[string]string	// List of "instances" of the document, mapping the
-										// key-values for each one
-	matcher      *regexp.Regexp // Regex to find placeholders
+	ValueMapList []TemplateConfig	// List of "instances" of the document, mapping the key-values for each one
+	matcher      *regexp.Regexp		// Regex to find placeholders
+}
+
+// The structure of our json (with the array)
+type TemplateConfig struct {
+	Name 		string 				`json:"name"`
+	Variables	map[string]string 	`json:"variables"`
 }
 
 func NewTemplate(filepath string, mappingFile string) (t *Template, err error) {
@@ -32,7 +37,7 @@ func NewTemplate(filepath string, mappingFile string) (t *Template, err error) {
 		return nil, fmt.Errorf("file %s does not exist", filepath)
 	}
 
-	var jsonMapping []map[string]string
+	var jsonMapping []TemplateConfig
 	if mappingFile != "" {
 		file, err := ioutil.ReadFile(mappingFile)
 		if err != nil {
@@ -51,31 +56,37 @@ func NewTemplate(filepath string, mappingFile string) (t *Template, err error) {
 }
 
 // Return slice containing all "versions" of the document, with template placeholders replaced
-func (t *Template) Render() (versions []string, err error) {
+func (t *Template) Render() (versions map[string]string, err error) {
 	// No need to read if Content already defined
 	if t.Content == "" {
 		_, err = t.read()
 		if err != nil {
-			return []string{}, err
+			return
 		}
 	}
+
+	versions = make(map[string]string)
 
 	placeholders, err := t.findPlaceholders()
 	if err != nil {
-		return []string{}, fmt.Errorf("error finding placeholders: %s", err)
+		return versions, fmt.Errorf("error finding placeholders: %s", err)
 	}
 
-	var contentSlice []string
+	if len(placeholders) == 0 {  // no placeholders in this file, just return content
+		return map[string]string{
+			"": t.Content,
+		},nil
+	}
 
-	for _, valueMap := range t.ValueMapList {
+	for _, templateConfig := range t.ValueMapList {
 		var c = t.Content
 		for k, v := range placeholders {
-			c = strings.Replace(c, v, valueMap[k], -1)
+			c = strings.Replace(c, v, templateConfig.Variables[k], -1)
 		}
-		contentSlice = append(contentSlice, c)
+		versions[templateConfig.Name] = c
 	}
 
-	return contentSlice, nil
+	return versions, nil
 }
 
 

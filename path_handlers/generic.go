@@ -14,6 +14,7 @@ import (
 )
 
 type GenericDocument struct {
+	name string
 	path string
 	data map[string]interface{}
 }
@@ -45,9 +46,6 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 		return nil
 	}
 
-	docPath := strings.TrimLeft(strings.TrimPrefix(path, gh.config.DocumentPath), "/")
-	log.Printf("Applying %s\n", docPath)
-
 	// getting file contents
 	td, err := document.NewTemplate(path, gh.config.MappingFile)
 	if err != nil {
@@ -59,32 +57,38 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 		return fmt.Errorf("failed to render document %q: %s", path, err)
 	}
 
-	for _, content := range templatedDocs {
-		// this function now feels overloaded
+	// variables for write path
+	relPath, err := filepath.Rel(gh.config.DocumentPath, path)
+	if err != nil {
+		return fmt.Errorf("could not determine relative path of %s to %s: %s",
+			path, gh.config.DocumentPath, err)
+	}
+	dir, file := filepath.Split(relPath)
+	fileName := strings.Split(file , ".")[0]
+
+	for name, content := range templatedDocs {
+		// parse our document data as json
 		var data map[string]interface{}
 		err = json.Unmarshal([]byte(content), &data)
 		if err != nil {
 			return fmt.Errorf("failed to parse json from file %q: %s", path, err)
 		}
 
-		// determine write path
-		relPath, err := filepath.Rel(gh.config.DocumentPath, path)
-		if err != nil {
-			return fmt.Errorf("could not determine relative path of %s to %s: %s",
-				path, gh.config.DocumentPath, err)
+		var docName string
+		if name == "" { // this is the only instance, or purposely unlabelled
+			docName = fileName
+		} else { // need to write each one to a separate path
+			docName = fmt.Sprintf("%s_%s", fileName, name)
 		}
-		dir, file := filepath.Split(relPath)
-		fileName := strings.Split(file, ".")[0]  // sans extension
-		writePath := filepath.Join(dir, fileName)
+		writePath := filepath.Join(dir, docName)
+		log.Printf("Applying %s\n", docName)
 
 		doc := GenericDocument{
+			name: docName,
 			path: writePath,
 			data: data,
 		}
-		err = gh.EnsureDoc(doc)
-		if err != nil {
-			return fmt.Errorf("failed to ensure document %q is applied: %s", path, err)
-		}
+		return gh.EnsureDoc(doc)
 	}
 
 	return nil
