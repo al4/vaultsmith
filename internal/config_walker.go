@@ -33,6 +33,14 @@ type ConfigWalker struct {
 func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath string) ConfigWalker {
 	// Map configuration directories to specific path handlers
 	var handlerMap = map[string]path_handlers.PathHandler{}
+	var templateFile string
+
+	// Find the mapping file
+	if config.TemplateFile == "" {
+		templateFile = filepath.Join(docPath, "template.json")
+	} else {
+		templateFile = config.TemplateFile
+	}
 
 	// Instantiate our path handlers
 	// We handle any unknown directories with this one
@@ -40,7 +48,7 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 		client,
 		path_handlers.PathHandlerConfig{
 			DocumentPath: docPath,
-			MappingFile: config.TemplateFile,
+			MappingFile: templateFile,
 		})
 	if err != nil {
 		log.Fatalf("Could not create genericHandler: %s", err)
@@ -63,7 +71,7 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 				path_handlers.PathHandlerConfig{
 					DocumentPath: docPath,
 					Order: 10,
-					MappingFile: config.TemplateFile,
+					MappingFile: templateFile,
 				})
 			if err != nil {
 				log.Fatalf("Could not create sysAuthHandler: %s", err)
@@ -80,7 +88,7 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 				path_handlers.PathHandlerConfig{
 					DocumentPath: docPath,
 					Order: 20,
-					MappingFile: config.TemplateFile,
+					MappingFile: templateFile,
 				})
 			if err != nil {
 				log.Fatalf("Could not create sysPolicyHandler: %s", err)

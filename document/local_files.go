@@ -1,8 +1,8 @@
 package document
 
 
-// LocalFiles effectively serves as a dummy implementation, as the rest of vaultsmith is designed
-// to operate on a directory of files.
+// LocalFiles effectively serves as a dummy implementation. The rest of vaultsmith is designed
+// to operate on a directory of files, so no special logic is needed.
 
 // Implements document.Set
 type LocalFiles struct {

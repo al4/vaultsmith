@@ -24,13 +24,13 @@ func init() {
 	flags.StringVar(
 		// TODO: remove default value of "./example", could do bad things in production
 		&documentPath, "document-path", "./example",
-		"The root directory of the configuration. Can be a local directory or http url to a gzipped tarball.",
+		"The root directory of the configuration. Can be a local directory, local gz tarball or http url to a gz tarball.",
 	)
 	flags.StringVar(
 		&vaultRole, "role", "", "The Vault role to authenticate as",
 	)
 	flags.StringVar(
-		&templateFile, "templateFile", "example/template.json", "JSON file containing template mappings",
+		&templateFile, "template-file", "", "JSON file containing template mappings. If not specified, vaultsmith will look for \"template.json\" in the base of the document path.",
 	)
 
 	flags.Usage = func() {
