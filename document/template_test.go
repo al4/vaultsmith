@@ -108,3 +108,70 @@ func TestTemplatedDocument_Render_MultipleFoo(t *testing.T) {
 		log.Fatalf("Expected %q, got %q", exp, renderedTemplates[0].Content)
 	}
 }
+
+// When there are identical documents we should not duplicate
+func TestTemplate_Render_DoesNotDuplicate(t *testing.T) {
+	mapping := []TemplateConfig{
+		{ Name: "one", Variables: map[string]string{"foo": "A"} },
+		{ Name: "two", Variables: map[string]string{"foo": "A"} },
+	}
+
+	tf := Template{
+		Path:         "",
+		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
+		ValueMapList: mapping,
+		Content:      "foo is {{ foo }} bar is {{ bar }}.",
+	}
+	renderedTemplates, err := tf.Render()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(renderedTemplates) != 1 {
+		log.Printf("%+v", renderedTemplates)
+		log.Fatalf("Expected 1 entry in rendered templates, got %v", len(renderedTemplates))
+	}
+}
+
+func TestTemplate_hasMultiple_false(t *testing.T) {
+	mapping := []TemplateConfig{
+		{ Name: "one", Variables: map[string]string{"foo": "A"} },
+		{ Name: "two", Variables: map[string]string{"foo": "A"} },
+	}
+
+	tf := Template{
+		Path:         "",
+		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
+		ValueMapList: mapping,
+		Content:      "foo is {{ foo }} bar is {{ bar }}.",
+	}
+
+	rv, err := tf.hasMultiple()
+	if err != nil {
+		log.Fatalln(err)
+	} else if rv == true {
+		log.Fatalln("Expected hasMultiple call to be false")
+	}
+
+}
+
+func TestTemplate_hasMultiple_true(t *testing.T) {
+	mapping := []TemplateConfig{
+		{ Name: "one", Variables: map[string]string{"foo": "A"} },
+		{ Name: "two", Variables: map[string]string{"foo": "B"} },
+	}
+
+	tf := Template{
+		Path:         "",
+		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
+		ValueMapList: mapping,
+		Content:      "foo is {{ foo }} bar is {{ bar }}.",
+	}
+
+	rv, err := tf.hasMultiple()
+	if err != nil {
+		log.Fatalln(err)
+	} else if rv == false {
+		log.Fatalln("Expected hasMultiple call to be true")
+	}
+
+}

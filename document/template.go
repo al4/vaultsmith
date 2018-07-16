@@ -8,8 +8,8 @@ import (
 	"log"
 	"bytes"
 	"io"
-	"strings"
 	"encoding/json"
+	"strings"
 )
 
 // This seems a little unnecessary
@@ -24,6 +24,7 @@ type Template struct {
 	Content      string
 	ValueMapList []TemplateConfig	// List of "instances" of the document, mapping the key-values for each one
 	matcher      *regexp.Regexp		// Regex to find placeholders
+	placeHolders  map[string]string
 }
 
 // The structure of our json (within the array)
@@ -71,8 +72,6 @@ func (t *Template) Render() (renderedTemplates []RenderedTemplate, err error) {
 		}
 	}
 
-	renderedTemplates = []RenderedTemplate{}
-
 	placeholders, err := t.findPlaceholders()
 	if err != nil {
 		return renderedTemplates, fmt.Errorf("error finding placeholders: %s", err)
@@ -84,6 +83,42 @@ func (t *Template) Render() (renderedTemplates []RenderedTemplate, err error) {
 			{Content: t.Content},
 		},nil
 	}
+
+	// Avoid writing duplicate documents when all the placeholder values are the same
+	hasMultiple, err := t.hasMultiple()
+	if err != nil { return }
+	if hasMultiple {
+		return t.renderMultiple()
+	} else {
+		return t.renderOne()
+	}
+
+}
+
+// Render only one template. Typically used after hasMultiple() returned false
+// Still returns a slice as that's what's expected by the caller of Render()
+func (t *Template) renderOne() (renderedTemplates []RenderedTemplate, err error) {
+	renderedTemplates = []RenderedTemplate{}
+	placeholders, err := t.findPlaceholders()
+	if err != nil { return }
+
+	templateConfig := t.ValueMapList[0]
+
+	var c = t.Content
+	for k, v := range placeholders {
+		c = strings.Replace(c, v, templateConfig.Variables[k], -1)
+	}
+
+	return []RenderedTemplate{
+		{ Name: "", Content: c },
+	}, nil
+}
+
+// Render an array of templates, presumably with different content!
+func (t *Template) renderMultiple() (renderedTemplates []RenderedTemplate, err error) {
+	renderedTemplates = []RenderedTemplate{}
+	placeholders, err := t.findPlaceholders()
+	if err != nil { return }
 
 	for _, templateConfig := range t.ValueMapList {
 		var c = t.Content
@@ -97,6 +132,27 @@ func (t *Template) Render() (renderedTemplates []RenderedTemplate, err error) {
 	}
 
 	return renderedTemplates, nil
+}
+
+// Determine whether we have multiple values for any variable
+func (t *Template) hasMultiple() (hasMultiple bool, err error) {
+	placeholders, err := t.findPlaceholders()
+	if err != nil {
+		return hasMultiple, fmt.Errorf("error finding placeholders: %s", err)
+	}
+
+	for key := range placeholders {
+		seen := make(map[string]bool)
+		for _, templateConfig := range t.ValueMapList {
+			seen[templateConfig.Variables[key]] = true
+		}
+
+		if len(seen) > 1 {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func (t *Template) read() (string, error) {
@@ -126,6 +182,11 @@ func (t *Template) read() (string, error) {
 // We would return:
 // 		map[string]string{"foo": "{{ foo }}"}
 func (t *Template) findPlaceholders() (placeholders map[string]string, err error) {
+	if t.placeHolders != nil {
+		// avoid re-reading file if already done as we call this in a few places
+		return t.placeHolders, nil
+	}
+
 	matches := t.matcher.FindAllStringSubmatch(t.Content, -1)
 	placeholders = make(map[string]string)
 
