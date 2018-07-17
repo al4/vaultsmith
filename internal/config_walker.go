@@ -1,24 +1,22 @@
 package internal
 
 import (
-	"path/filepath"
-	"os"
-	"log"
 	"fmt"
-	"path"
-	"strings"
+	"github.com/starlingbank/vaultsmith/config"
 	"github.com/starlingbank/vaultsmith/path_handlers"
 	"github.com/starlingbank/vaultsmith/vault"
+	"log"
+	"os"
+	"path"
+	"path/filepath"
 	"sort"
-	"github.com/starlingbank/vaultsmith/config"
+	"strings"
 )
-
 
 // The ConfigWalker assumes it is in the root of the vault configuration to apply. As an example, it
 // would directly contain "sys" and "auth".
 
 type Walker interface {
-
 }
 
 type ConfigWalker struct {
@@ -48,7 +46,7 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 		client,
 		path_handlers.PathHandlerConfig{
 			DocumentPath: docPath,
-			MappingFile: templateFile,
+			MappingFile:  templateFile,
 		})
 	if err != nil {
 		log.Fatalf("Could not create genericHandler: %s", err)
@@ -64,14 +62,14 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 
 	// The two sys path handlers
 	sysAuthDir := filepath.Join(docPath, "sys", "auth")
-	if f, err := os.Stat(sysAuthDir); ! os.IsNotExist(err) {
+	if f, err := os.Stat(sysAuthDir); !os.IsNotExist(err) {
 		if f.Mode().IsDir() {
 			sysAuthHandler, err := path_handlers.NewSysAuthHandler(
 				client,
 				path_handlers.PathHandlerConfig{
 					DocumentPath: docPath,
-					Order: 10,
-					MappingFile: templateFile,
+					Order:        10,
+					MappingFile:  templateFile,
 				})
 			if err != nil {
 				log.Fatalf("Could not create sysAuthHandler: %s", err)
@@ -81,14 +79,14 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 	}
 
 	sysPolicyDir := filepath.Join(docPath, "sys", "policy")
-	if f, err := os.Stat(sysPolicyDir); ! os.IsNotExist(err) {
+	if f, err := os.Stat(sysPolicyDir); !os.IsNotExist(err) {
 		if f.Mode().IsDir() {
 			sysPolicyHandler, err := path_handlers.NewSysPolicyHandler(
 				client,
 				path_handlers.PathHandlerConfig{
 					DocumentPath: docPath,
-					Order: 20,
-					MappingFile: templateFile,
+					Order:        20,
+					MappingFile:  templateFile,
 				})
 			if err != nil {
 				log.Fatalf("Could not create sysPolicyHandler: %s", err)
@@ -99,9 +97,9 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 
 	return ConfigWalker{
 		HandlerMap: handlerMap,
-		Client: client,
-		ConfigDir: path.Clean(docPath),
-		Visited: map[string]bool{},
+		Client:     client,
+		ConfigDir:  path.Clean(docPath),
+		Visited:    map[string]bool{},
 	}
 }
 
@@ -166,7 +164,7 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 		log.Printf("f nil for path %q", path)
 		return nil
 	}
-	if ! f.IsDir() {  // only want to operate on directories
+	if !f.IsDir() { // only want to operate on directories
 		return nil
 	}
 	if visited, ok := cw.Visited[path]; ok && visited { // already been here
@@ -209,8 +207,8 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 // Determine whether this directory is already covered by a parent handler
 func (cw ConfigWalker) hasParentHandler(path string) bool {
 	pathArr := strings.Split(path, string(os.PathSeparator))
-	for i := 0; i < len(pathArr) - 1; i++ {
-		s := strings.Join(pathArr[:i + 1], string(os.PathSeparator))
+	for i := 0; i < len(pathArr)-1; i++ {
+		s := strings.Join(pathArr[:i+1], string(os.PathSeparator))
 		if s == path { // should be covered by -1 in for condition above; just for extra safety
 			continue
 		}
@@ -225,8 +223,12 @@ func (cw ConfigWalker) hasParentHandler(path string) bool {
 func (cw ConfigWalker) hasChildHandler(path string) bool {
 	// Crude, but if the path is within that of a handler, it's a match
 	for k := range cw.HandlerMap {
-		if k == path { continue }
-		if strings.Contains(k, path) { return true }
+		if k == path {
+			continue
+		}
+		if strings.Contains(k, path) {
+			return true
+		}
 	}
 
 	return false

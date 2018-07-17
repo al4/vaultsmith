@@ -1,20 +1,20 @@
 package internal
 
 import (
-	"testing"
-	"os"
-	"time"
-	"log"
 	"github.com/starlingbank/vaultsmith/path_handlers"
 	"github.com/starlingbank/vaultsmith/vault"
+	"log"
+	"os"
 	"reflect"
+	"testing"
+	"time"
 )
 
 func TestConfigHandlerWalkFile(t *testing.T) {
 	cw := ConfigWalker{
 		HandlerMap: map[string]path_handlers.PathHandler{
 			"sys/auth": &path_handlers.Dummy{},
-			"auth/aws":  &path_handlers.Dummy{},
+			"auth/aws": &path_handlers.Dummy{},
 		},
 	}
 	f := &fakeFileInfo{}
@@ -34,7 +34,7 @@ func TestHasParentHandlerTrue(t *testing.T) {
 	}
 
 	hasParent := cw.hasParentHandler("parent/child")
-	if ! hasParent {
+	if !hasParent {
 		log.Fatal("Got false for hasParent(\"parent/child\") call, should be true")
 	}
 }
@@ -76,7 +76,7 @@ func TestConfigWalker_hasChildHandler(t *testing.T) {
 	}
 
 	hasChild := cw.hasChildHandler("base/parent")
-	if ! hasChild {
+	if !hasChild {
 		log.Fatal("Got false for hasChildHandler call, should be true")
 	}
 }
@@ -111,11 +111,17 @@ func TestConfigWalker_hasChildHandler_self(t *testing.T) {
 
 func TestSortedPaths(t *testing.T) {
 	fooH, err := path_handlers.NewDummyHandler(&vault.MockClient{}, "", 30)
-	if err != nil { log.Fatal(err) }
+	if err != nil {
+		log.Fatal(err)
+	}
 	barH, err := path_handlers.NewDummyHandler(&vault.MockClient{}, "", 10)
-	if err != nil { log.Fatal(err) }
+	if err != nil {
+		log.Fatal(err)
+	}
 	bozH, err := path_handlers.NewDummyHandler(&vault.MockClient{}, "", 20)
-	if err != nil { log.Fatal(err) }
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	cw := ConfigWalker{
 		HandlerMap: map[string]path_handlers.PathHandler{
@@ -126,7 +132,7 @@ func TestSortedPaths(t *testing.T) {
 	}
 	expected := []string{"bar", "boz", "foo"}
 	r := cw.sortedPaths()
-	if ! reflect.DeepEqual(r, expected) {
+	if !reflect.DeepEqual(r, expected) {
 		log.Fatalf("Unexpected slice result (out of order?). Expected %+v; Got: %+v", expected, r)
 	}
 
