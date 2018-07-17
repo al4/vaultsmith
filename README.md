@@ -63,11 +63,11 @@ Usage
 ```
 vaultsmith -h
 Usage of vaultsmith:
-  -document-path string
+  --document-path string
     	The root directory of the configuration. Can be a local directory, local gz tarball or http url to a gz tarball. (default "./example")
-  -role string
+  --role string
     	The Vault role to authenticate as
-  -template-file string
+  --template-file string
     	JSON file containing template mappings. If not specified, vaultsmith will look for "template.json" in the base of the document path.
 
 Vault authentication is handled by environment variables (the same ones as the Vault client, as vaultsmith uses the same code). So ensure VAULT_ADDR and VAULT_TOKEN are set.
