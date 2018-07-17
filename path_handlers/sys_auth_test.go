@@ -2,8 +2,8 @@ package path_handlers
 
 import (
 	vaultApi "github.com/hashicorp/vault/api"
+	log "github.com/sirupsen/logrus"
 	"github.com/starlingbank/vaultsmith/vault"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"

@@ -3,8 +3,8 @@ package path_handlers
 import (
 	"encoding/json"
 	vaultApi "github.com/hashicorp/vault/api"
+	log "github.com/sirupsen/logrus"
 	"github.com/starlingbank/vaultsmith/vault"
-	"log"
 	"testing"
 )
 

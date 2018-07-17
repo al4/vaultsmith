@@ -3,7 +3,7 @@ package vault
 import (
 	"errors"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 
 	"crypto/tls"

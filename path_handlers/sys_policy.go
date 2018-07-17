@@ -3,9 +3,9 @@ package path_handlers
 import (
 	"encoding/json"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"github.com/starlingbank/vaultsmith/document"
 	"github.com/starlingbank/vaultsmith/vault"
-	"log"
 	"os"
 	"path/filepath"
 	"reflect"

@@ -2,10 +2,10 @@ package internal
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"github.com/starlingbank/vaultsmith/config"
 	"github.com/starlingbank/vaultsmith/path_handlers"
 	"github.com/starlingbank/vaultsmith/vault"
-	"log"
 	"os"
 	"path"
 	"path/filepath"

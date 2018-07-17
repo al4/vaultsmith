@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"github.com/starlingbank/vaultsmith/config"
 	"github.com/starlingbank/vaultsmith/vault"
-	"log"
 	"strings"
 	"testing"
 )

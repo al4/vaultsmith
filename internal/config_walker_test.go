@@ -1,9 +1,9 @@
 package internal
 
 import (
+	log "github.com/sirupsen/logrus"
 	"github.com/starlingbank/vaultsmith/path_handlers"
 	"github.com/starlingbank/vaultsmith/vault"
-	"log"
 	"os"
 	"reflect"
 	"testing"

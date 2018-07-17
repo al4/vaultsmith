@@ -1,7 +1,7 @@
 package document
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 	"testing"
 )
 

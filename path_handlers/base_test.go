@@ -1,8 +1,8 @@
 package path_handlers
 
 import (
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"log"
 	"os"
 	"testing"
 )

@@ -2,7 +2,7 @@ package vault
 
 import (
 	vaultApi "github.com/hashicorp/vault/api"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"testing"
 )
 
