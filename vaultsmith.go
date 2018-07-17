@@ -17,8 +17,9 @@ import (
 
 var flags = flag.NewFlagSet("Vaultsmith", flag.ExitOnError)
 var documentPath	string
-var vaultRole		string
+var dry				bool
 var templateFile	string
+var vaultRole		string
 
 func init() {
 	flags.StringVar(
@@ -31,6 +32,9 @@ func init() {
 	)
 	flags.StringVar(
 		&templateFile, "template-file", "", "JSON file containing template mappings. If not specified, vaultsmith will look for \"template.json\" in the base of the document path.",
+	)
+	flags.BoolVar(
+		&dry, "dry", false, "Dry run; will read from but not write to vault",
 	)
 
 	flags.Usage = func() {
@@ -59,10 +63,11 @@ func main() {
 		DocumentPath: documentPath,
 		VaultRole:    vaultRole,
 		TemplateFile: templateFile,
+		Dry:          dry,
 	}
 
-	var client *vault.Client
-	client, err := vault.NewVaultClient()
+	var client vault.Vault
+	client, err := vault.NewVaultClient(conf.Dry)
 	if err != nil {
 		log.Fatal(err)
 	}

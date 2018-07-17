@@ -43,7 +43,7 @@ type Client struct {
 	handler *credAws.CLIHandler
 }
 
-func NewVaultClient() (*Client, error) {
+func NewVaultClient(dry bool) (c Vault, err error) {
 	config := vaultApi.Config{
 		HttpClient: &http.Client{
 			Transport: &http.Transport{
@@ -54,26 +54,28 @@ func NewVaultClient() (*Client, error) {
 		},
 	}
 
-	err := config.ReadEnvironment()
-	if err != nil {
-		log.Fatal(err)
-	}
+	err = config.ReadEnvironment()
+	if err != nil { return c, err }
 
-	client, err := vaultApi.NewClient(&config)
-	if err != nil {
-		log.Fatal(err)
-	}
+	vaultApiClient, err := vaultApi.NewClient(&config)
+	if err != nil { return c, err }
 
-	c := &Client{
-		client:  client,
+	client := Client{
+		client:  vaultApiClient,
 		handler: &credAws.CLIHandler{},
+	}
+	if dry {
+		c = &DryClient{
+			Client: client,
+		}
+	} else {
+		return &client, nil
 	}
 
 	return c, nil
 }
 
 func (c *Client) Authenticate(role string) error {
-
 	if c.client.Token() != "" {
 		// Already authenticated. Supposedly.
 		log.Println("Already authenticated by environment variable")
