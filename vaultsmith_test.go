@@ -1,12 +1,12 @@
 package main
 
 import (
+	"fmt"
+	"github.com/starlingbank/vaultsmith/config"
+	"github.com/starlingbank/vaultsmith/vault"
 	"log"
 	"strings"
 	"testing"
-	"fmt"
-	"github.com/starlingbank/vaultsmith/vault"
-	"github.com/starlingbank/vaultsmith/config"
 )
 
 func TestRunWhenVaultNotListening(t *testing.T) {
@@ -21,10 +21,10 @@ func TestRunWhenVaultNotListening(t *testing.T) {
 	if err == nil {
 		log.Fatal("Expected error, got nil")
 	}
-	if ! strings.Contains(err.Error(), "failed authenticating with Vault:") {
+	if !strings.Contains(err.Error(), "failed authenticating with Vault:") {
 		log.Fatal("bad failure message")
 	}
-	if ! strings.Contains(err.Error(), "connection refused") {
+	if !strings.Contains(err.Error(), "connection refused") {
 		log.Fatal("bad reason message")
 	}
 }
@@ -41,11 +41,11 @@ func TestRunWhenRoleIsInvalid(t *testing.T) {
 	if err == nil {
 		log.Fatal("Expected error, got nil")
 	}
-	if ! strings.Contains(err.Error(), "failed authenticating with Vault:") {
+	if !strings.Contains(err.Error(), "failed authenticating with Vault:") {
 		log.Fatalf("bad failure message '%s'", err.Error())
 	}
 
-	if ! strings.Contains(err.Error(), fmt.Sprintf("entry for role %s not found", conf.VaultRole)) {
+	if !strings.Contains(err.Error(), fmt.Sprintf("entry for role %s not found", conf.VaultRole)) {
 		log.Fatalf("bad reason message '%s'", err.Error())
 	}
 }

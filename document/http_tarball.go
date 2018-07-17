@@ -2,30 +2,30 @@ package document
 
 import (
 	"fmt"
-	"os"
-	"net/http"
 	"io"
 	"log"
-	"strings"
+	"net/http"
 	"net/url"
+	"os"
+	"strings"
 )
 
 // Implements document.Set
 type HttpTarball struct {
 	LocalTarball
-	WorkDir	string
-	Url		*url.URL
+	WorkDir string
+	Url     *url.URL
 }
 
 // download tarball from Github
-func (h *HttpTarball) Get() (err error){
+func (h *HttpTarball) Get() (err error) {
 	downloadPath, err := h.download()
 	if err != nil {
 		return fmt.Errorf("error downloading tarball %s", err)
 	}
 
 	h.LocalTarball = LocalTarball{
-		WorkDir: h.WorkDir,
+		WorkDir:     h.WorkDir,
 		ArchivePath: downloadPath,
 	}
 	err = h.LocalTarball.extract()
@@ -36,7 +36,7 @@ func (h *HttpTarball) Get() (err error){
 }
 
 // Return the path to the extracted files. It does not guarantee that the path exists.
-func (h *HttpTarball) Path() (path string){
+func (h *HttpTarball) Path() (path string) {
 	return h.LocalTarball.documentPath()
 }
 
@@ -79,9 +79,8 @@ func (h *HttpTarball) archivePath() (path string) {
 		"/")
 
 	dir := strings.TrimRight(h.WorkDir, string(os.PathSeparator))
-	file := s[len(s) - 1]
+	file := s[len(s)-1]
 
 	ns := []string{dir, file}
 	return strings.Join(ns, string(os.PathSeparator))
 }
-

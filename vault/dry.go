@@ -1,4 +1,5 @@
 package vault
+
 import (
 	vaultApi "github.com/hashicorp/vault/api"
 )
@@ -20,7 +21,7 @@ func (c *DryClient) PutPolicy(name string, data string) error {
 	return nil
 }
 
-func (c *DryClient) DeletePolicy(name string) (error) {
+func (c *DryClient) DeletePolicy(name string) error {
 	return nil
 }
 

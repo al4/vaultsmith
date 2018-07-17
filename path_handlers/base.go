@@ -1,21 +1,21 @@
 package path_handlers
 
 import (
-	vaultApi "github.com/hashicorp/vault/api"
-	"os"
-	"fmt"
 	"bytes"
+	"fmt"
+	vaultApi "github.com/hashicorp/vault/api"
+	"github.com/starlingbank/vaultsmith/vault"
 	"io"
 	"log"
-	"github.com/starlingbank/vaultsmith/vault"
+	"os"
 	"path/filepath"
 	"strings"
 )
 
 type PathHandlerConfig struct {
-	DocumentPath string  // path to the base of the vault documents
-	Order int // order to process (lower int is earlier, except 0 is last)
-	MappingFile string
+	DocumentPath string // path to the base of the vault documents
+	Order        int    // order to process (lower int is earlier, except 0 is last)
+	MappingFile  string
 }
 
 // A PathHandler takes a path and applies the policies within
@@ -32,8 +32,8 @@ type BaseHandler struct {
 	rootPath          string
 	liveAuthMap       *map[string]*vaultApi.AuthMount
 	configuredAuthMap *map[string]*vaultApi.AuthMount
-	order             int  // order to process. Lower is earlier, with the exception of 0, which
-							 // is processed after any others with a positive integer
+	order             int // order to process. Lower is earlier, with the exception of 0, which
+	// is processed after any others with a positive integer
 }
 
 func (h *BaseHandler) readFile(path string) (string, error) {
@@ -71,7 +71,7 @@ func apiPath(rootPath string, filePath string) (apiPath string, err error) {
 
 	dir, file := filepath.Split(relPath)
 	// strip any extensions
-	fileName := strings.Split(file , ".")[0]
+	fileName := strings.Split(file, ".")[0]
 
 	// TODO This assumes OS path separator is '/'...
 	return filepath.Join(dir, fileName), err

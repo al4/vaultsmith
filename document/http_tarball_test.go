@@ -1,14 +1,14 @@
 package document
 
 import (
-	"testing"
-	"net/http/httptest"
-	"net/http"
 	"fmt"
-	"os"
-	"net/url"
-	"log"
 	"io/ioutil"
+	"log"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"os"
+	"testing"
 )
 
 type TestHttpHandler struct {
@@ -24,7 +24,7 @@ func TestHttpTarball_archivePath(t *testing.T) {
 	url, _ := url.Parse("https://example.com/test.tgz")
 	p := HttpTarball{
 		WorkDir: "/tmp/test",
-		Url: url,
+		Url:     url,
 	}
 	exp := "/tmp/test/test.tgz"
 	r := p.archivePath()
@@ -37,10 +37,10 @@ func TestHttpTarball_Path(t *testing.T) {
 	url, _ := url.Parse("https://example.com/test-foo-1.tgz")
 	h := &HttpTarball{
 		WorkDir: "/tmp/test",
-		Url: url,
+		Url:     url,
 		// In the real world, LocalTarball is instantiated by Get()
 		LocalTarball: LocalTarball{
-			WorkDir: "/tmp/testDir",
+			WorkDir:     "/tmp/testDir",
 			ArchivePath: "/foo/test-foo-1.tgz",
 		},
 	}
@@ -65,7 +65,7 @@ func TestHttpTarball_Get(t *testing.T) {
 	}
 	p := HttpTarball{
 		WorkDir: tmpDir,
-		Url: url,
+		Url:     url,
 	}
 
 	p.Get()
@@ -81,11 +81,10 @@ func TestHttpTarball_Get(t *testing.T) {
 
 	// Something is adding a newline. It appears in the file, (so it must be present in the response
 	// Body), but shouldn't be a problem in real-world use
-	if string(c) != expected + "\n" {
+	if string(c) != expected+"\n" {
 		log.Fatalf("Expected file contents to be %q, got %q", expected, c)
 	}
 }
 
 func TestHttpTarball_extract(t *testing.T) {
 }
-

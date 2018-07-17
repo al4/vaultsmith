@@ -6,11 +6,10 @@ import (
 	"log"
 	"net/http"
 
+	"crypto/tls"
 	vaultApi "github.com/hashicorp/vault/api"
 	credAws "github.com/hashicorp/vault/builtin/credential/aws"
-	"crypto/tls"
 )
-
 
 /*
 With the exception of Authenticate, most functions in this file are simple pass-through calls
@@ -22,12 +21,11 @@ If there is a possibility that the configuration might be different, they should
 put.
 */
 
-
 // Vault is an abstraction of hashicorp's vault api client
 type Vault interface {
 	Authenticate(string) error
-	DeletePolicy(name string) (error)
-	DisableAuth(string)	error
+	DeletePolicy(name string) error
+	DisableAuth(string) error
 	EnableAuth(path string, options *vaultApi.EnableAuthOptions) error
 	GetPolicy(name string) (string, error)
 	ListAuth() (map[string]*vaultApi.AuthMount, error)
@@ -55,10 +53,14 @@ func NewVaultClient(dry bool) (c Vault, err error) {
 	}
 
 	err = config.ReadEnvironment()
-	if err != nil { return c, err }
+	if err != nil {
+		return c, err
+	}
 
 	vaultApiClient, err := vaultApi.NewClient(&config)
-	if err != nil { return c, err }
+	if err != nil {
+		return c, err
+	}
 
 	client := Client{
 		client:  vaultApiClient,
@@ -128,7 +130,7 @@ func (c *Client) PutPolicy(name string, data string) error {
 	return c.client.Sys().PutPolicy(name, data)
 }
 
-func (c *Client) DeletePolicy(name string) (error) {
+func (c *Client) DeletePolicy(name string) error {
 	return c.client.Sys().DeletePolicy(name)
 }
 

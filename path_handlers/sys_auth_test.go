@@ -1,20 +1,20 @@
 package path_handlers
 
 import (
-	"log"
 	vaultApi "github.com/hashicorp/vault/api"
-	"testing"
-	"strings"
+	"github.com/starlingbank/vaultsmith/vault"
+	"log"
 	"os"
 	"path/filepath"
-	"github.com/starlingbank/vaultsmith/vault"
+	"strings"
+	"testing"
 )
 
 // calculate path to test fixtures (example/)
 func examplePath() string {
 	wd, _ := os.Getwd()
 	pathArray := strings.Split(wd, string(os.PathSeparator))
-	pathArray = pathArray[:len(pathArray) - 1]  // trims "internal"
+	pathArray = pathArray[:len(pathArray)-1] // trims "internal"
 	path := append(pathArray, "example")
 	return strings.Join(path, string(os.PathSeparator))
 }

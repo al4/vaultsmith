@@ -1,20 +1,20 @@
 package document
 
 import (
-	"strings"
-	"path/filepath"
-	"fmt"
-	"os"
-	"compress/gzip"
 	"archive/tar"
+	"compress/gzip"
+	"fmt"
 	"io"
-	"log"
 	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 // Implements document.Set
 type LocalTarball struct {
-	WorkDir string
+	WorkDir     string
 	ArchivePath string
 }
 
@@ -24,7 +24,7 @@ func (l *LocalTarball) Get() (err error) {
 }
 
 // Return the path to the extracted files. It does not guarantee that they exist.
-func (l *LocalTarball) Path() (path string){
+func (l *LocalTarball) Path() (path string) {
 	// Most tarballs, including github tarballs, will contain a single directory with the archive
 	// contents
 	// TODO should probably have an option for this behaviour, what if a user only has one config dir?
@@ -33,7 +33,7 @@ func (l *LocalTarball) Path() (path string){
 		log.Printf("Error: Could not read directory %q: %s", l.documentPath(), err)
 		return ""
 	}
-	if len(entries) == 1  && entries[0].Name() != "sys" && entries[0].IsDir() {
+	if len(entries) == 1 && entries[0].Name() != "sys" && entries[0].IsDir() {
 		// Probably a single dir, use it instead
 		return filepath.Join(l.documentPath(), entries[0].Name())
 	} else if len(entries) > 1 {
@@ -54,7 +54,7 @@ func (l *LocalTarball) CleanUp() {
 	return
 }
 
-func (l *LocalTarball) extract() (err error){
+func (l *LocalTarball) extract() (err error) {
 	f, err := os.Open(l.ArchivePath)
 	if err != nil {
 		return fmt.Errorf("could not open file %q: %s", l.ArchivePath, err)
@@ -72,12 +72,14 @@ func (l *LocalTarball) extract() (err error){
 
 	for {
 		hdr, err := tr.Next()
-		if err == io.EOF { break }
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
 			return fmt.Errorf("error reading tar archive %q: %s", l.ArchivePath, err)
 		}
 		switch hdr.Typeflag {
-		case tar.TypeDir:  // create dir
+		case tar.TypeDir: // create dir
 			dd := filepath.Join(destDir, hdr.Name)
 			//log.Printf("Creating %q", dd)
 			err := os.MkdirAll(dd, 0777)
@@ -99,7 +101,6 @@ func (l *LocalTarball) extract() (err error){
 		}
 	}
 
-
 	return
 }
 
@@ -110,4 +111,3 @@ func (l *LocalTarball) documentPath() (path string) {
 
 	return filepath.Join(l.WorkDir, fmt.Sprintf("%s-extract", name))
 }
-

@@ -8,15 +8,15 @@ import (
 type Dummy struct {
 	BaseHandler
 	client   vault.Vault
-	rootPath string  // path to handle
+	rootPath string // path to handle
 	order    int
 }
 
 func NewDummyHandler(c vault.Vault, rootPath string, order int) (*Dummy, error) {
 	return &Dummy{
-		client: c,
+		client:   c,
 		rootPath: rootPath,
-		order: order,
+		order:    order,
 	}, nil
 }
 

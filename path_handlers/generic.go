@@ -1,15 +1,15 @@
 package path_handlers
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/starlingbank/vaultsmith/document"
 	"github.com/starlingbank/vaultsmith/vault"
 	"log"
 	"os"
-	"fmt"
 	"path/filepath"
-	"strings"
-	"encoding/json"
 	"reflect"
-	"github.com/starlingbank/vaultsmith/document"
+	"strings"
 	"time"
 )
 
@@ -22,8 +22,8 @@ type VaultDocument struct {
 // The generic handler simply writes the files to the path they are stored in
 type GenericHandler struct {
 	BaseHandler
-	client      vault.Vault
-	config		PathHandlerConfig
+	client vault.Vault
+	config PathHandlerConfig
 }
 
 func NewGenericHandler(c vault.Vault, config PathHandlerConfig) (*GenericHandler, error) {
@@ -80,7 +80,9 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 			data: data,
 		}
 		err := gh.ensureDoc(doc)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -130,11 +132,11 @@ func (gh *GenericHandler) isDocApplied(doc VaultDocument) (bool, error) {
 // extra keys in remoteMap are ignored
 func (gh *GenericHandler) areKeysApplied(mapA map[string]interface{}, mapB map[string]interface{}) bool {
 	for key := range mapA {
-		if _, ok := mapB[key]; ! ok {
-			return false  // not present at all
+		if _, ok := mapB[key]; !ok {
+			return false // not present at all
 		}
 		if reflect.DeepEqual(mapA[key], mapB[key]) {
-			continue  // value the same, skip further checks for this key
+			continue // value the same, skip further checks for this key
 		}
 
 		// this is a bit more complicated, thanks to ttls and bundling into arrays :(
@@ -155,7 +157,7 @@ func (gh *GenericHandler) areKeysApplied(mapA map[string]interface{}, mapB map[s
 	return true
 }
 
-func (gh *GenericHandler) RemoveUndeclaredDocuments() (removed []string, err error){
+func (gh *GenericHandler) RemoveUndeclaredDocuments() (removed []string, err error) {
 	// TODO implement me
 	return
 }
@@ -266,4 +268,3 @@ func convertToDuration(x interface{}) (time.Duration, error) {
 
 	return duration, nil
 }
-

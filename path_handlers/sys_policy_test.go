@@ -3,10 +3,9 @@ package path_handlers
 import (
 	"github.com/starlingbank/vaultsmith/vault"
 	"log"
-	"testing"
 	"reflect"
+	"testing"
 )
-
 
 func TestSysPolicyHandler_PolicyExists(t *testing.T) {
 	// Not terribly testable as it doesn't return anything we can assert against
@@ -17,7 +16,7 @@ func TestSysPolicyHandler_PolicyExists(t *testing.T) {
 	}
 
 	p := SysPolicy{
-		Name: "testName",
+		Name:   "testName",
 		Policy: "testPolicy",
 	}
 	sph.livePolicyList = []string{"testName"}
@@ -25,7 +24,7 @@ func TestSysPolicyHandler_PolicyExists(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Error calling policyExists: %s", err)
 	}
-	if ! r {
+	if !r {
 		log.Fatalf("Policy does not exist, yet it does (expected true)")
 	}
 }
@@ -38,7 +37,7 @@ func TestSysPolicyHandler_PolicyExistsFalse(t *testing.T) {
 	}
 
 	p := SysPolicy{
-		Name: "testName",
+		Name:   "testName",
 		Policy: "testPolicy",
 	}
 	sph.livePolicyList = []string{}
@@ -61,7 +60,7 @@ func TestSysPolicyHandler_IsPolicyApplied(t *testing.T) {
 	}
 
 	p := SysPolicy{
-		Name: "testName",
+		Name:   "testName",
 		Policy: "testPolicy",
 	}
 	sph.livePolicyList = []string{"testName"}
@@ -69,7 +68,7 @@ func TestSysPolicyHandler_IsPolicyApplied(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Error calling isPolicyApplied: %s", err)
 	}
-	if ! rv {
+	if !rv {
 		log.Fatalf("isPolicyApplied returns false, should be true in this case")
 	}
 }
@@ -85,7 +84,7 @@ func TestSysPolicyHandler_IsPolicyApplied_PresentButDifferent(t *testing.T) {
 	}
 
 	p := SysPolicy{
-		Name: "testName",
+		Name:   "testName",
 		Policy: "this content is different",
 	}
 	sph.livePolicyList = []string{"testName"}
@@ -112,9 +111,8 @@ func TestSysPolicyHandler_RemoveUndeclaredPolicies(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if ! reflect.DeepEqual(deleted, expected) {
+	if !reflect.DeepEqual(deleted, expected) {
 		log.Fatalf("List of deleted policies does not match expected (%+v != %+v)",
 			deleted, expected)
 	}
 }
-

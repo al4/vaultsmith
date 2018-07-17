@@ -1,9 +1,9 @@
 package vault
 
 import (
-	"testing"
-	"log"
 	vaultApi "github.com/hashicorp/vault/api"
+	"log"
+	"testing"
 )
 
 func TestAuthenticate(t *testing.T) {

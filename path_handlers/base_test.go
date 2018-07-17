@@ -1,10 +1,10 @@
 package path_handlers
 
 import (
-	"testing"
 	"io/ioutil"
-	"os"
 	"log"
+	"os"
+	"testing"
 )
 
 func TestReadFile(t *testing.T) {
@@ -25,4 +25,3 @@ func TestReadFile(t *testing.T) {
 		log.Fatalf("Got %s, expected %s", data, expectStr)
 	}
 }
-

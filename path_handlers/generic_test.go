@@ -1,11 +1,11 @@
 package path_handlers
 
 import (
-	"testing"
+	"encoding/json"
+	vaultApi "github.com/hashicorp/vault/api"
 	"github.com/starlingbank/vaultsmith/vault"
 	"log"
-	vaultApi "github.com/hashicorp/vault/api"
-	"encoding/json"
+	"testing"
 )
 
 func TestGeneric_isDocApplied_true(t *testing.T) {
@@ -29,7 +29,7 @@ func TestGeneric_isDocApplied_true(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Error calling isDocApplied: %s", err)
 	}
-	if ! result {
+	if !result {
 		log.Fatalf("Got false result, expected true")
 	}
 }
@@ -77,10 +77,10 @@ func TestGeneric_areKeysApplied_true(t *testing.T) {
 	testDataA["testKey"] = "testValue"
 
 	testDataB["testKey"] = "testValue"
-	testDataB["otherKey"] = "otherValue"  // extra values are OK, we only care if the defined ones are present
+	testDataB["otherKey"] = "otherValue" // extra values are OK, we only care if the defined ones are present
 
 	r := gh.areKeysApplied(testDataA, testDataB)
-	if ! r {
+	if !r {
 		log.Fatal("Expected areKeysApplied to return true")
 	}
 
@@ -148,9 +148,9 @@ func TestConvertAuthConfigConvertsMaxLeaseTTL(t *testing.T) {
 
 func TestIsTtlEquivalent(t *testing.T) {
 	tests := []struct {
-		name string
-		ttlA interface{}
-		ttlB interface{}
+		name     string
+		ttlA     interface{}
+		ttlB     interface{}
 		expected bool
 	}{
 		{name: "strings", ttlA: "1m", ttlB: "1m", expected: true},
@@ -177,30 +177,30 @@ func TestIsTtlEquivalent(t *testing.T) {
 
 func TestIsSliceEquivalent(t *testing.T) {
 	tests := []struct {
-		name string
-		valueA interface{}
-		valueB interface{}
+		name     string
+		valueA   interface{}
+		valueB   interface{}
 		expected bool
 	}{
-		{ name: "equal str", valueA: "foo", valueB: "foo", expected: true },
-		{ name: "equal str arr", valueA: []string{"foo"}, valueB: []string{"foo"}, expected: true },
-		{ name: "equal str + array", valueA: "foo", valueB: []string{"foo"}, expected: true },
+		{name: "equal str", valueA: "foo", valueB: "foo", expected: true},
+		{name: "equal str arr", valueA: []string{"foo"}, valueB: []string{"foo"}, expected: true},
+		{name: "equal str + array", valueA: "foo", valueB: []string{"foo"}, expected: true},
 
-		{ name: "unequal str", valueA: "foo", valueB: "bar", expected: false },
-		{ name: "unequal str arr", valueA: []string{"foo"}, valueB: []string{"bar"}, expected: false },
-		{ name: "unequal str + str array", valueA: "foo", valueB: []string{"bar"}, expected: false },
+		{name: "unequal str", valueA: "foo", valueB: "bar", expected: false},
+		{name: "unequal str arr", valueA: []string{"foo"}, valueB: []string{"bar"}, expected: false},
+		{name: "unequal str + str array", valueA: "foo", valueB: []string{"bar"}, expected: false},
 
-		{ name: "equal int arr", valueA: []int{99}, valueB: []int{99}, expected: true },
-		{ name: "unequal int arr", valueA: []int{99}, valueB: []int{1}, expected: false },
-		{ name: "unequal int + int arr", valueA: []int{99}, valueB: 1, expected: false },
+		{name: "equal int arr", valueA: []int{99}, valueB: []int{99}, expected: true},
+		{name: "unequal int arr", valueA: []int{99}, valueB: []int{1}, expected: false},
+		{name: "unequal int + int arr", valueA: []int{99}, valueB: 1, expected: false},
 
-		{ name: "equal string + interface", valueA: "foo", valueB: []interface{}{"foo"}, expected: true },
-		{ name: "unequal string + interface", valueA: "foo", valueB: []interface{}{"bar"}, expected: false },
+		{name: "equal string + interface", valueA: "foo", valueB: []interface{}{"foo"}, expected: true},
+		{name: "unequal string + interface", valueA: "foo", valueB: []interface{}{"bar"}, expected: false},
 
-		{ name: "empty interfaces", valueA: []interface{}{}, valueB: []interface{}{}, expected: true },
-		{ name: "equal interfaces with values", valueA: []interface{}{"foo"}, valueB: []interface{}{"foo"}, expected: true },
-		{ name: "unequal interfaces with values", valueA: []interface{}{"foo"}, valueB: []interface{}{"bar"}, expected: false },
-		{ name: "unequal interfaces with str int", valueA: []interface{}{"foo"}, valueB: []interface{}{0}, expected: false },
+		{name: "empty interfaces", valueA: []interface{}{}, valueB: []interface{}{}, expected: true},
+		{name: "equal interfaces with values", valueA: []interface{}{"foo"}, valueB: []interface{}{"foo"}, expected: true},
+		{name: "unequal interfaces with values", valueA: []interface{}{"foo"}, valueB: []interface{}{"bar"}, expected: false},
+		{name: "unequal interfaces with str int", valueA: []interface{}{"foo"}, valueB: []interface{}{0}, expected: false},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -212,4 +212,3 @@ func TestIsSliceEquivalent(t *testing.T) {
 		})
 	}
 }
-

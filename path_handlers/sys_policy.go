@@ -1,15 +1,15 @@
 package path_handlers
 
 import (
-	"os"
+	"encoding/json"
 	"fmt"
+	"github.com/starlingbank/vaultsmith/document"
+	"github.com/starlingbank/vaultsmith/vault"
 	"log"
+	"os"
 	"path/filepath"
 	"reflect"
-	"github.com/starlingbank/vaultsmith/vault"
-	"encoding/json"
 	"strings"
-	"github.com/starlingbank/vaultsmith/document"
 )
 
 /*
@@ -17,25 +17,25 @@ import (
 	configuration under sys
 
 	Unlike SysAuthHandler, it supports templating
- */
+*/
 
 // fixed policies that should not be deleted from vault under any circumstances
-var fixedPolicies = map[string]bool {
-	"root": true,
+var fixedPolicies = map[string]bool{
+	"root":    true,
 	"default": true,
 }
 
 type SysPolicyHandler struct {
 	BaseHandler
-	client					vault.Vault
-	config					PathHandlerConfig
-	livePolicyList			[]string
-	configuredPolicyList	[]string
+	client               vault.Vault
+	config               PathHandlerConfig
+	livePolicyList       []string
+	configuredPolicyList []string
 }
 
 type SysPolicy struct {
-	Name	string
-	Policy	string `json:"policy"`
+	Name   string
+	Policy string `json:"policy"`
 }
 
 func NewSysPolicyHandler(client vault.Vault, config PathHandlerConfig) (*SysPolicyHandler, error) {
@@ -77,8 +77,10 @@ func (sh *SysPolicyHandler) walkFile(path string, f os.FileInfo, err error) erro
 	}
 
 	apiPath, err := apiPath(sh.config.DocumentPath, path)
-	if err != nil { return err }
-	if ! strings.HasPrefix(apiPath, "sys/policy") {
+	if err != nil {
+		return err
+	}
+	if !strings.HasPrefix(apiPath, "sys/policy") {
 		return fmt.Errorf("found file without sys/policy prefix: %s", apiPath)
 	}
 	policyPath := strings.TrimPrefix(apiPath, "sys/policy/")
@@ -126,7 +128,7 @@ func (sh *SysPolicyHandler) EnsurePolicy(policy SysPolicy) error {
 	return sh.client.PutPolicy(policy.Name, policy.Policy)
 }
 
-func(sh *SysPolicyHandler) RemoveUndeclaredPolicies() (deleted []string, err error) {
+func (sh *SysPolicyHandler) RemoveUndeclaredPolicies() (deleted []string, err error) {
 	// only real reason to track the deleted policies is for testing as logs inform user
 	for _, liveName := range sh.livePolicyList {
 		if fixedPolicies[liveName] {
@@ -143,7 +145,7 @@ func(sh *SysPolicyHandler) RemoveUndeclaredPolicies() (deleted []string, err err
 			}
 		}
 
-		if ! found {
+		if !found {
 			// not declared, delete
 			log.Printf("Deleting policy %s", liveName)
 			sh.client.DeletePolicy(liveName)
@@ -157,7 +159,7 @@ func(sh *SysPolicyHandler) RemoveUndeclaredPolicies() (deleted []string, err err
 func (sh *SysPolicyHandler) policyExists(policy SysPolicy) bool {
 	//log.Printf("policy.Name: %s, policy list: %+v", policy.Name, sh.livePolicyList)
 	for _, p := range sh.livePolicyList {
-		if p == policy.Name	{
+		if p == policy.Name {
 			return true
 		}
 	}
@@ -167,7 +169,7 @@ func (sh *SysPolicyHandler) policyExists(policy SysPolicy) bool {
 
 // true if the policy is applied on the server
 func (sh *SysPolicyHandler) isPolicyApplied(policy SysPolicy) (bool, error) {
-	if ! sh.policyExists(policy) {
+	if !sh.policyExists(policy) {
 		return false, nil
 	}
 

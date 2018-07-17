@@ -1,11 +1,11 @@
 package document
 
 import (
-	"testing"
-	"log"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
+	"testing"
 )
 
 func TestLocalTarball_Get(t *testing.T) {
@@ -24,7 +24,7 @@ func TestLocalTarball_extract(t *testing.T) {
 	}
 
 	l := LocalTarball{
-		WorkDir: tmpDir,
+		WorkDir:     tmpDir,
 		ArchivePath: filepath.Join(examplePath(), "/example.tar.gz"),
 	}
 	log.Println(l.ArchivePath)
@@ -41,13 +41,12 @@ func TestLocalTarball_extract(t *testing.T) {
 
 func TestLocalTarball_documentPath(t *testing.T) {
 	l := LocalTarball{
-		WorkDir: "/tmp/",
+		WorkDir:     "/tmp/",
 		ArchivePath: "/foo/test-foo-0.tgz",
 	}
 	exp := "/tmp/test-foo-0-extract"
 	r := l.documentPath()
-	if r !=  exp {
+	if r != exp {
 		log.Fatalf("Expected %q, got %q", exp, r)
 	}
 }
-

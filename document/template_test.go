@@ -1,19 +1,19 @@
 package document
 
 import (
-	"testing"
-	"os"
-	"strings"
-	"path/filepath"
 	"log"
+	"os"
+	"path/filepath"
 	"regexp"
+	"strings"
+	"testing"
 )
 
 // calculate path to test fixtures (example/)
 func examplePath() string {
 	wd, _ := os.Getwd()
 	pathArray := strings.Split(wd, string(os.PathSeparator))
-	pathArray = pathArray[:len(pathArray) - 1]  // trims "internal"
+	pathArray = pathArray[:len(pathArray)-1] // trims "internal"
 	path := append(pathArray, "example")
 	return strings.Join(path, string(os.PathSeparator))
 }
@@ -29,8 +29,8 @@ func TestNewTemplatedDocument(t *testing.T) {
 
 func TestTemplatedDocument_findPlaceholders(t *testing.T) {
 	mapping := []TemplateConfig{
-		{ Name: "foo", Variables: map[string]string{"foo": "bar"} },
-		{ Name: "baz", Variables: map[string]string{"baz": "boz"} },
+		{Name: "foo", Variables: map[string]string{"foo": "bar"}},
+		{Name: "baz", Variables: map[string]string{"baz": "boz"}},
 	}
 
 	tf := Template{
@@ -43,13 +43,13 @@ func TestTemplatedDocument_findPlaceholders(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if _, ok := rv["foo"]; ! ok {
+	if _, ok := rv["foo"]; !ok {
 		log.Fatalf("Expected %q in map. Got %+v", "foo", rv)
 	} else if rv["foo"] != "{{ foo }}" {
 		log.Fatalf("Expected %q to be %q. Got %+v", "foo", "{{ foo }}", rv)
 	}
 
-	if _, ok := rv["baz"]; ! ok {
+	if _, ok := rv["baz"]; !ok {
 		log.Fatalf("Expected %q in map. Got %+v", "baz", rv)
 	} else if rv["baz"] != "{{ baz }}" {
 		log.Fatalf("Expected %q to be %q. Got %+v", "baz", "{{ baz }}", rv)
@@ -59,8 +59,8 @@ func TestTemplatedDocument_findPlaceholders(t *testing.T) {
 
 func TestTemplatedDocument_Render(t *testing.T) {
 	mapping := []TemplateConfig{
-		{ Name: "one", Variables: map[string]string{"foo": "A", "bar": "A"} },
-		{ Name: "two", Variables: map[string]string{"foo": "B", "bar": "B"} },
+		{Name: "one", Variables: map[string]string{"foo": "A", "bar": "A"}},
+		{Name: "two", Variables: map[string]string{"foo": "B", "bar": "B"}},
 	}
 
 	tf := Template{
@@ -88,7 +88,7 @@ func TestTemplatedDocument_Render(t *testing.T) {
 
 func TestTemplatedDocument_Render_MultipleFoo(t *testing.T) {
 	mapping := []TemplateConfig{
-		{ Name: "test", Variables: map[string]string{"foo": "A", "bar": "A"} },
+		{Name: "test", Variables: map[string]string{"foo": "A", "bar": "A"}},
 	}
 
 	tf := Template{
@@ -112,8 +112,8 @@ func TestTemplatedDocument_Render_MultipleFoo(t *testing.T) {
 // When there are identical documents we should not duplicate
 func TestTemplate_Render_DoesNotDuplicate(t *testing.T) {
 	mapping := []TemplateConfig{
-		{ Name: "one", Variables: map[string]string{"foo": "A"} },
-		{ Name: "two", Variables: map[string]string{"foo": "A"} },
+		{Name: "one", Variables: map[string]string{"foo": "A"}},
+		{Name: "two", Variables: map[string]string{"foo": "A"}},
 	}
 
 	tf := Template{
@@ -134,8 +134,8 @@ func TestTemplate_Render_DoesNotDuplicate(t *testing.T) {
 
 func TestTemplate_hasMultiple_false(t *testing.T) {
 	mapping := []TemplateConfig{
-		{ Name: "one", Variables: map[string]string{"foo": "A"} },
-		{ Name: "two", Variables: map[string]string{"foo": "A"} },
+		{Name: "one", Variables: map[string]string{"foo": "A"}},
+		{Name: "two", Variables: map[string]string{"foo": "A"}},
 	}
 
 	tf := Template{
@@ -156,8 +156,8 @@ func TestTemplate_hasMultiple_false(t *testing.T) {
 
 func TestTemplate_hasMultiple_true(t *testing.T) {
 	mapping := []TemplateConfig{
-		{ Name: "one", Variables: map[string]string{"foo": "A"} },
-		{ Name: "two", Variables: map[string]string{"foo": "B"} },
+		{Name: "one", Variables: map[string]string{"foo": "A"}},
+		{Name: "two", Variables: map[string]string{"foo": "B"}},
 	}
 
 	tf := Template{

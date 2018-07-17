@@ -2,8 +2,8 @@ package vault
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/mock"
 	vaultApi "github.com/hashicorp/vault/api"
+	"github.com/stretchr/testify/mock"
 )
 
 type MockClient struct {
@@ -49,7 +49,7 @@ func (m *MockClient) PutPolicy(name string, data string) error {
 	return m.ReturnError
 }
 
-func (m *MockClient) DeletePolicy(name string) (error) {
+func (m *MockClient) DeletePolicy(name string) error {
 	return m.ReturnError
 }
 

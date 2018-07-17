@@ -1,9 +1,9 @@
 package path_handlers
 
 import (
-	"testing"
-	"log"
 	"github.com/starlingbank/vaultsmith/vault"
+	"log"
+	"testing"
 )
 
 func TestNewDummyHandler(t *testing.T) {

@@ -1,8 +1,8 @@
 package document
 
 import (
-	"testing"
 	"log"
+	"testing"
 )
 
 func TestLocalFiles_Get(t *testing.T) {

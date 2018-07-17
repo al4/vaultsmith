@@ -1,25 +1,25 @@
 package main
 
 import (
-	flag "github.com/spf13/pflag"
 	"fmt"
+	flag "github.com/spf13/pflag"
 	"log"
 	"os"
 	"strings"
 
+	"github.com/starlingbank/vaultsmith/config"
+	"github.com/starlingbank/vaultsmith/document"
 	"github.com/starlingbank/vaultsmith/internal"
 	"github.com/starlingbank/vaultsmith/vault"
-	"github.com/starlingbank/vaultsmith/config"
-	"net/url"
-	"github.com/starlingbank/vaultsmith/document"
 	"io/ioutil"
+	"net/url"
 )
 
 var flags = flag.NewFlagSet("Vaultsmith", flag.ExitOnError)
-var documentPath	string
-var dry				bool
-var templateFile	string
-var vaultRole		string
+var documentPath string
+var dry bool
+var templateFile string
+var vaultRole string
 
 func init() {
 	flags.StringVar(
@@ -90,7 +90,7 @@ func getDocumentSet(path string, workDir string) (docSet document.Set, err error
 	case "http", "https":
 		return &document.HttpTarball{
 			WorkDir: workDir,
-			Url: u,
+			Url:     u,
 		}, nil
 	case "", "file":
 		// local filesystem, handled below
@@ -101,16 +101,17 @@ func getDocumentSet(path string, workDir string) (docSet document.Set, err error
 
 	// From here we are assuming path points to the local file system
 	p, err := os.Stat(path)
-	switch mode := p.Mode(); { case mode.IsDir():
+	switch mode := p.Mode(); {
+	case mode.IsDir():
 		// Should be an directory of files
 		return &document.LocalFiles{
-			WorkDir: workDir,
+			WorkDir:   workDir,
 			Directory: path,
 		}, nil
 	case mode.IsRegular():
 		// Should be an archive
 		return &document.LocalTarball{
-			WorkDir: workDir,
+			WorkDir:     workDir,
 			ArchivePath: path,
 		}, nil
 	default:

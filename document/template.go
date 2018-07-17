@@ -1,14 +1,14 @@
 package document
 
 import (
-	"regexp"
-	"os"
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
-	"bytes"
-	"io"
-	"encoding/json"
+	"os"
+	"regexp"
 	"strings"
 )
 
@@ -22,20 +22,20 @@ type Renderer interface {
 type Template struct {
 	Path         string
 	Content      string
-	ValueMapList []TemplateConfig	// List of "instances" of the document, mapping the key-values for each one
-	matcher      *regexp.Regexp		// Regex to find placeholders
-	placeHolders  map[string]string
+	ValueMapList []TemplateConfig // List of "instances" of the document, mapping the key-values for each one
+	matcher      *regexp.Regexp   // Regex to find placeholders
+	placeHolders map[string]string
 }
 
 // The structure of our json (within the array)
 type TemplateConfig struct {
-	Name 		string 				`json:"name"`
-	Variables	map[string]string 	`json:"variables"`
+	Name      string            `json:"name"`
+	Variables map[string]string `json:"variables"`
 }
 
 // A rendered template which we can write to vault
 type RenderedTemplate struct {
-	Name string
+	Name    string
 	Content string
 }
 
@@ -81,12 +81,14 @@ func (t *Template) Render() (renderedTemplates []RenderedTemplate, err error) {
 		// no placeholders or values to map, return a single result with the original content
 		return []RenderedTemplate{
 			{Content: t.Content},
-		},nil
+		}, nil
 	}
 
 	// Avoid writing duplicate documents when all the placeholder values are the same
 	hasMultiple, err := t.hasMultiple()
-	if err != nil { return }
+	if err != nil {
+		return
+	}
 	if hasMultiple {
 		return t.renderMultiple()
 	} else {
@@ -100,7 +102,9 @@ func (t *Template) Render() (renderedTemplates []RenderedTemplate, err error) {
 func (t *Template) renderOne() (renderedTemplates []RenderedTemplate, err error) {
 	renderedTemplates = []RenderedTemplate{}
 	placeholders, err := t.findPlaceholders()
-	if err != nil { return }
+	if err != nil {
+		return
+	}
 
 	templateConfig := t.ValueMapList[0]
 
@@ -110,7 +114,7 @@ func (t *Template) renderOne() (renderedTemplates []RenderedTemplate, err error)
 	}
 
 	return []RenderedTemplate{
-		{ Name: "", Content: c },
+		{Name: "", Content: c},
 	}, nil
 }
 
@@ -118,7 +122,9 @@ func (t *Template) renderOne() (renderedTemplates []RenderedTemplate, err error)
 func (t *Template) renderMultiple() (renderedTemplates []RenderedTemplate, err error) {
 	renderedTemplates = []RenderedTemplate{}
 	placeholders, err := t.findPlaceholders()
-	if err != nil { return }
+	if err != nil {
+		return
+	}
 
 	for _, templateConfig := range t.ValueMapList {
 		var c = t.Content
@@ -126,7 +132,7 @@ func (t *Template) renderMultiple() (renderedTemplates []RenderedTemplate, err e
 			c = strings.Replace(c, v, templateConfig.Variables[k], -1)
 		}
 		renderedTemplates = append(renderedTemplates, RenderedTemplate{
-			Name: templateConfig.Name,
+			Name:    templateConfig.Name,
 			Content: c,
 		})
 	}
@@ -196,4 +202,3 @@ func (t *Template) findPlaceholders() (placeholders map[string]string, err error
 
 	return placeholders, nil
 }
-

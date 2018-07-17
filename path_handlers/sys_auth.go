@@ -1,26 +1,26 @@
 package path_handlers
 
 import (
-	"os"
-	"fmt"
-	"log"
-	"path/filepath"
-	"strings"
-	"reflect"
-	vaultApi "github.com/hashicorp/vault/api"
 	"encoding/json"
+	"fmt"
+	vaultApi "github.com/hashicorp/vault/api"
 	"github.com/starlingbank/vaultsmith/vault"
+	"log"
+	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
 	"time"
 )
 
 /*
 	SysAuth handles the creation/enabling of auth methods and policies, described in the
 	configuration under sys
- */
+*/
 type SysAuth struct {
 	BaseHandler
 	client            vault.Vault
-	config			  PathHandlerConfig
+	config            PathHandlerConfig
 	liveAuthMap       map[string]*vaultApi.AuthMount
 	configuredAuthMap map[string]*vaultApi.AuthMount
 }
@@ -38,7 +38,7 @@ func NewSysAuthHandler(client vault.Vault, config PathHandlerConfig) (*SysAuth, 
 
 	return &SysAuth{
 		client:            client,
-		config: 		   config,
+		config:            config,
 		liveAuthMap:       liveAuthMap,
 		configuredAuthMap: configuredAuthMap,
 	}, nil
@@ -53,17 +53,23 @@ func (sh *SysAuth) walkFile(path string, f os.FileInfo, err error) error {
 		return fmt.Errorf("error reading %s: %s", path, err)
 	}
 	// not doing anything with dirs
-	if f.IsDir() { return nil }
+	if f.IsDir() {
+		return nil
+	}
 
 	policyPath, err := apiPath(sh.config.DocumentPath, path)
-	if err != nil { return err }
-	if ! strings.HasPrefix(policyPath, "sys/auth") {
+	if err != nil {
+		return err
+	}
+	if !strings.HasPrefix(policyPath, "sys/auth") {
 		return fmt.Errorf("found file without sys/auth prefix: %s", policyPath)
 	}
 
 	log.Printf("Applying %q", policyPath)
 	fileContents, err := sh.readFile(path)
-	if err != nil { return err}
+	if err != nil {
+		return err
+	}
 
 	var enableOpts vaultApi.EnableAuthOptions
 	err = json.Unmarshal([]byte(fileContents), &enableOpts)
@@ -124,13 +130,13 @@ func (sh *SysAuth) ensureAuth(path string, enableOpts vaultApi.EnableAuthOptions
 	return nil
 }
 
-func(sh *SysAuth) DisableUnconfiguredAuths() error {
+func (sh *SysAuth) DisableUnconfiguredAuths() error {
 	// delete entries not in configured list
 	for path, authMount := range sh.liveAuthMap {
 		if _, ok := sh.configuredAuthMap[path]; ok {
-			continue  // present, do nothing
+			continue // present, do nothing
 		} else if authMount.Type == "token" {
-			continue  // cannot be disabled, would give http 400 if attempted
+			continue // cannot be disabled, would give http 400 if attempted
 		} else {
 			log.Printf("Disabling auth type %s at %s", authMount.Type, path)
 			err := sh.client.DisableAuth(path)
@@ -201,4 +207,3 @@ func ConvertAuthConfig(input vaultApi.AuthConfigInput) (vaultApi.AuthConfigOutpu
 
 	return output, nil
 }
-
