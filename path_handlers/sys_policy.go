@@ -13,7 +13,7 @@ import (
 )
 
 /*
-	SysPolicyHandler handles the creation/enabling of auth methods and policies, described in the
+	SysPolicy handles the creation/enabling of auth methods and policies, described in the
 	configuration under sys
 
 	Unlike SysAuthHandler, it supports templating
@@ -25,31 +25,31 @@ var fixedPolicies = map[string]bool{
 	"default": true,
 }
 
-type SysPolicyHandler struct {
+type SysPolicy struct {
 	BaseHandler
 	livePolicyList       []string
 	configuredPolicyList []string
 }
 
-type SysPolicy struct {
+type policy struct {
 	Name   string
 	Policy string `json:"policy"`
 }
 
-func NewSysPolicyHandler(client vault.Vault, config PathHandlerConfig) (*SysPolicyHandler, error) {
+func NewSysPolicyHandler(client vault.Vault, config PathHandlerConfig) (*SysPolicy, error) {
 	// Build a map of currently active auth methods, so walkFile() can reference it
 	livePolicyList, err := client.ListPolicies()
 	if err != nil {
-		return &SysPolicyHandler{}, fmt.Errorf("error listing policies: %s", err)
+		return &SysPolicy{}, fmt.Errorf("error listing policies: %s", err)
 	}
 
-	return &SysPolicyHandler{
+	return &SysPolicy{
 		BaseHandler: BaseHandler{
-			name:   "SysPolicyHandler",
+			name:   "SysPolicy",
 			client: client,
 			config: config,
 			log: log.WithFields(log.Fields{
-				"handler": "SysPolicyHandler",
+				"handler": "SysPolicy",
 			}),
 		},
 		livePolicyList:       livePolicyList,
@@ -57,7 +57,7 @@ func NewSysPolicyHandler(client vault.Vault, config PathHandlerConfig) (*SysPoli
 	}, nil
 }
 
-func (sh *SysPolicyHandler) walkFile(path string, f os.FileInfo, err error) error {
+func (sh *SysPolicy) walkFile(path string, f os.FileInfo, err error) error {
 	if f == nil {
 		sh.log.Infof("%q does not exist, skipping handler. Error was %q", path, err.Error())
 		return nil
@@ -92,7 +92,7 @@ func (sh *SysPolicyHandler) walkFile(path string, f os.FileInfo, err error) erro
 	for _, td := range templatedDocs {
 		writeName := templatePath(policyPath, td.Name)
 
-		policy := SysPolicy{
+		policy := policy{
 			Name: writeName,
 		}
 		err = json.Unmarshal([]byte(td.Content), &policy)
@@ -109,7 +109,7 @@ func (sh *SysPolicyHandler) walkFile(path string, f os.FileInfo, err error) erro
 	return nil
 }
 
-func (sh *SysPolicyHandler) PutPoliciesFromDir(path string) error {
+func (sh *SysPolicy) PutPoliciesFromDir(path string) error {
 	err := filepath.Walk(path, sh.walkFile)
 	if err != nil {
 		return err
@@ -118,7 +118,7 @@ func (sh *SysPolicyHandler) PutPoliciesFromDir(path string) error {
 	return err
 }
 
-func (sh *SysPolicyHandler) EnsurePolicy(policy SysPolicy) error {
+func (sh *SysPolicy) EnsurePolicy(policy policy) error {
 	log := sh.log.WithFields(log.Fields{
 		"policy": policy.Name,
 	})
@@ -132,11 +132,11 @@ func (sh *SysPolicyHandler) EnsurePolicy(policy SysPolicy) error {
 		log.Debugf("Policy already applied")
 		return nil
 	}
-	log.Infof("Applying policy", policy.Name)
+	log.Info("Applying policy")
 	return sh.client.PutPolicy(policy.Name, policy.Policy)
 }
 
-func (sh *SysPolicyHandler) RemoveUndeclaredPolicies() (deleted []string, err error) {
+func (sh *SysPolicy) RemoveUndeclaredPolicies() (deleted []string, err error) {
 	// only real reason to track the deleted policies is for testing as logs inform user
 	for _, liveName := range sh.livePolicyList {
 		if fixedPolicies[liveName] {
@@ -164,7 +164,7 @@ func (sh *SysPolicyHandler) RemoveUndeclaredPolicies() (deleted []string, err er
 }
 
 // true if the policy exists on the server
-func (sh *SysPolicyHandler) policyExists(policy SysPolicy) bool {
+func (sh *SysPolicy) policyExists(policy policy) bool {
 	//sh.log.Debugf("policy.Name: %s, policy list: %+v", policy.Name, sh.livePolicyList)
 	for _, p := range sh.livePolicyList {
 		if p == policy.Name {
@@ -176,7 +176,7 @@ func (sh *SysPolicyHandler) policyExists(policy SysPolicy) bool {
 }
 
 // true if the policy is applied on the server
-func (sh *SysPolicyHandler) isPolicyApplied(policy SysPolicy) (bool, error) {
+func (sh *SysPolicy) isPolicyApplied(policy policy) (bool, error) {
 	if !sh.policyExists(policy) {
 		return false, nil
 	}
@@ -193,6 +193,6 @@ func (sh *SysPolicyHandler) isPolicyApplied(policy SysPolicy) (bool, error) {
 	}
 }
 
-func (sh *SysPolicyHandler) Order() int {
+func (sh *SysPolicy) Order() int {
 	return sh.order
 }

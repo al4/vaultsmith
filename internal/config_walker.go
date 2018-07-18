@@ -151,7 +151,7 @@ func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]path_han
 		handler := cw.HandlerMap[v]
 		p := filepath.Join(path, v)
 		if handler.Name() != "Dummy" {
-			// Dummy handler is a way of marking as do not process
+			// Dummy handler is a way of marking as "do not process"
 			logger.Infof("Processing with %s handler", handler.Name())
 			err := handler.PutPoliciesFromDir(p)
 			if err != nil {
