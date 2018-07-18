@@ -20,6 +20,7 @@ var documentPath string
 var dry bool
 var templateFile string
 var vaultRole string
+var logLevel string
 
 func init() {
 	flags.StringVar(
@@ -35,6 +36,9 @@ func init() {
 	)
 	flags.BoolVar(
 		&dry, "dry", false, "Dry run; will read from but not write to vault",
+	)
+	flags.StringVar(
+		&logLevel, "log-level", "info", fmt.Sprintf("Log level, valid values are %+v", log.AllLevels),
 	)
 
 	flags.Usage = func() {
@@ -58,6 +62,11 @@ func init() {
 
 func main() {
 	log.SetOutput(os.Stderr)
+	ll, err := log.ParseLevel(logLevel)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.SetLevel(ll)
 
 	conf := config.VaultsmithConfig{
 		DocumentPath: documentPath,
@@ -67,7 +76,7 @@ func main() {
 	}
 
 	var client vault.Vault
-	client, err := vault.NewVaultClient(conf.Dry)
+	client, err = vault.NewVaultClient(conf.Dry)
 	if err != nil {
 		log.Fatal(err)
 	}

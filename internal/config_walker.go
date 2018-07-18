@@ -105,7 +105,7 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 
 func (cw ConfigWalker) Run() error {
 	// file will be a dir here unless a trailing slash was added
-	log.Printf("Starting in directory %s", cw.ConfigDir)
+	log.Debugf("Starting in directory %s", cw.ConfigDir)
 
 	err := cw.walkConfigDir(cw.ConfigDir, cw.HandlerMap)
 	if err != nil {
@@ -146,6 +146,7 @@ func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]path_han
 		}
 		handler := cw.HandlerMap[v]
 		p := filepath.Join(path, v)
+		log.Infof("Processing %q using %s handler", p, handler.Name)
 		err := handler.PutPoliciesFromDir(p)
 		if err != nil {
 			return err
@@ -161,7 +162,7 @@ func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]path_han
 // determine the handler and pass the root directory to it
 func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 	if f == nil {
-		log.Printf("f nil for path %q", path)
+		log.Debugf("f nil for path %q", path)
 		return nil
 	}
 	if !f.IsDir() { // only want to operate on directories
@@ -179,7 +180,7 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 	if pathArray[0] == "." { // just to avoid a "no handler for path ." in log
 		return nil
 	}
-	//log.Printf("path: %s, relPath: %s", path, relPath)
+	log.Debugf("path: %s, relPath: %s", path, relPath)
 
 	// Is there a handler for a higher level path? If so, we assume that it handles all child
 	// directories and thus we should not process these directories separately.
@@ -191,7 +192,7 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 
 	handler, ok := cw.HandlerMap[relPath]
 	if ok {
-		log.Printf("Processing %q using %T handler", path, handler)
+		log.Infof("Processing %q using %T handler", path, handler)
 		return handler.PutPoliciesFromDir(path)
 	}
 

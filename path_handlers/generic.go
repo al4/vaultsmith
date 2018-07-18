@@ -35,7 +35,7 @@ func NewGenericHandler(c vault.Vault, config PathHandlerConfig) (*GenericHandler
 
 func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error {
 	if f == nil {
-		log.Printf("No path %q present, skipping", path)
+		log.Debugf("No path %q present, skipping", path)
 		return nil
 	}
 	if err != nil {
@@ -73,7 +73,6 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 		}
 
 		writePath := templatePath(apiPath, td.Name)
-		log.Printf("Applying %q", writePath)
 
 		doc := VaultDocument{
 			path: writePath,
@@ -103,11 +102,11 @@ func (gh *GenericHandler) ensureDoc(doc VaultDocument) error {
 	if applied, err := gh.isDocApplied(doc); err != nil {
 		return fmt.Errorf("could not determine if %q is applied: %s", doc.path, err)
 	} else if applied {
-		log.Printf("Document %q already applied", doc.path)
+		log.Debugf("Document %q already applied", doc.path)
 		return nil
 	}
 
-	log.Printf("Writing %q to server", doc.path)
+	log.Infof("Applying %q", doc.path)
 	_, err := gh.client.Write(doc.path, doc.data)
 	return err
 }
@@ -117,7 +116,8 @@ func (gh *GenericHandler) isDocApplied(doc VaultDocument) (bool, error) {
 	secret, err := gh.client.Read(doc.path)
 	if err != nil {
 		// TODO assume not applied, but should handle specific errors differently
-		log.Printf("TODO: error on client.Read, assuming doc not present (%s)", err)
+		log.Errorf("error on client.Read, assuming doc %q not present: %s, please raise a "+
+			"bug as this should be handled cleanly!", doc.path, err)
 		return false, nil
 	}
 
@@ -215,7 +215,9 @@ func firstElementEqual(slice interface{}, value interface{}) bool {
 			return true
 		}
 	default:
-		log.Fatalf("Unhandled type %T, please add this to the switch statement", t)
+		log.Errorf("Unhandled type %T in firstElementEqual(), needs to be added to the "+
+			"switch statement; please raise a bug", t)
+		return false
 	}
 
 	return false
@@ -225,12 +227,12 @@ func firstElementEqual(slice interface{}, value interface{}) bool {
 func IsTtlEquivalent(ttlA interface{}, ttlB interface{}) bool {
 	durA, err := convertToDuration(ttlA)
 	if err != nil {
-		log.Printf("WARN: Error parsing %+v: %s", ttlA, err)
+		log.Warnf("Could not parse %+v: %s", ttlA, err)
 		return false
 	}
 	durB, err := convertToDuration(ttlB)
 	if err != nil {
-		log.Printf("WARN: Error converting %+v to duration: %s", ttlA, err)
+		log.Warnf("Could not convert %+v to duration: %s", ttlA, err)
 		return false
 	}
 
