@@ -74,6 +74,7 @@ func NewVaultClient(readonly bool) (c Vault, err error) {
 		return c, err
 	}
 	logger := log.WithFields(log.Fields{"readonly": readonly})
+
 	var writer writeMethods
 	if readonly {
 		writer = &dryClient{

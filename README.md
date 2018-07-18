@@ -61,7 +61,7 @@ Usage
 -----
 
 ```
-vaultsmith -h
+$ vaultsmith -h
 Usage of vaultsmith:
       --document-path string   The root directory of the configuration. Can be a local directory, local gz tarball or http url to a gz tarball. (default "./example")
       --dry                    Dry run; will read from but not write to vault
@@ -71,6 +71,10 @@ Usage of vaultsmith:
 
 Vault authentication is handled by environment variables (the same ones as the Vault client, as vaultsmith uses the same code). So ensure VAULT_ADDR and VAULT_TOKEN are set.
 ```
+
+It is _strongly_ recommended that you use the --dry option before running against any live server. 
+If it indicates that it would do something unexpected, set log-level to debug with `--log-level 
+debug` and it will show you (in go terms) exactly what it would write.
 
 Examples
 --------

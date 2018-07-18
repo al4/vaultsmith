@@ -68,6 +68,9 @@ func main() {
 	}
 	log.SetLevel(ll)
 
+	if dry {
+		log.Info("Dry mode enabled, no changes will be made")
+	}
 	conf := config.VaultsmithConfig{
 		DocumentPath: documentPath,
 		VaultRole:    vaultRole,
