@@ -64,3 +64,7 @@ func (m *MockClient) Write(path string, data map[string]interface{}) (*vaultApi.
 func (m *MockClient) List(path string) (*vaultApi.Secret, error) {
 	return m.ReturnSecret, m.ReturnError
 }
+
+func (m *MockClient) Delete(path string) (*vaultApi.Secret, error) {
+	return m.ReturnSecret, m.ReturnError
+}

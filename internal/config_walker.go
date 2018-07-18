@@ -207,7 +207,7 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 
 	// At this point, we have a directory, which has no handler assigned to itself or any parent
 	// or child. Thus, safe to attach the genericHandler to it
-	logger.Infof("Processing with generic handler")
+	logger.Infof("Processing with Generic handler")
 	genericHandler := cw.HandlerMap["*"]
 	// and mark it so recursing into child directories doesn't re-process them
 	cw.HandlerMap[relPath] = genericHandler

@@ -85,7 +85,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error: %s", err)
 	}
-	log.Infof("Success")
+	log.Debugf("Success")
 }
 
 // Return the appropriate document.Set for the given path

@@ -5,30 +5,30 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type DryClient struct {
-	Client
+type dryClient struct {
+	logger *log.Entry
 }
 
 // Override any methods that write, so we can only perform reads
-func (c *DryClient) EnableAuth(path string, options *vaultApi.EnableAuthOptions) error {
-	log.WithFields(log.Fields{
+func (c *dryClient) EnableAuth(path string, options *vaultApi.EnableAuthOptions) error {
+	c.logger.WithFields(log.Fields{
 		"action":  "EnableAuth",
 		"options": options,
 		"path":    path,
-	}).WithFields(log.Fields{"foo": "bar"}).Debug()
+	}).Debug()
 	return nil
 }
 
-func (c *DryClient) DisableAuth(path string) error {
-	log.WithFields(log.Fields{
+func (c *dryClient) DisableAuth(path string) error {
+	c.logger.WithFields(log.Fields{
 		"action": "DisableAuth",
 		"path":   path,
 	}).Debug("No action performed")
 	return nil
 }
 
-func (c *DryClient) PutPolicy(name string, data string) error {
-	c.log.WithFields(log.Fields{
+func (c *dryClient) PutPolicy(name string, data string) error {
+	c.logger.WithFields(log.Fields{
 		"action": "PutPolicy",
 		"name":   name,
 		"data":   data,
@@ -36,19 +36,23 @@ func (c *DryClient) PutPolicy(name string, data string) error {
 	return nil
 }
 
-func (c *DryClient) DeletePolicy(name string) error {
-	c.log.WithFields(log.Fields{
+func (c *dryClient) DeletePolicy(name string) error {
+	c.logger.WithFields(log.Fields{
 		"action": "DeletePolicy",
 		"name":   name,
 	}).Debug("No action performed")
 	return nil
 }
 
-func (c *DryClient) Write(path string, data map[string]interface{}) (*vaultApi.Secret, error) {
-	c.log.WithFields(log.Fields{
+func (c *dryClient) Write(path string, data map[string]interface{}) (*vaultApi.Secret, error) {
+	c.logger.WithFields(log.Fields{
 		"action": "Write",
 		"path":   path,
 		"data":   data,
 	}).Debug("No action performed")
+	return &vaultApi.Secret{}, nil
+}
+
+func (c *dryClient) Delete(path string) (*vaultApi.Secret, error) {
 	return &vaultApi.Secret{}, nil
 }

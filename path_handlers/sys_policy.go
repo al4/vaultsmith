@@ -119,7 +119,7 @@ func (sh *SysPolicy) PutPoliciesFromDir(path string) error {
 }
 
 func (sh *SysPolicy) EnsurePolicy(policy policy) error {
-	log := sh.log.WithFields(log.Fields{
+	logger := sh.log.WithFields(log.Fields{
 		"policy": policy.Name,
 	})
 
@@ -129,10 +129,10 @@ func (sh *SysPolicy) EnsurePolicy(policy policy) error {
 		return err
 	}
 	if applied {
-		log.Debugf("Policy already applied")
+		logger.Debugf("Policy already applied")
 		return nil
 	}
-	log.Info("Applying policy")
+	logger.Info("Applying policy")
 	return sh.client.PutPolicy(policy.Name, policy.Policy)
 }
 
