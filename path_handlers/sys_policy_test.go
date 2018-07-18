@@ -15,7 +15,7 @@ func TestSysPolicyHandler_PolicyExists(t *testing.T) {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
 
-	p := SysPolicy{
+	p := policy{
 		Name:   "testName",
 		Policy: "testPolicy",
 	}
@@ -36,7 +36,7 @@ func TestSysPolicyHandler_PolicyExistsFalse(t *testing.T) {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
 
-	p := SysPolicy{
+	p := policy{
 		Name:   "testName",
 		Policy: "testPolicy",
 	}
@@ -59,7 +59,7 @@ func TestSysPolicyHandler_IsPolicyApplied(t *testing.T) {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
 
-	p := SysPolicy{
+	p := policy{
 		Name:   "testName",
 		Policy: "testPolicy",
 	}
@@ -83,7 +83,7 @@ func TestSysPolicyHandler_IsPolicyApplied_PresentButDifferent(t *testing.T) {
 		log.Fatalf("Failed to create SysAuth: %s", err)
 	}
 
-	p := SysPolicy{
+	p := policy{
 		Name:   "testName",
 		Policy: "this content is different",
 	}
