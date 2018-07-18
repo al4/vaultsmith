@@ -42,7 +42,7 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 
 	// Instantiate our path handlers
 	// We handle any unknown directories with this one
-	genericHandler, err := path_handlers.NewGenericHandler(
+	genericHandler, err := path_handlers.NewGeneric(
 		client,
 		path_handlers.PathHandlerConfig{
 			DocumentPath: docPath,

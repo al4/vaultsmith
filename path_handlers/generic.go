@@ -20,12 +20,12 @@ type VaultDocument struct {
 }
 
 // The generic handler simply writes the files to the path they are stored in
-type GenericHandler struct {
+type Generic struct {
 	BaseHandler
 }
 
-func NewGenericHandler(c vault.Vault, config PathHandlerConfig) (*GenericHandler, error) {
-	return &GenericHandler{
+func NewGeneric(c vault.Vault, config PathHandlerConfig) (*Generic, error) {
+	return &Generic{
 		BaseHandler: BaseHandler{
 			client: c,
 			config: config,
@@ -36,7 +36,7 @@ func NewGenericHandler(c vault.Vault, config PathHandlerConfig) (*GenericHandler
 	}, nil
 }
 
-func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error {
+func (gh *Generic) walkFile(path string, f os.FileInfo, err error) error {
 	if f == nil {
 		log.Debugf("No path %q present, skipping", path)
 		return nil
@@ -90,7 +90,7 @@ func (gh *GenericHandler) walkFile(path string, f os.FileInfo, err error) error 
 	return nil
 }
 
-func (gh *GenericHandler) PutPoliciesFromDir(path string) error {
+func (gh *Generic) PutPoliciesFromDir(path string) error {
 	err := filepath.Walk(path, gh.walkFile)
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func (gh *GenericHandler) PutPoliciesFromDir(path string) error {
 }
 
 // Ensure the document is present and consistent
-func (gh *GenericHandler) ensureDoc(doc VaultDocument) error {
+func (gh *Generic) ensureDoc(doc VaultDocument) error {
 	if applied, err := gh.isDocApplied(doc); err != nil {
 		return fmt.Errorf("could not determine if %q is applied: %s", doc.path, err)
 	} else if applied {
@@ -115,7 +115,7 @@ func (gh *GenericHandler) ensureDoc(doc VaultDocument) error {
 }
 
 // true if the document is on the server and matches the one configured
-func (gh *GenericHandler) isDocApplied(doc VaultDocument) (bool, error) {
+func (gh *Generic) isDocApplied(doc VaultDocument) (bool, error) {
 	secret, err := gh.client.Read(doc.path)
 	if err != nil {
 		// TODO assume not applied, but should handle specific errors differently
@@ -133,7 +133,7 @@ func (gh *GenericHandler) isDocApplied(doc VaultDocument) (bool, error) {
 
 // Ensure all key/value pairs in mapA are present and consistent in mapB
 // extra keys in remoteMap are ignored
-func (gh *GenericHandler) areKeysApplied(mapA map[string]interface{}, mapB map[string]interface{}) bool {
+func (gh *Generic) areKeysApplied(mapA map[string]interface{}, mapB map[string]interface{}) bool {
 	for key := range mapA {
 		if _, ok := mapB[key]; !ok {
 			return false // not present at all
@@ -160,12 +160,12 @@ func (gh *GenericHandler) areKeysApplied(mapA map[string]interface{}, mapB map[s
 	return true
 }
 
-func (gh *GenericHandler) RemoveUndeclaredDocuments() (removed []string, err error) {
+func (gh *Generic) RemoveUndeclaredDocuments() (removed []string, err error) {
 	// TODO implement me
 	return
 }
 
-func (gh *GenericHandler) Order() int {
+func (gh *Generic) Order() int {
 	return gh.order
 }
 
