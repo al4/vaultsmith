@@ -3,7 +3,6 @@ package path_handlers
 import (
 	"bytes"
 	"fmt"
-	vaultApi "github.com/hashicorp/vault/api"
 	log "github.com/sirupsen/logrus"
 	"github.com/starlingbank/vaultsmith/vault"
 	"io"
@@ -22,18 +21,27 @@ type PathHandlerConfig struct {
 type PathHandler interface {
 	PutPoliciesFromDir(path string) error
 	Order() int
+	Name() string
 }
 
 type ValueMap map[string][]string
 
 // Set of methods common to all PathHandlers
 type BaseHandler struct {
-	client            vault.Vault
-	rootPath          string
-	liveAuthMap       *map[string]*vaultApi.AuthMount
-	configuredAuthMap *map[string]*vaultApi.AuthMount
-	order             int // order to process. Lower is earlier, with the exception of 0, which
-	// is processed after any others with a positive integer
+	client   vault.Vault
+	config   PathHandlerConfig
+	rootPath string
+	order    int // order to process. Lower is earlier, with the exception of 0, which is
+	// processed after any others with a positive integer
+	name string
+}
+
+func (h *BaseHandler) Name() string {
+	return h.name
+}
+
+func (h *BaseHandler) Order() int {
+	return h.order
 }
 
 func (h *BaseHandler) readFile(path string) (string, error) {
@@ -54,10 +62,6 @@ func (h *BaseHandler) readFile(path string) (string, error) {
 	data := buf.String()
 
 	return data, nil
-}
-
-func (h *BaseHandler) Order() int {
-	return h.order
 }
 
 // Return the vault api path for this rendered template, given the filesystem path

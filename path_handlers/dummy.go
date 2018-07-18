@@ -9,14 +9,16 @@ type Dummy struct {
 	BaseHandler
 	client   vault.Vault
 	rootPath string // path to handle
-	order    int
 }
 
 func NewDummyHandler(c vault.Vault, rootPath string, order int) (*Dummy, error) {
 	return &Dummy{
-		client:   c,
-		rootPath: rootPath,
-		order:    order,
+		BaseHandler: BaseHandler{
+			client:   c,
+			rootPath: rootPath,
+			order:    order,
+			name:     "Dummy",
+		},
 	}, nil
 }
 

@@ -22,14 +22,14 @@ type VaultDocument struct {
 // The generic handler simply writes the files to the path they are stored in
 type GenericHandler struct {
 	BaseHandler
-	client vault.Vault
-	config PathHandlerConfig
 }
 
 func NewGenericHandler(c vault.Vault, config PathHandlerConfig) (*GenericHandler, error) {
 	return &GenericHandler{
-		client: c,
-		config: config,
+		BaseHandler: BaseHandler{
+			client: c,
+			config: config,
+		},
 	}, nil
 }
 

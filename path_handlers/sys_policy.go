@@ -27,8 +27,6 @@ var fixedPolicies = map[string]bool{
 
 type SysPolicyHandler struct {
 	BaseHandler
-	client               vault.Vault
-	config               PathHandlerConfig
 	livePolicyList       []string
 	configuredPolicyList []string
 }
@@ -46,8 +44,11 @@ func NewSysPolicyHandler(client vault.Vault, config PathHandlerConfig) (*SysPoli
 	}
 
 	return &SysPolicyHandler{
-		client:               client,
-		config:               config,
+		BaseHandler: BaseHandler{
+			name:   "SysPolicyHandler",
+			client: client,
+			config: config,
+		},
 		livePolicyList:       livePolicyList,
 		configuredPolicyList: []string{},
 	}, nil

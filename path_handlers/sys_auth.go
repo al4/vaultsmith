@@ -19,8 +19,6 @@ import (
 */
 type SysAuth struct {
 	BaseHandler
-	client            vault.Vault
-	config            PathHandlerConfig
 	liveAuthMap       map[string]*vaultApi.AuthMount
 	configuredAuthMap map[string]*vaultApi.AuthMount
 }
@@ -37,8 +35,11 @@ func NewSysAuthHandler(client vault.Vault, config PathHandlerConfig) (*SysAuth, 
 	configuredAuthMap := make(map[string]*vaultApi.AuthMount)
 
 	return &SysAuth{
-		client:            client,
-		config:            config,
+		BaseHandler: BaseHandler{
+			name:   "SysAuth",
+			client: client,
+			config: config,
+		},
 		liveAuthMap:       liveAuthMap,
 		configuredAuthMap: configuredAuthMap,
 	}, nil
