@@ -29,6 +29,9 @@ func NewGenericHandler(c vault.Vault, config PathHandlerConfig) (*GenericHandler
 		BaseHandler: BaseHandler{
 			client: c,
 			config: config,
+			log: log.WithFields(log.Fields{
+				"handler": "Generic",
+			}),
 		},
 	}, nil
 }
@@ -102,11 +105,11 @@ func (gh *GenericHandler) ensureDoc(doc VaultDocument) error {
 	if applied, err := gh.isDocApplied(doc); err != nil {
 		return fmt.Errorf("could not determine if %q is applied: %s", doc.path, err)
 	} else if applied {
-		log.Debugf("Document %q already applied", doc.path)
+		gh.log.Debugf("Document %q already applied", doc.path)
 		return nil
 	}
 
-	log.Infof("Applying %q", doc.path)
+	gh.log.Infof("Applying %q", doc.path)
 	_, err := gh.client.Write(doc.path, doc.data)
 	return err
 }
@@ -116,7 +119,7 @@ func (gh *GenericHandler) isDocApplied(doc VaultDocument) (bool, error) {
 	secret, err := gh.client.Read(doc.path)
 	if err != nil {
 		// TODO assume not applied, but should handle specific errors differently
-		log.Errorf("error on client.Read, assuming doc %q not present: %s, please raise a "+
+		gh.log.Errorf("error on client.Read, assuming doc %q not present: %s, please raise a "+
 			"bug as this should be handled cleanly!", doc.path, err)
 		return false, nil
 	}
@@ -151,7 +154,7 @@ func (gh *GenericHandler) areKeysApplied(mapA map[string]interface{}, mapB map[s
 		if isSliceEquivalent(mapA[key], mapB[key]) {
 			continue
 		}
-		log.Debugf("%q not equal; %+v(%T) != %+v(%T)", key, mapA[key], mapA[key], mapB[key], mapB[key])
+		gh.log.Debugf("%q not equal; %+v(%T) != %+v(%T)", key, mapA[key], mapA[key], mapB[key], mapB[key])
 		return false
 	}
 	return true

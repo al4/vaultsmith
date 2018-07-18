@@ -19,12 +19,15 @@ func NewDummyHandler(c vault.Vault, rootPath string, order int) (*Dummy, error) 
 			rootPath: rootPath,
 			order:    order,
 			name:     "Dummy",
+			log: log.WithFields(log.Fields{
+				"handler": "generic",
+			}),
 		},
 	}, nil
 }
 
 func (h *Dummy) PutPoliciesFromDir(path string) error {
-	log.Debugf("Dummy handler got path: %s", path)
+	h.log.Debugf("Dummy handler got path: %s", path)
 	return nil
 }
 

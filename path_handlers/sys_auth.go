@@ -39,6 +39,9 @@ func NewSysAuthHandler(client vault.Vault, config PathHandlerConfig) (*SysAuth, 
 			name:   "SysAuth",
 			client: client,
 			config: config,
+			log: log.WithFields(log.Fields{
+				"handler": "SysAuth",
+			}),
 		},
 		liveAuthMap:       liveAuthMap,
 		configuredAuthMap: configuredAuthMap,
@@ -47,7 +50,7 @@ func NewSysAuthHandler(client vault.Vault, config PathHandlerConfig) (*SysAuth, 
 
 func (sh *SysAuth) walkFile(path string, f os.FileInfo, err error) error {
 	if f == nil {
-		log.Debugf("%q does not exist, skipping SysAuth handler. Error was %q",
+		sh.log.Debugf("%q does not exist, skipping SysAuth handler. Error was %q",
 			path, err.Error())
 		return nil
 	}
@@ -119,11 +122,11 @@ func (sh *SysAuth) ensureAuth(path string, enableOpts vaultApi.EnableAuthOptions
 				enableOpts.Type, err)
 		}
 		if applied {
-			log.Debugf("Configuration for authMount %q already applied", enableOpts.Type)
+			sh.log.Debugf("Configuration for authMount %q already applied", enableOpts.Type)
 			return nil
 		}
 	}
-	log.Infof("Applying %q (auth type %s)", path, authMount.Type)
+	sh.log.Infof("Applying %q (auth type %s)", path, authMount.Type)
 	err = sh.client.EnableAuth(path, &enableOpts)
 	if err != nil {
 		return fmt.Errorf("could not enable auth %s: %s", path, err)
@@ -139,7 +142,7 @@ func (sh *SysAuth) DisableUnconfiguredAuths() error {
 		} else if authMount.Type == "token" {
 			continue // cannot be disabled, would give http 400 if attempted
 		} else {
-			log.Infof("Disabling auth type %s at %s", authMount.Type, path)
+			sh.log.Infof("Disabling auth type %s at %s", authMount.Type, path)
 			err := sh.client.DisableAuth(path)
 			if err != nil {
 				return fmt.Errorf("failed to disable authMount at %s: %s", path, err)

@@ -48,6 +48,9 @@ func NewSysPolicyHandler(client vault.Vault, config PathHandlerConfig) (*SysPoli
 			name:   "SysPolicyHandler",
 			client: client,
 			config: config,
+			log: log.WithFields(log.Fields{
+				"handler": "SysPolicyHandler",
+			}),
 		},
 		livePolicyList:       livePolicyList,
 		configuredPolicyList: []string{},
@@ -56,7 +59,7 @@ func NewSysPolicyHandler(client vault.Vault, config PathHandlerConfig) (*SysPoli
 
 func (sh *SysPolicyHandler) walkFile(path string, f os.FileInfo, err error) error {
 	if f == nil {
-		log.Infof("%q does not exist, skipping SysPolicy handler. Error was %q", path, err.Error())
+		sh.log.Infof("%q does not exist, skipping handler. Error was %q", path, err.Error())
 		return nil
 	}
 	if err != nil {
@@ -122,10 +125,10 @@ func (sh *SysPolicyHandler) EnsurePolicy(policy SysPolicy) error {
 		return err
 	}
 	if applied {
-		log.Debugf("Policy %q already applied", policy.Name)
+		sh.log.Debugf("Policy %q already applied", policy.Name)
 		return nil
 	}
-	log.Infof("Applying sys policy %q", policy.Name)
+	sh.log.Infof("Applying sys policy %q", policy.Name)
 	return sh.client.PutPolicy(policy.Name, policy.Policy)
 }
 
@@ -148,7 +151,7 @@ func (sh *SysPolicyHandler) RemoveUndeclaredPolicies() (deleted []string, err er
 
 		if !found {
 			// not declared, delete
-			log.Infof("Deleting policy %s", liveName)
+			sh.log.Infof("Deleting policy %s", liveName)
 			sh.client.DeletePolicy(liveName)
 			deleted = append(deleted, liveName)
 		}
@@ -158,7 +161,7 @@ func (sh *SysPolicyHandler) RemoveUndeclaredPolicies() (deleted []string, err er
 
 // true if the policy exists on the server
 func (sh *SysPolicyHandler) policyExists(policy SysPolicy) bool {
-	log.Debugf("policy.Name: %s, policy list: %+v", policy.Name, sh.livePolicyList)
+	//sh.log.Debugf("policy.Name: %s, policy list: %+v", policy.Name, sh.livePolicyList)
 	for _, p := range sh.livePolicyList {
 		if p == policy.Name {
 			return true

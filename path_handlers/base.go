@@ -34,6 +34,7 @@ type BaseHandler struct {
 	order    int // order to process. Lower is earlier, with the exception of 0, which is
 	// processed after any others with a positive integer
 	name string
+	log  *log.Entry
 }
 
 func (h *BaseHandler) Name() string {
