@@ -44,10 +44,6 @@ func (c *DryClient) DeletePolicy(name string) error {
 	return nil
 }
 
-func (c *DryClient) Read(path string) (*vaultApi.Secret, error) {
-	return c.Client.client.Logical().Read(path)
-}
-
 func (c *DryClient) Write(path string, data map[string]interface{}) (*vaultApi.Secret, error) {
 	c.log.WithFields(log.Fields{
 		"action": "Write",
@@ -55,8 +51,4 @@ func (c *DryClient) Write(path string, data map[string]interface{}) (*vaultApi.S
 		"data":   data,
 	}).Debug("No action performed")
 	return &vaultApi.Secret{}, nil
-}
-
-func (c *DryClient) List(path string) (*vaultApi.Secret, error) {
-	return c.Client.client.Logical().List(path)
 }

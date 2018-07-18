@@ -34,6 +34,7 @@ type Vault interface {
 	Read(path string) (*vaultApi.Secret, error)
 	Write(path string, data map[string]interface{}) (*vaultApi.Secret, error)
 	List(path string) (*vaultApi.Secret, error)
+	Delete(path string) (*vaultApi.Secret, error)
 }
 
 type Client struct {
@@ -170,4 +171,8 @@ func (c *Client) Write(path string, data map[string]interface{}) (*vaultApi.Secr
 
 func (c *Client) List(path string) (*vaultApi.Secret, error) {
 	return c.client.Logical().List(path)
+}
+
+func (c *Client) Delete(path string) (*vaultApi.Secret, error) {
+	return c.client.Logical().Delete(path)
 }

@@ -14,7 +14,7 @@ import (
 )
 
 // Required information to write a document to vault
-type VaultDocument struct {
+type vaultDocument struct {
 	path string
 	data map[string]interface{}
 }
@@ -22,17 +22,21 @@ type VaultDocument struct {
 // The generic handler simply writes the files to the path they are stored in
 type Generic struct {
 	BaseHandler
+	configuredDocMap map[string]vaultDocument
+	removedDocMap    map[string]interface{}
 }
 
-func NewGeneric(c vault.Vault, config PathHandlerConfig) (*Generic, error) {
+func NewGeneric(client vault.Vault, config PathHandlerConfig) (*Generic, error) {
 	return &Generic{
 		BaseHandler: BaseHandler{
-			client: c,
+			client: client,
 			config: config,
 			log: log.WithFields(log.Fields{
 				"handler": "Generic",
 			}),
 		},
+		configuredDocMap: map[string]vaultDocument{},
+		removedDocMap:    map[string]interface{}{},
 	}, nil
 }
 
@@ -82,7 +86,7 @@ func (gh *Generic) walkFile(path string, f os.FileInfo, err error) error {
 
 		writePath := templatePath(apiPath, td.Name)
 
-		doc := VaultDocument{
+		doc := vaultDocument{
 			path: writePath,
 			data: data,
 		}
@@ -96,20 +100,22 @@ func (gh *Generic) walkFile(path string, f os.FileInfo, err error) error {
 }
 
 func (gh *Generic) PutPoliciesFromDir(path string) error {
+	// path must be a real file system path here, not the relative path to the document root
 	err := filepath.Walk(path, gh.walkFile)
 	if err != nil {
 		return err
 	}
 
-	_, err = gh.RemoveUndeclaredDocuments()
-	return err
+	return gh.removeUndeclaredDocuments(path)
 }
 
 // Ensure the document is present and consistent
-func (gh *Generic) ensureDoc(doc VaultDocument) error {
+func (gh *Generic) ensureDoc(doc vaultDocument) error {
 	logger := gh.log.WithFields(log.Fields{
 		"path": doc.path,
 	})
+	gh.configuredDocMap[doc.path] = doc
+
 	if applied, err := gh.isDocApplied(doc); err != nil {
 		return fmt.Errorf("could not determine if %q is applied: %s", doc.path, err)
 	} else if applied {
@@ -123,7 +129,7 @@ func (gh *Generic) ensureDoc(doc VaultDocument) error {
 }
 
 // true if the document is on the server and matches the one configured
-func (gh *Generic) isDocApplied(doc VaultDocument) (bool, error) {
+func (gh *Generic) isDocApplied(doc vaultDocument) (bool, error) {
 	secret, err := gh.client.Read(doc.path)
 	if err != nil {
 		// TODO assume not applied, but should handle specific errors differently
@@ -168,9 +174,59 @@ func (gh *Generic) areKeysApplied(mapA map[string]interface{}, mapB map[string]i
 	return true
 }
 
-func (gh *Generic) RemoveUndeclaredDocuments() (removed []string, err error) {
-	// TODO implement me
+// Remove documents that are not declared
+// Note; only the configured path for this handler is affected
+func (gh *Generic) removeUndeclaredDocuments(path string) (err error) {
+	err = filepath.Walk(path, gh.removalWalk)
 	return
+}
+
+func (gh *Generic) removalWalk(path string, f os.FileInfo, err error) error {
+	if !f.IsDir() {
+		return nil
+	}
+	apiPath, err := apiPath(gh.config.DocumentPath, path)
+	if err != nil {
+		return err
+	}
+
+	secret, err := gh.client.List(apiPath)
+	if err != nil {
+		return err
+	}
+	if secret == nil {
+		// path missing or nothing in it; either way, skip
+		return err
+	}
+	var keys []interface{}
+	if v, ok := secret.Data["keys"]; !ok {
+		// List() returns a vault Secret object with a Data map, and sub-directories in a "keys"
+		// field of that map
+		return fmt.Errorf("secret data did not contain field 'keys'")
+	} else if k, ok := v.([]interface{}); ok {
+		// cast to array, as vault secret data can be arbitrary types
+		keys = k
+	} else {
+		return fmt.Errorf("could not cask keys value '%+v' as an array", v)
+	}
+
+	for k := range keys {
+		docPath := strings.Join([]string{apiPath, keys[k].(string)}, "/")
+		if _, ok := gh.configuredDocMap[docPath]; ok {
+			// configured, leave it alone
+			continue
+		}
+		logger := gh.log.WithFields(log.Fields{"docPath": docPath})
+
+		logger.Info("Removing document")
+		_, err := gh.client.Delete(docPath)
+		if err != nil {
+			return err
+		}
+		gh.removedDocMap[docPath] = true
+	}
+
+	return nil
 }
 
 func (gh *Generic) Order() int {
