@@ -144,11 +144,15 @@ func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]path_han
 			// not a real path, just used to store our generic handler
 			continue
 		}
+		logger := log.WithFields(log.Fields{
+			"path": v,
+		})
+
 		handler := cw.HandlerMap[v]
 		p := filepath.Join(path, v)
 		if handler.Name() != "Dummy" {
 			// Dummy handler is a way of marking as do not process
-			log.Infof("Processing %q using %s handler", p, handler.Name())
+			logger.Infof("Processing with %s handler", handler.Name())
 			err := handler.PutPoliciesFromDir(p)
 			if err != nil {
 				return err
@@ -165,7 +169,7 @@ func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]path_han
 // determine the handler and pass the root directory to it
 func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 	if f == nil {
-		log.Debugf("f nil for path %q", path)
+		log.Debugf("f nil for path %s", path)
 		return nil
 	}
 	if !f.IsDir() { // only want to operate on directories
@@ -183,7 +187,9 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 	if pathArray[0] == "." { // just to avoid a "no handler for path ." in log
 		return nil
 	}
-	log.Debugf("path: %s, relPath: %s", path, relPath)
+	logger := log.WithFields(log.Fields{
+		"path": relPath,
+	})
 
 	// Is there a handler for a higher level path? If so, we assume that it handles all child
 	// directories and thus we should not process these directories separately.
@@ -195,13 +201,13 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 
 	handler, ok := cw.HandlerMap[relPath]
 	if ok {
-		log.Infof("Processing %q using %T handler", path, handler)
+		logger.Infof("Processing with %T handler", handler)
 		return handler.PutPoliciesFromDir(path)
 	}
 
 	// At this point, we have a directory, which has no handler assigned to itself or any parent
 	// or child. Thus, safe to attach the genericHandler to it
-	log.Infof("Processing path %s using generic handler", relPath)
+	logger.Infof("Processing with generic handler")
 	genericHandler := cw.HandlerMap["*"]
 	// and mark it so recursing into child directories doesn't re-process them
 	cw.HandlerMap[relPath] = genericHandler

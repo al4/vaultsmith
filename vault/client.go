@@ -39,6 +39,7 @@ type Vault interface {
 type Client struct {
 	client  *vaultApi.Client
 	handler *credAws.CLIHandler
+	log     *log.Entry
 }
 
 func NewVaultClient(dry bool) (c Vault, err error) {
@@ -63,6 +64,7 @@ func NewVaultClient(dry bool) (c Vault, err error) {
 	}
 
 	client := Client{
+		log:     log.WithFields(log.Fields{"dry": dry}),
 		client:  vaultApiClient,
 		handler: &credAws.CLIHandler{},
 	}
@@ -80,13 +82,13 @@ func NewVaultClient(dry bool) (c Vault, err error) {
 func (c *Client) Authenticate(role string) error {
 	if c.client.Token() != "" {
 		// Already authenticated. Supposedly.
-		log.Debugf("Already authenticated by environment variable")
+		c.log.Debugf("Already authenticated by environment variable")
 		return nil
 	}
 
 	secret, err := c.handler.Auth(c.client, map[string]string{"role": role})
 	if err != nil {
-		log.Errorf("Auth error: %s", err)
+		c.log.Errorf("Auth error: %s", err)
 		return err
 	}
 
@@ -106,6 +108,11 @@ func (c *Client) Authenticate(role string) error {
 
 // Used by sysAuthHandler
 func (c *Client) EnableAuth(path string, options *vaultApi.EnableAuthOptions) error {
+	c.log.WithFields(log.Fields{
+		"action":  "EnableAuth",
+		"options": options,
+		"path":    path,
+	}).Debug()
 	return c.client.Sys().EnableAuthWithOptions(path, options)
 }
 
@@ -114,6 +121,10 @@ func (c *Client) ListAuth() (map[string]*vaultApi.AuthMount, error) {
 }
 
 func (c *Client) DisableAuth(path string) error {
+	c.log.WithFields(log.Fields{
+		"action": "DisableAuth",
+		"path":   path,
+	}).Debug("Performing action")
 	return c.client.Sys().DisableAuth(path)
 }
 
@@ -127,10 +138,19 @@ func (c *Client) GetPolicy(name string) (string, error) {
 }
 
 func (c *Client) PutPolicy(name string, data string) error {
+	c.log.WithFields(log.Fields{
+		"action": "PutPolicy",
+		"name":   name,
+		"data":   data,
+	}).Debug("Performing action")
 	return c.client.Sys().PutPolicy(name, data)
 }
 
 func (c *Client) DeletePolicy(name string) error {
+	c.log.WithFields(log.Fields{
+		"action": "DeletePolicy",
+		"name":   name,
+	}).Debug("Performing action")
 	return c.client.Sys().DeletePolicy(name)
 }
 
@@ -140,6 +160,11 @@ func (c *Client) Read(path string) (*vaultApi.Secret, error) {
 }
 
 func (c *Client) Write(path string, data map[string]interface{}) (*vaultApi.Secret, error) {
+	c.log.WithFields(log.Fields{
+		"action": "Write",
+		"path":   path,
+		"data":   data,
+	}).Debug("Performing action")
 	return c.client.Logical().Write(path, data)
 }
 

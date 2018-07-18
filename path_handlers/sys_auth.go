@@ -50,8 +50,8 @@ func NewSysAuthHandler(client vault.Vault, config PathHandlerConfig) (*SysAuth, 
 
 func (sh *SysAuth) walkFile(path string, f os.FileInfo, err error) error {
 	if f == nil {
-		sh.log.Debugf("%q does not exist, skipping SysAuth handler. Error was %q",
-			path, err.Error())
+		logger := sh.log.WithFields(log.Fields{"path": path, "error": err})
+		logger.Debug("Path does not exist, skipping")
 		return nil
 	}
 	if err != nil {
@@ -113,6 +113,11 @@ func (sh *SysAuth) ensureAuth(path string, enableOpts vaultApi.EnableAuthOptions
 	}
 	sh.configuredAuthMap[path] = &authMount
 
+	logger := sh.log.WithFields(log.Fields{
+		"mount path":     path,
+		"authMount.Type": enableOpts.Type,
+	})
+
 	if liveAuth, ok := sh.liveAuthMap[path]; ok {
 		// If this path is present in our live config, we may not need to enable
 		err, applied := sh.isConfigApplied(enableOpts.Config, liveAuth.Config)
@@ -122,11 +127,11 @@ func (sh *SysAuth) ensureAuth(path string, enableOpts vaultApi.EnableAuthOptions
 				enableOpts.Type, err)
 		}
 		if applied {
-			sh.log.Debugf("Configuration for authMount %q already applied", enableOpts.Type)
+			logger.Debugf("Auth mount configuration already applied")
 			return nil
 		}
 	}
-	sh.log.Infof("Applying %q (auth type %s)", path, authMount.Type)
+	logger.Infof("Applying auth mount")
 	err = sh.client.EnableAuth(path, &enableOpts)
 	if err != nil {
 		return fmt.Errorf("could not enable auth %s: %s", path, err)
@@ -137,12 +142,14 @@ func (sh *SysAuth) ensureAuth(path string, enableOpts vaultApi.EnableAuthOptions
 func (sh *SysAuth) DisableUnconfiguredAuths() error {
 	// delete entries not in configured list
 	for path, authMount := range sh.liveAuthMap {
+		logger := log.WithFields(log.Fields{"authMount.Type": authMount.Type, "path": path})
 		if _, ok := sh.configuredAuthMap[path]; ok {
+			logger.Debugf("Not disabling auth mount, is configured")
 			continue // present, do nothing
 		} else if authMount.Type == "token" {
 			continue // cannot be disabled, would give http 400 if attempted
 		} else {
-			sh.log.Infof("Disabling auth type %s at %s", authMount.Type, path)
+			logger.Infof("Disabling auth mount")
 			err := sh.client.DisableAuth(path)
 			if err != nil {
 				return fmt.Errorf("failed to disable authMount at %s: %s", path, err)

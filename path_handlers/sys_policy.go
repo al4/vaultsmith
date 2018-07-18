@@ -119,16 +119,20 @@ func (sh *SysPolicyHandler) PutPoliciesFromDir(path string) error {
 }
 
 func (sh *SysPolicyHandler) EnsurePolicy(policy SysPolicy) error {
+	log := sh.log.WithFields(log.Fields{
+		"policy": policy.Name,
+	})
+
 	sh.configuredPolicyList = append(sh.configuredPolicyList, policy.Name)
 	applied, err := sh.isPolicyApplied(policy)
 	if err != nil {
 		return err
 	}
 	if applied {
-		sh.log.Debugf("Policy %q already applied", policy.Name)
+		log.Debugf("Policy already applied")
 		return nil
 	}
-	sh.log.Infof("Applying sys policy %q", policy.Name)
+	log.Infof("Applying policy", policy.Name)
 	return sh.client.PutPolicy(policy.Name, policy.Policy)
 }
 
@@ -151,7 +155,7 @@ func (sh *SysPolicyHandler) RemoveUndeclaredPolicies() (deleted []string, err er
 
 		if !found {
 			// not declared, delete
-			sh.log.Infof("Deleting policy %s", liveName)
+			sh.log.WithFields(log.Fields{"policy": liveName}).Infof("Deleting policy")
 			sh.client.DeletePolicy(liveName)
 			deleted = append(deleted, liveName)
 		}

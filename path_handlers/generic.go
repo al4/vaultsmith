@@ -37,8 +37,13 @@ func NewGeneric(c vault.Vault, config PathHandlerConfig) (*Generic, error) {
 }
 
 func (gh *Generic) walkFile(path string, f os.FileInfo, err error) error {
+	logger := gh.log.WithFields(log.Fields{
+		"path":  path,
+		"error": err,
+		"file":  f,
+	})
 	if f == nil {
-		log.Debugf("No path %q present, skipping", path)
+		logger.Debugf("Path not present, skipping", path)
 		return nil
 	}
 	if err != nil {
@@ -102,14 +107,17 @@ func (gh *Generic) PutPoliciesFromDir(path string) error {
 
 // Ensure the document is present and consistent
 func (gh *Generic) ensureDoc(doc VaultDocument) error {
+	logger := gh.log.WithFields(log.Fields{
+		"path": doc.path,
+	})
 	if applied, err := gh.isDocApplied(doc); err != nil {
 		return fmt.Errorf("could not determine if %q is applied: %s", doc.path, err)
 	} else if applied {
-		gh.log.Debugf("Document %q already applied", doc.path)
+		logger.Debugf("Document already applied")
 		return nil
 	}
 
-	gh.log.Infof("Applying %q", doc.path)
+	logger.Infof("Applying document")
 	_, err := gh.client.Write(doc.path, doc.data)
 	return err
 }
@@ -154,7 +162,7 @@ func (gh *Generic) areKeysApplied(mapA map[string]interface{}, mapB map[string]i
 		if isSliceEquivalent(mapA[key], mapB[key]) {
 			continue
 		}
-		gh.log.Debugf("%q not equal; %+v(%T) != %+v(%T)", key, mapA[key], mapA[key], mapB[key], mapB[key])
+		//gh.log.Debugf("%q not equal; %+v(%T) != %+v(%T)", key, mapA[key], mapA[key], mapB[key], mapB[key])
 		return false
 	}
 	return true
