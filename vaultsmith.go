@@ -12,7 +12,6 @@ import (
 	"github.com/starlingbank/vaultsmith/internal"
 	"github.com/starlingbank/vaultsmith/vault"
 	"io/ioutil"
-	"net/url"
 )
 
 var flags = flag.NewFlagSet("Vaultsmith", flag.ExitOnError)
@@ -91,46 +90,6 @@ func main() {
 	log.Debugf("Success")
 }
 
-// Return the appropriate document.Set for the given path
-func getDocumentSet(path string, workDir string) (docSet document.Set, err error) {
-	u, err := url.Parse(path)
-	if err != nil {
-		log.Error(err)
-	}
-
-	switch u.Scheme {
-	case "http", "https":
-		return &document.HttpTarball{
-			WorkDir: workDir,
-			Url:     u,
-		}, nil
-	case "", "file":
-		// local filesystem, handled below
-	default:
-		// what is this?
-		return nil, fmt.Errorf("unhandled scheme %q", u.Scheme)
-	}
-
-	// From here we are assuming path points to the local file system
-	p, err := os.Stat(path)
-	switch mode := p.Mode(); {
-	case mode.IsDir():
-		// Should be an directory of files
-		return &document.LocalFiles{
-			WorkDir:   workDir,
-			Directory: path,
-		}, nil
-	case mode.IsRegular():
-		// Should be an archive
-		return &document.LocalTarball{
-			WorkDir:     workDir,
-			ArchivePath: path,
-		}, nil
-	default:
-		return nil, fmt.Errorf("don't know what to do with mode %s", mode)
-	}
-}
-
 func Run(c vault.Vault, config config.VaultsmithConfig) error {
 	err := c.Authenticate(config.VaultRole)
 	if err != nil {
@@ -143,7 +102,7 @@ func Run(c vault.Vault, config config.VaultsmithConfig) error {
 	}
 	defer os.Remove(workDir)
 
-	docSet, err := getDocumentSet(config.DocumentPath, workDir)
+	docSet, err := document.GetSet(config.DocumentPath, workDir)
 	if err != nil {
 		return err
 	}
