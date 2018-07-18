@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"os"
@@ -164,8 +163,7 @@ func (t *Template) hasMultiple() (hasMultiple bool, err error) {
 func (t *Template) read() (string, error) {
 	file, err := os.Open(t.Path)
 	if err != nil {
-		err = fmt.Errorf("error opening file: %s", err)
-		return "", err
+		return "", fmt.Errorf("error opening file: %s", err)
 	}
 	defer file.Close()
 
@@ -173,7 +171,7 @@ func (t *Template) read() (string, error) {
 	_, err = io.Copy(&buf, file)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("error reading from buffer: %s", err))
+		return "", fmt.Errorf("error reading from buffer: %s", err)
 	}
 
 	data := buf.String()

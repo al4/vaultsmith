@@ -85,14 +85,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error: %s", err)
 	}
-	log.Println("Success")
+	log.Infof("Success")
 }
 
 // Return the appropriate document.Set for the given path
 func getDocumentSet(path string, workDir string) (docSet document.Set, err error) {
 	u, err := url.Parse(path)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 
 	switch u.Scheme {
@@ -147,6 +147,9 @@ func Run(c vault.Vault, config config.VaultsmithConfig) error {
 	docSet.Get()
 	defer docSet.CleanUp()
 
-	cw := internal.NewConfigWalker(c, config, docSet.Path())
+	cw, err := internal.NewConfigWalker(c, config, docSet.Path())
+	if err != nil {
+		return err
+	}
 	return cw.Run()
 }

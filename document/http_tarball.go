@@ -41,17 +41,17 @@ func (h *HttpTarball) Path() (path string) {
 }
 
 func (h *HttpTarball) CleanUp() {
-	log.Printf("Removing %s", h.archivePath())
+	log.Infof("Removing %s", h.archivePath())
 	err := os.RemoveAll(h.WorkDir)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	h.LocalTarball.CleanUp()
 	return
 }
 
 func (h *HttpTarball) download() (path string, err error) {
-	log.Printf("Downloading from %s to %s", h.Url.String(), h.archivePath())
+	log.Infof("Downloading from %s to %s", h.Url.String(), h.archivePath())
 	out, err := os.Create(h.archivePath())
 	if err != nil {
 		return "", err
@@ -68,7 +68,7 @@ func (h *HttpTarball) download() (path string, err error) {
 	if err != nil {
 		return "", err
 	}
-	log.Printf("%v bytes written to %s", n, h.archivePath())
+	log.Infof("%v bytes written to %s", n, h.archivePath())
 
 	return out.Name(), nil
 }

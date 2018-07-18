@@ -151,7 +151,7 @@ func (gh *GenericHandler) areKeysApplied(mapA map[string]interface{}, mapB map[s
 		if isSliceEquivalent(mapA[key], mapB[key]) {
 			continue
 		}
-		//log.Printf(" ## %q not equal; %+v(%T) != %+v(%T)", key, mapA[key], mapA[key], mapB[key], mapB[key])
+		log.Debugf("%q not equal; %+v(%T) != %+v(%T)", key, mapA[key], mapA[key], mapB[key], mapB[key])
 		return false
 	}
 	return true

@@ -1,6 +1,7 @@
 package path_handlers
 
 import (
+	log "github.com/sirupsen/logrus"
 	"github.com/starlingbank/vaultsmith/vault"
 )
 
@@ -23,7 +24,7 @@ func NewDummyHandler(c vault.Vault, rootPath string, order int) (*Dummy, error) 
 }
 
 func (h *Dummy) PutPoliciesFromDir(path string) error {
-	//log.Printf("Dummy handler got path: %s", path)
+	log.Debugf("Dummy handler got path: %s", path)
 	return nil
 }
 

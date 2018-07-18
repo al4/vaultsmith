@@ -80,13 +80,13 @@ func NewVaultClient(dry bool) (c Vault, err error) {
 func (c *Client) Authenticate(role string) error {
 	if c.client.Token() != "" {
 		// Already authenticated. Supposedly.
-		log.Println("Already authenticated by environment variable")
+		log.Debugf("Already authenticated by environment variable")
 		return nil
 	}
 
 	secret, err := c.handler.Auth(c.client, map[string]string{"role": role})
 	if err != nil {
-		log.Printf("Auth error: %s", err)
+		log.Errorf("Auth error: %s", err)
 		return err
 	}
 

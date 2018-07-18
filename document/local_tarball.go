@@ -30,7 +30,7 @@ func (l *LocalTarball) Path() (path string) {
 	// TODO should probably have an option for this behaviour, what if a user only has one config dir?
 	entries, err := ioutil.ReadDir(l.documentPath())
 	if err != nil {
-		log.Printf("Error: Could not read directory %q: %s", l.documentPath(), err)
+		log.Errorf("Could not read directory %q: %s", l.documentPath(), err)
 		return ""
 	}
 	if len(entries) == 1 && entries[0].Name() != "sys" && entries[0].IsDir() {
@@ -40,16 +40,16 @@ func (l *LocalTarball) Path() (path string) {
 		// More than one entry suggests we already have the correct path
 		return l.documentPath()
 	} else {
-		log.Printf("WARN: empty directory %s", l.documentPath())
+		log.Warnf("Empty directory %q", l.documentPath())
 		return ""
 	}
 }
 
 func (l *LocalTarball) CleanUp() {
-	log.Printf("Removing %s", l.documentPath())
+	log.Infof("Removing %s", l.documentPath())
 	err := os.RemoveAll(l.WorkDir)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	return
 }
@@ -81,14 +81,14 @@ func (l *LocalTarball) extract() (err error) {
 		switch hdr.Typeflag {
 		case tar.TypeDir: // create dir
 			dd := filepath.Join(destDir, hdr.Name)
-			//log.Printf("Creating %q", dd)
+			log.Debugf("Creating %q", dd)
 			err := os.MkdirAll(dd, 0777)
 			if err != nil {
 				return fmt.Errorf("error creating directory %q: %s", dd, err)
 			}
 		case tar.TypeReg, tar.TypeRegA:
 			df := filepath.Join(destDir, hdr.Name)
-			log.Printf("Extracting %q", df)
+			log.Infof("Extracting %q", df)
 			w, err := os.Create(df)
 			if err != nil {
 				return fmt.Errorf("error creating file %q: %s", df, err)

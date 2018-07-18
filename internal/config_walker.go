@@ -28,7 +28,7 @@ type ConfigWalker struct {
 
 // Instantiates a configWalker and the required handlers
 // TODO this mixes configuration and code, could be declared in a better way
-func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath string) ConfigWalker {
+func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath string) (configWalker ConfigWalker, err error) {
 	// Map configuration directories to specific path handlers
 	var handlerMap = map[string]path_handlers.PathHandler{}
 	var templateFile string
@@ -49,14 +49,14 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 			MappingFile:  templateFile,
 		})
 	if err != nil {
-		log.Fatalf("Could not create genericHandler: %s", err)
+		return configWalker, fmt.Errorf("could not create genericHandler: %s", err)
 	}
 	handlerMap["*"] = genericHandler
 
 	// sys directories should never be generic, so apply a dummy at the top level
 	nullHandler, err := path_handlers.NewDummyHandler(client, "", 0)
 	if err != nil {
-		log.Fatalf("Error instantiating null handler: %s", err)
+		return configWalker, fmt.Errorf("error instantiating null handler: %s", err)
 	}
 	handlerMap["sys"] = nullHandler
 
@@ -72,7 +72,7 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 					MappingFile:  templateFile,
 				})
 			if err != nil {
-				log.Fatalf("Could not create sysAuthHandler: %s", err)
+				return configWalker, fmt.Errorf("could not create sysAuthHandler: %s", err)
 			}
 			handlerMap["sys/auth"] = sysAuthHandler
 		}
@@ -89,7 +89,7 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 					MappingFile:  templateFile,
 				})
 			if err != nil {
-				log.Fatalf("Could not create sysPolicyHandler: %s", err)
+				return configWalker, fmt.Errorf("could not create sysPolicyHandler: %s", err)
 			}
 			handlerMap["sys/policy"] = sysPolicyHandler
 		}
@@ -100,7 +100,7 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 		Client:     client,
 		ConfigDir:  path.Clean(docPath),
 		Visited:    map[string]bool{},
-	}
+	}, nil
 }
 
 func (cw ConfigWalker) Run() error {
@@ -146,10 +146,13 @@ func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]path_han
 		}
 		handler := cw.HandlerMap[v]
 		p := filepath.Join(path, v)
-		log.Infof("Processing %q using %s handler", p, handler.Name)
-		err := handler.PutPoliciesFromDir(p)
-		if err != nil {
-			return err
+		if handler.Name() != "Dummy" {
+			// Dummy handler is a way of marking as do not process
+			log.Infof("Processing %q using %s handler", p, handler.Name())
+			err := handler.PutPoliciesFromDir(p)
+			if err != nil {
+				return err
+			}
 		}
 		cw.Visited[p] = true
 	}
@@ -198,7 +201,7 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 
 	// At this point, we have a directory, which has no handler assigned to itself or any parent
 	// or child. Thus, safe to attach the genericHandler to it
-	log.Printf("Processing path %s using generic handler", relPath)
+	log.Infof("Processing path %s using generic handler", relPath)
 	genericHandler := cw.HandlerMap["*"]
 	// and mark it so recursing into child directories doesn't re-process them
 	cw.HandlerMap[relPath] = genericHandler
