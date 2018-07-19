@@ -120,9 +120,10 @@ func main() {
 func whichFileExists(filePath ...string) (file string) {
 	for _, f := range filePath {
 		if _, err := os.Stat(f); !os.IsNotExist(err) {
+			log.WithFields(log.Fields{"file": f}).Debug("file exists")
 			return f
 		} else {
-			log.WithFields(log.Fields{"file": f}).Debug("templateFile does not exist")
+			log.WithFields(log.Fields{"file": f}).Debug("file does not exist")
 		}
 	}
 	return ""

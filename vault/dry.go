@@ -23,7 +23,7 @@ func (c *dryClient) DisableAuth(path string) error {
 	c.logger.WithFields(log.Fields{
 		"action": "DisableAuth",
 		"path":   path,
-	}).Debug("No action performed")
+	}).Debug("No Vault API call made")
 	return nil
 }
 
@@ -32,7 +32,7 @@ func (c *dryClient) PutPolicy(name string, data string) error {
 		"action": "PutPolicy",
 		"name":   name,
 		"data":   data,
-	}).Debug("No action performed")
+	}).Debug("No Vault API call made")
 	return nil
 }
 
@@ -40,7 +40,7 @@ func (c *dryClient) DeletePolicy(name string) error {
 	c.logger.WithFields(log.Fields{
 		"action": "DeletePolicy",
 		"name":   name,
-	}).Debug("No action performed")
+	}).Debug("No Vault API call made")
 	return nil
 }
 
@@ -49,10 +49,14 @@ func (c *dryClient) Write(path string, data map[string]interface{}) (*vaultApi.S
 		"action": "Write",
 		"path":   path,
 		"data":   data,
-	}).Debug("No action performed")
+	}).Debug("No Vault API call made")
 	return &vaultApi.Secret{}, nil
 }
 
 func (c *dryClient) Delete(path string) (*vaultApi.Secret, error) {
+	c.logger.WithFields(log.Fields{
+		"action": "Delete",
+		"path":   path,
+	}).Debug("No Vault API call made")
 	return &vaultApi.Secret{}, nil
 }

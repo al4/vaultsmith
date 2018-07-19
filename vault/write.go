@@ -24,7 +24,7 @@ func (c *writeClient) DisableAuth(path string) error {
 	c.logger.WithFields(log.Fields{
 		"action": "DisableAuth",
 		"path":   path,
-	}).Debug("Performing action")
+	}).Debug("Calling Vault API")
 	return c.client.Sys().DisableAuth(path)
 }
 
@@ -34,7 +34,7 @@ func (c *writeClient) PutPolicy(name string, data string) error {
 		"action": "PutPolicy",
 		"name":   name,
 		"data":   data,
-	}).Debug("Performing action")
+	}).Debug("Calling Vault API")
 	return c.client.Sys().PutPolicy(name, data)
 }
 
@@ -42,7 +42,7 @@ func (c *writeClient) DeletePolicy(name string) error {
 	c.logger.WithFields(log.Fields{
 		"action": "DeletePolicy",
 		"name":   name,
-	}).Debug("Performing action")
+	}).Debug("Calling Vault API")
 	return c.client.Sys().DeletePolicy(name)
 }
 
@@ -52,10 +52,14 @@ func (c *writeClient) Write(path string, data map[string]interface{}) (*vaultApi
 		"action": "Write",
 		"path":   path,
 		"data":   data,
-	}).Debug("Performing action")
+	}).Debug("Calling Vault API")
 	return c.client.Logical().Write(path, data)
 }
 
 func (c *writeClient) Delete(path string) (*vaultApi.Secret, error) {
+	c.logger.WithFields(log.Fields{
+		"action": "Delete",
+		"path":   path,
+	}).Debug("Calling Vault API")
 	return c.client.Logical().Delete(path)
 }
