@@ -33,14 +33,17 @@ func GenerateTemplateParams(templateFile string, overrides []string) (tp []Templ
 		}
 	} else {
 		// no file, create a no-name default (blank name means no suffix is added to the path)
-		templateConfigs = append(templateConfigs, TemplateParams{})
+		templateConfigs = append(templateConfigs, TemplateParams{
+			Variables: map[string]string{}, // need to initialise for setParams()
+		})
 	}
 
 	// override/add variables from overrideParams in each TemplateParams
-	for _, tp := range templateConfigs {
-		tp = setParams(tp, overrides)
+	var templateConfigsNew []TemplateParams
+	for _, tc := range templateConfigs {
+		templateConfigsNew = append(templateConfigsNew, setParams(tc, overrides))
 	}
-	return tp, nil
+	return templateConfigsNew, nil
 }
 
 // Set params from a slice in TemplateParams.Variables
