@@ -58,7 +58,7 @@ func (gh *Generic) walkFile(path string, f os.FileInfo, err error) error {
 		return nil
 	}
 
-	tp, err := document.GenerateTemplateParams(gh.config.TemplateFile, []string{})
+	tp, err := document.GenerateTemplateParams(gh.config.TemplateFile, gh.config.TemplateOverrides)
 	if err != nil {
 		return fmt.Errorf("could not generate template parameters: %s", err)
 	}
