@@ -60,13 +60,12 @@ Usage
 ```
 $ vaultsmith -h
 Usage of vaultsmith:
-      --document-path string   The root directory of the configuration. Can be a local directory, local gz tarball or http url to a gz tarball. (default "./example")
-      --dry                    Dry run; will read from but not write to vault
-      --log-level string       Log level, valid values are [panic fatal error warning info debug] (default "info")
-      --role string            The Vault role to authenticate as
-      --template-file string   JSON file containing template mappings. If not specified, vaultsmith will look for "template.json" in the base of the document path.
-
-Vault authentication is handled by environment variables (the same ones as the Vault client, as vaultsmith uses the same code). So ensure VAULT_ADDR and VAULT_TOKEN are set.
+      --document-path string      The root directory of the configuration. Can be a local directory, local gz tarball or http url to a gz tarball.
+      --dry                       Dry run; will read from but not write to vault
+      --log-level string          Log level, valid values are [panic fatal error warning info debug] (default "info")
+      --role string               The Vault role to authenticate as
+      --template-file string      JSON file containing template mappings. If not specified, vaultsmith will look for "template.json" in the base of the document path.
+      --template-params strings   Template parameters. Applies globally, but values in template-file take precedence. E.G.: service=foo,account=bar
 ```
 
 It is _strongly_ recommended that you use the --dry option before running against any live server.

@@ -29,7 +29,7 @@ func init() {
 		"The root directory of the configuration. Can be a local directory, local gz tarball or http url to a gz tarball.",
 	)
 	flags.StringVar(
-		&vaultRole, "role", "", "The Vault role to authenticate as",
+		&vaultRole, "role", "root", "The Vault role to authenticate as",
 	)
 	flags.StringVar(
 		&templateFile, "template-file", "", "JSON file containing template mappings. If not specified, vaultsmith will look for \"template.json\" in the base of the document path.",
@@ -47,9 +47,16 @@ func init() {
 	flags.Usage = func() {
 		fmt.Printf("Usage of vaultsmith:\n")
 		flags.PrintDefaults()
-		fmt.Print("\nVault authentication is handled by environment variables (the same " +
+		fmt.Print("\nNotes:\n" +
+			"• BE CAREFUL with this tool, it will faithfully apply whatever config you give it " +
+			"without confirmation or warning! Use --dry until you are confident.\n" +
+			"• Vault authentication is handled by environment variables (the same " +
 			"ones as the Vault client, as vaultsmith uses the same code). So ensure VAULT_ADDR " +
-			"and VAULT_TOKEN are set.\n\n")
+			"and VAULT_TOKEN are set.\n" +
+			"• If template-file is not specified, it is not mandatory for template.json to be present." +
+			"• Specifying a parameter with --template-params allows only a single value. If you " +
+			"need multiple values, please use a template-file." +
+			"\n\n")
 	}
 
 	// Avoid parsing flags passed on running `go test`
