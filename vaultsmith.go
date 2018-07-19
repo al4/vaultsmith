@@ -25,7 +25,7 @@ var templateParams []string
 func init() {
 	flags.StringVar(
 		// TODO: remove default value of "./example", could do bad things in production
-		&documentPath, "document-path", "./example",
+		&documentPath, "document-path", "",
 		"The root directory of the configuration. Can be a local directory, local gz tarball or http url to a gz tarball.",
 	)
 	flags.StringVar(
@@ -78,6 +78,10 @@ func main() {
 	if dry {
 		log.Info("Dry mode enabled, no changes will be made")
 	}
+	if documentPath == "" {
+		log.Fatalln("Please specify --document-path")
+	}
+
 	conf := config.VaultsmithConfig{
 		DocumentPath:   documentPath,
 		VaultRole:      vaultRole,

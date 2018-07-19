@@ -36,6 +36,9 @@ func GetSet(path string, workDir string) (docSet Set, err error) {
 
 	// From here we are assuming path points to the local file system
 	p, err := os.Stat(path)
+	if err != nil {
+		return nil, fmt.Errorf("error reading %q: %s", path, err)
+	}
 	switch mode := p.Mode(); {
 	case mode.IsDir():
 		// Should be an directory of files
