@@ -19,12 +19,14 @@ func examplePath() string {
 }
 
 func TestNewTemplatedDocument(t *testing.T) {
-	_, err := NewTemplate(
-		filepath.Join(examplePath(), "sys/policy/read_service.json"),
-		filepath.Join(examplePath(), "template.json"))
+	params, err := GenerateTemplateParams(filepath.Join(examplePath(), "template.json"), []string{})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Could not generate template params: %s", err)
 	}
+	NewTemplate(
+		filepath.Join(examplePath(), "sys/policy/read_service.json"),
+		params,
+	)
 }
 
 func TestTemplatedDocument_findPlaceholders(t *testing.T) {
