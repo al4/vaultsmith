@@ -86,7 +86,7 @@ Paths not present in document-path will not be affected.
 Templating
 ----------
 
-Documentation required, but see example/template.json for a sample. Vaultsmith checks 
+Documentation required, but see example/template.json for an example.
 
 Examples
 --------
