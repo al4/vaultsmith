@@ -45,8 +45,9 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 	genericHandler, err := path_handlers.NewGeneric(
 		client,
 		path_handlers.PathHandlerConfig{
-			DocumentPath: docPath,
-			MappingFile:  templateFile,
+			DocumentPath:      docPath,
+			TemplateFile:      templateFile,
+			TemplateOverrides: config.TemplateParams,
 		})
 	if err != nil {
 		return configWalker, fmt.Errorf("could not create genericHandler: %s", err)
@@ -67,9 +68,10 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 			sysAuthHandler, err := path_handlers.NewSysAuthHandler(
 				client,
 				path_handlers.PathHandlerConfig{
-					DocumentPath: docPath,
-					Order:        10,
-					MappingFile:  templateFile,
+					DocumentPath:      docPath,
+					Order:             10,
+					TemplateFile:      templateFile,
+					TemplateOverrides: config.TemplateParams,
 				})
 			if err != nil {
 				return configWalker, fmt.Errorf("could not create sysAuthHandler: %s", err)
@@ -84,9 +86,10 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 			sysPolicyHandler, err := path_handlers.NewSysPolicyHandler(
 				client,
 				path_handlers.PathHandlerConfig{
-					DocumentPath: docPath,
-					Order:        20,
-					MappingFile:  templateFile,
+					DocumentPath:      docPath,
+					Order:             20,
+					TemplateFile:      templateFile,
+					TemplateOverrides: config.TemplateParams,
 				})
 			if err != nil {
 				return configWalker, fmt.Errorf("could not create sysPolicyHandler: %s", err)

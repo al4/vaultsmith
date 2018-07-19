@@ -70,8 +70,13 @@ func (sh *SysPolicy) walkFile(path string, f os.FileInfo, err error) error {
 		return nil
 	}
 
+	tp, err := document.GenerateTemplateParams(sh.config.TemplateFile, []string{})
+	if err != nil {
+		return fmt.Errorf("could not generate template parameters: %s", err)
+	}
+
 	// getting file contents
-	td, err := document.NewTemplate(path, sh.config.MappingFile)
+	td := document.NewTemplate(path, tp)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate TemplateDocument: %s", err)
 	}

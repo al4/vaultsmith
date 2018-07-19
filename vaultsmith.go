@@ -20,6 +20,7 @@ var dry bool
 var templateFile string
 var vaultRole string
 var logLevel string
+var templateParams []string
 
 func init() {
 	flags.StringVar(
@@ -39,6 +40,9 @@ func init() {
 	flags.StringVar(
 		&logLevel, "log-level", "info", fmt.Sprintf("Log level, valid values are %+v", log.AllLevels),
 	)
+	flags.StringSliceVar(
+		&templateParams, "template-params", []string{}, "Template parameters. Applies globally, but values in template-file take precedence. E.G.: service=foo,account=bar",
+	)
 
 	flags.Usage = func() {
 		fmt.Printf("Usage of vaultsmith:\n")
@@ -50,13 +54,17 @@ func init() {
 
 	// Avoid parsing flags passed on running `go test`
 	var args []string
+
 	for _, s := range os.Args[1:] {
 		if !strings.HasPrefix(s, "-test.") {
 			args = append(args, s)
 		}
 	}
 
-	flags.Parse(args)
+	err := flags.Parse(args)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
@@ -71,10 +79,11 @@ func main() {
 		log.Info("Dry mode enabled, no changes will be made")
 	}
 	conf := config.VaultsmithConfig{
-		DocumentPath: documentPath,
-		VaultRole:    vaultRole,
-		TemplateFile: templateFile,
-		Dry:          dry,
+		DocumentPath:   documentPath,
+		VaultRole:      vaultRole,
+		TemplateFile:   templateFile,
+		Dry:            dry,
+		TemplateParams: templateParams,
 	}
 
 	var client vault.Vault

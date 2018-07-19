@@ -15,7 +15,10 @@ import (
 
 /*
 	SysAuth handles the creation/enabling of auth methods and policies, described in the
-	configuration under sys
+	configuration under sys.
+
+	Currently it does not support templating, as I didn't see a need for it, but there's no reason
+	it couldn't.
 */
 type SysAuth struct {
 	BaseHandler

@@ -22,7 +22,7 @@ func TestLocalTarball_Path(t *testing.T) {
 	}
 
 	// mocking extraction
-	td := filepath.Join(tmpDir, "test-foo-1-extract/foo")
+	td := filepath.Join(tmpDir, "test-foo-1.tgz-extract/foo")
 	err = os.MkdirAll(td, 0755)
 	if err != nil {
 		log.Fatalf("Could not create directory: %s", err)

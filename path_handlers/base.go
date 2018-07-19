@@ -12,9 +12,10 @@ import (
 )
 
 type PathHandlerConfig struct {
-	DocumentPath string // path to the base of the vault documents
-	Order        int    // order to process (lower int is earlier, except 0 is last)
-	MappingFile  string
+	DocumentPath      string // path to the base of the vault documents
+	Order             int    // order to process (lower int is earlier, except 0 is last)
+	TemplateFile      string
+	TemplateOverrides []string
 }
 
 // A PathHandler takes a path and applies the policies within

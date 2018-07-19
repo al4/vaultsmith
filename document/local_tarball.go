@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // Implements document.Set
@@ -26,7 +25,7 @@ func (l *LocalTarball) Get() (err error) {
 func (l *LocalTarball) Path() (path string) {
 	// Most tarballs, including github tarballs, will contain a single directory with the archive
 	// contents
-	// TODO should probably have an option for this behaviour, what if a user only has one config dir?
+	// TODO should probably have an option for this behaviour; what if a user only has one config dir?
 	entries, err := ioutil.ReadDir(l.extractPath())
 	if err != nil {
 		log.Error(err)
@@ -107,7 +106,5 @@ func (l *LocalTarball) extract() (err error) {
 func (l *LocalTarball) extractPath() (path string) {
 	_, file := filepath.Split(l.ArchivePath)
 
-	name := strings.TrimSuffix(file, filepath.Ext(file))
-
-	return filepath.Join(l.WorkDir, fmt.Sprintf("%s-extract", name))
+	return filepath.Join(l.WorkDir, fmt.Sprintf("%s-extract", file))
 }

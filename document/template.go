@@ -2,10 +2,8 @@ package document
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -21,15 +19,9 @@ type Renderer interface {
 type Template struct {
 	Path         string
 	Content      string
-	ValueMapList []TemplateConfig // List of "instances" of the document, mapping the key-values for each one
+	ValueMapList []TemplateParams // List of "instances" of the document, mapping the key-values for each one
 	matcher      *regexp.Regexp   // Regex to find placeholders
 	placeHolders map[string]string
-}
-
-// The structure of our json (within the array)
-type TemplateConfig struct {
-	Name      string            `json:"name"`
-	Variables map[string]string `json:"variables"`
 }
 
 // A rendered template which we can write to vault
@@ -38,27 +30,12 @@ type RenderedTemplate struct {
 	Content string
 }
 
-func NewTemplate(filepath string, mappingFile string) (t *Template, err error) {
-	if _, err := os.Stat(filepath); os.IsNotExist(err) {
-		return nil, fmt.Errorf("file %s does not exist", filepath)
-	}
-
-	var jsonMapping []TemplateConfig
-	if mappingFile != "" {
-		file, err := ioutil.ReadFile(mappingFile)
-		if err != nil {
-			return &Template{}, fmt.Errorf("could not read mapping file %s: %s", mappingFile, err)
-		}
-
-		if err := json.Unmarshal(file, &jsonMapping); err != nil {
-			return &Template{}, fmt.Errorf("could not unmarshall %s: %s", mappingFile, err)
-		}
-	}
+func NewTemplate(filepath string, params []TemplateParams) (t *Template) {
 	return &Template{
 		Path:         filepath,
 		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		ValueMapList: jsonMapping,
-	}, nil
+		ValueMapList: params,
+	}
 }
 
 // Return slice containing all "versions" of the document, with template placeholders replaced

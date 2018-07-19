@@ -58,8 +58,13 @@ func (gh *Generic) walkFile(path string, f os.FileInfo, err error) error {
 		return nil
 	}
 
+	tp, err := document.GenerateTemplateParams(gh.config.TemplateFile, []string{})
+	if err != nil {
+		return fmt.Errorf("could not generate template parameters: %s", err)
+	}
+
 	// getting file contents
-	td, err := document.NewTemplate(path, gh.config.MappingFile)
+	td := document.NewTemplate(path, tp)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate TemplateDocument: %s", err)
 	}
@@ -69,7 +74,7 @@ func (gh *Generic) walkFile(path string, f os.FileInfo, err error) error {
 		return fmt.Errorf("failed to render document %q: %s", path, err)
 	}
 
-	// common variables for write path
+	// figure out where to write to
 	apiPath, err := apiPath(gh.config.DocumentPath, path)
 	if err != nil {
 		return fmt.Errorf("could not determine relative path of %s to %s: %s",
@@ -81,6 +86,7 @@ func (gh *Generic) walkFile(path string, f os.FileInfo, err error) error {
 		var data map[string]interface{}
 		err = json.Unmarshal([]byte(td.Content), &data)
 		if err != nil {
+			log.Debugf("Content:\n%s", data)
 			return fmt.Errorf("failed to parse json from file %q: %s", path, err)
 		}
 
