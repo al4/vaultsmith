@@ -63,7 +63,7 @@ func TestLocalTarball_extractPath(t *testing.T) {
 		WorkDir:     "/tmp/",
 		ArchivePath: "/foo/test-foo-0.tgz",
 	}
-	exp := "/tmp/test-foo-0-extract"
+	exp := "/tmp/test-foo-0.tgz-extract"
 	r := l.extractPath()
 	if r != exp {
 		log.Fatalf("Expected %q, got %q", exp, r)
