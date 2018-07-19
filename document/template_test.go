@@ -36,10 +36,10 @@ func TestTemplatedDocument_findPlaceholders(t *testing.T) {
 	}
 
 	tf := Template{
-		Path:         "",
-		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		ValueMapList: mapping,
-		Content:      "This is a test file; foo is {{ foo }} baz is {{ baz }}.",
+		Path:      "",
+		matcher:   regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
+		Instances: mapping,
+		Content:   "This is a test file; foo is {{ foo }} baz is {{ baz }}.",
 	}
 	rv, err := tf.findPlaceholders()
 	if err != nil {
@@ -66,10 +66,10 @@ func TestTemplatedDocument_Render(t *testing.T) {
 	}
 
 	tf := Template{
-		Path:         "",
-		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		ValueMapList: mapping,
-		Content:      "foo is {{ foo }} bar is {{ bar }}.",
+		Path:      "",
+		matcher:   regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
+		Instances: mapping,
+		Content:   "foo is {{ foo }} bar is {{ bar }}.",
 	}
 	renderedTemplates, err := tf.Render()
 	if err != nil {
@@ -94,10 +94,10 @@ func TestTemplatedDocument_Render_MultipleFoo(t *testing.T) {
 	}
 
 	tf := Template{
-		Path:         "",
-		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		ValueMapList: mapping,
-		Content:      "foo is {{ foo }} bar is {{ bar }}. And foo is {{ foo }}",
+		Path:      "",
+		matcher:   regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
+		Instances: mapping,
+		Content:   "foo is {{ foo }} bar is {{ bar }}. And foo is {{ foo }}",
 	}
 	renderedTemplates, err := tf.Render()
 	if err != nil {
@@ -119,10 +119,10 @@ func TestTemplate_Render_DoesNotDuplicate(t *testing.T) {
 	}
 
 	tf := Template{
-		Path:         "",
-		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		ValueMapList: mapping,
-		Content:      "foo is {{ foo }} bar is {{ bar }}.",
+		Path:      "",
+		matcher:   regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
+		Instances: mapping,
+		Content:   "foo is {{ foo }} bar is {{ bar }}.",
 	}
 	renderedTemplates, err := tf.Render()
 	if err != nil {
@@ -141,13 +141,17 @@ func TestTemplate_hasMultiple_false(t *testing.T) {
 	}
 
 	tf := Template{
-		Path:         "",
-		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		ValueMapList: mapping,
-		Content:      "foo is {{ foo }} bar is {{ bar }}.",
+		Path:      "",
+		matcher:   regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
+		Instances: mapping,
+		Content:   "foo is {{ foo }} bar is {{ bar }}.",
+	}
+	ph, err := tf.findPlaceholders()
+	if err != nil {
+		t.Errorf("findPlaceholders call failed")
 	}
 
-	rv, err := tf.hasMultiple()
+	rv := tf.hasMultiple(ph)
 	if err != nil {
 		log.Fatalln(err)
 	} else if rv == true {
@@ -163,13 +167,17 @@ func TestTemplate_hasMultiple_true(t *testing.T) {
 	}
 
 	tf := Template{
-		Path:         "",
-		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		ValueMapList: mapping,
-		Content:      "foo is {{ foo }} bar is {{ bar }}.",
+		Path:      "",
+		matcher:   regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
+		Instances: mapping,
+		Content:   "foo is {{ foo }} bar is {{ bar }}.",
+	}
+	ph, err := tf.findPlaceholders()
+	if err != nil {
+		t.Errorf("findPlaceholders call failed")
 	}
 
-	rv, err := tf.hasMultiple()
+	rv := tf.hasMultiple(ph)
 	if err != nil {
 		log.Fatalln(err)
 	} else if rv == false {

@@ -3,6 +3,7 @@ package document
 import (
 	"bytes"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"regexp"
@@ -15,11 +16,11 @@ type Renderer interface {
 }
 
 // Our Template is a document that contains placeholders, which can be rendered into a valid Vault
-// json document when provided with a ValueMapList
+// json document when provided with a Instances
 type Template struct {
 	Path         string
 	Content      string
-	ValueMapList []TemplateParams // List of "instances" of the document, mapping the key-values for each one
+	Instances    []TemplateParams // List of "instances" of the document, mapping the key-values for each one
 	matcher      *regexp.Regexp   // Regex to find placeholders
 	placeHolders map[string]string
 }
@@ -30,11 +31,11 @@ type RenderedTemplate struct {
 	Content string
 }
 
-func NewTemplate(filepath string, params []TemplateParams) (t *Template) {
+func NewTemplate(filepath string, instances []TemplateParams) (t *Template) {
 	return &Template{
-		Path:         filepath,
-		matcher:      regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		ValueMapList: params,
+		Path:      filepath,
+		matcher:   regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
+		Instances: instances,
 	}
 }
 
@@ -53,7 +54,7 @@ func (t *Template) Render() (renderedTemplates []RenderedTemplate, err error) {
 		return renderedTemplates, fmt.Errorf("error finding placeholders: %s", err)
 	}
 
-	if len(placeholders) == 0 || len(t.ValueMapList) == 0 {
+	if len(placeholders) == 0 || len(t.Instances) == 0 {
 		// no placeholders or values to map, return a single result with the original content
 		return []RenderedTemplate{
 			{Content: t.Content},
@@ -61,80 +62,64 @@ func (t *Template) Render() (renderedTemplates []RenderedTemplate, err error) {
 	}
 
 	// Avoid writing duplicate documents when all the placeholder values are the same
-	hasMultiple, err := t.hasMultiple()
-	if err != nil {
-		return
-	}
-	if hasMultiple {
-		return t.renderMultiple()
-	} else {
-		return t.renderOne()
-	}
+	if t.hasMultiple(placeholders) {
+		for _, params := range t.Instances {
+			rendered, err := t.createRenderedTemplate(params)
+			if err != nil {
+				return renderedTemplates, err
 
-}
-
-// Render only one template. Typically used after hasMultiple() returned false
-// Still returns a slice as that's what's expected by the caller of Render()
-func (t *Template) renderOne() (renderedTemplates []RenderedTemplate, err error) {
-	renderedTemplates = []RenderedTemplate{}
-	placeholders, err := t.findPlaceholders()
-	if err != nil {
-		return
-	}
-
-	templateConfig := t.ValueMapList[0]
-
-	var c = t.Content
-	for k, v := range placeholders {
-		c = strings.Replace(c, v, templateConfig.Variables[k], -1)
-	}
-
-	return []RenderedTemplate{
-		{Name: "", Content: c},
-	}, nil
-}
-
-// Render an array of templates, presumably with different content!
-func (t *Template) renderMultiple() (renderedTemplates []RenderedTemplate, err error) {
-	renderedTemplates = []RenderedTemplate{}
-	placeholders, err := t.findPlaceholders()
-	if err != nil {
-		return
-	}
-
-	for _, templateConfig := range t.ValueMapList {
-		var c = t.Content
-		for k, v := range placeholders {
-			c = strings.Replace(c, v, templateConfig.Variables[k], -1)
+			}
+			renderedTemplates = append(renderedTemplates, rendered)
 		}
-		renderedTemplates = append(renderedTemplates, RenderedTemplate{
-			Name:    templateConfig.Name,
-			Content: c,
-		})
+	} else {
+		rendered, err := t.createRenderedTemplate(t.Instances[0])
+		if err != nil {
+			return renderedTemplates, err
+		}
+
+		// Avoid adding to the vault document path; there is no need to append instance name to the
+		// path when we only have one instance
+		rendered.Name = ""
+
+		renderedTemplates = append(renderedTemplates, rendered)
+	}
+	return renderedTemplates, err
+}
+
+func (t *Template) createRenderedTemplate(params TemplateParams) (rt RenderedTemplate, err error) {
+	placeholders, err := t.findPlaceholders()
+	if err != nil {
+		return rt, err
 	}
 
-	return renderedTemplates, nil
+	content := t.Content
+	for pk, placeholderText := range placeholders {
+		if value, ok := params.Variables[pk]; ok {
+			content = strings.Replace(content, placeholderText, value, -1)
+		} else {
+			log.WithFields(log.Fields{"placeholder": pk, "path": t.Path}).Warn("Placeholder has no values")
+		}
+	}
+
+	return RenderedTemplate{Name: params.Name, Content: content}, err
 }
 
 // Determine whether we have multiple values for any variable
-func (t *Template) hasMultiple() (hasMultiple bool, err error) {
-	placeholders, err := t.findPlaceholders()
-	if err != nil {
-		return hasMultiple, fmt.Errorf("error finding placeholders: %s", err)
-	}
-
+func (t *Template) hasMultiple(placeholders map[string]string) (hasMultiple bool) {
 	for key := range placeholders {
 		seen := make(map[string]bool)
-		for _, templateConfig := range t.ValueMapList {
-			seen[templateConfig.Variables[key]] = true
+		for _, templateConfig := range t.Instances {
+			if value, ok := templateConfig.Variables[key]; ok {
+				seen[value] = true
+			}
 		}
 
 		if len(seen) > 1 {
-			return true, nil
+			hasMultiple = true
 		}
 	}
 
-	return false, nil
+	return hasMultiple
 }
 
 func (t *Template) read() (string, error) {
