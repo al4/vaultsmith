@@ -25,13 +25,13 @@ func TestLocalTarball_Path(t *testing.T) {
 	td := filepath.Join(tmpDir, "test-foo-1.tgz-extract/foo")
 	err = os.MkdirAll(td, 0755)
 	if err != nil {
-		log.Fatalf("Could not create directory: %s", err)
+		t.Errorf("Could not create directory: %s", err)
 	}
 	defer os.RemoveAll(tmpDir)
 
 	r := lt.Path()
 	if r != td {
-		log.Fatalf("Bad extract path, expected %q, got %q", td, r)
+		t.Errorf("Bad extract path, expected %q, got %q", td, r)
 	}
 }
 
@@ -41,7 +41,7 @@ func TestLocalTarball_CleanUp(t *testing.T) {
 func TestLocalTarball_extract(t *testing.T) {
 	tmpDir, err := ioutil.TempDir(os.TempDir(), "test-vaultsmith-")
 	if err != nil {
-		log.Fatalf("Could not create temp dir: %s", err)
+		t.Errorf("Could not create temp dir: %s", err)
 	}
 
 	l := LocalTarball{
@@ -51,10 +51,10 @@ func TestLocalTarball_extract(t *testing.T) {
 	err = l.extract()
 	defer l.CleanUp()
 	if err != nil {
-		log.Fatalf("Error calling extract: %s", err)
+		t.Errorf("Error calling extract: %s", err)
 	}
 	if _, err := os.Stat(l.Path()); os.IsNotExist(err) {
-		log.Fatalf("Expected %s to exist", l.Path())
+		t.Errorf("Expected %s to exist", l.Path())
 	}
 }
 
@@ -66,6 +66,6 @@ func TestLocalTarball_extractPath(t *testing.T) {
 	exp := "/tmp/test-foo-0.tgz-extract"
 	r := l.extractPath()
 	if r != exp {
-		log.Fatalf("Expected %q, got %q", exp, r)
+		t.Errorf("Expected %q, got %q", exp, r)
 	}
 }

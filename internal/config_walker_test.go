@@ -133,7 +133,7 @@ func TestSortedPaths(t *testing.T) {
 	expected := []string{"bar", "boz", "foo"}
 	r := cw.sortedPaths()
 	if !reflect.DeepEqual(r, expected) {
-		log.Fatalf("Unexpected slice result (out of order?). Expected %+v; Got: %+v", expected, r)
+		t.Errorf("Unexpected slice result (out of order?). Expected %+v; Got: %+v", expected, r)
 	}
 
 }

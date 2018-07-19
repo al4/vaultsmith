@@ -2,7 +2,6 @@ package path_handlers
 
 import (
 	vaultApi "github.com/hashicorp/vault/api"
-	log "github.com/sirupsen/logrus"
 	"github.com/starlingbank/vaultsmith/vault"
 	"os"
 	"path/filepath"
@@ -24,13 +23,13 @@ func TestSysAuth_EnsureAuth(t *testing.T) {
 	client := &vault.MockClient{}
 	sh, err := NewSysAuthHandler(client, PathHandlerConfig{})
 	if err != nil {
-		log.Fatalf("Failed to create SysAuth: %s", err)
+		t.Errorf("Failed to create SysAuth: %s", err)
 	}
 
 	enableOpts := vaultApi.EnableAuthOptions{}
 	err = sh.ensureAuth("foo", enableOpts)
 	if err != nil {
-		log.Fatalf("Error calling ensureAuth: %s", err)
+		t.Errorf("Error calling ensureAuth: %s", err)
 	}
 }
 
@@ -39,11 +38,11 @@ func TestSysAuth_PutPoliciesFromDir_Empty(t *testing.T) {
 	client := &vault.MockClient{}
 	sh, err := NewSysAuthHandler(client, PathHandlerConfig{})
 	if err != nil {
-		log.Fatalf("Failed to create SysAuth: %s", err)
+		t.Errorf("Failed to create SysAuth: %s", err)
 	}
 	err = sh.PutPoliciesFromDir("")
 	if err != nil {
-		log.Fatalf("Expected nil, got error %s", err.Error())
+		t.Errorf("Expected nil, got error %s", err.Error())
 	}
 }
 
@@ -53,14 +52,14 @@ func TestSysAuth_PutPoliciesFromDir_Example(t *testing.T) {
 		DocumentPath: examplePath(),
 	})
 	if err != nil {
-		log.Fatalf("Failed to create SysAuth: %s", err)
+		t.Errorf("Failed to create SysAuth: %s", err)
 	}
 
 	sysPath := filepath.Join(examplePath(), "sys/auth")
 	err = sh.PutPoliciesFromDir(sysPath)
 
 	if err != nil {
-		log.Fatalf("Expected no error, got %q", err)
+		t.Errorf("Expected no error, got %q", err)
 	}
 }
 
@@ -68,7 +67,7 @@ func TestSysAuth_WalkFile(t *testing.T) {
 	//client := &vaultClient.MockClient{}
 	//sh, err := NewSysAuthHandler(client, "")
 	//if err != nil {
-	//	log.Fatalf("Failed to create SysAuth: %s", err)
+	//	t.Errorf("Failed to create SysAuth: %s", err)
 	//}
 
 }

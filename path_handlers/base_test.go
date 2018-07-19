@@ -13,7 +13,7 @@ func TestReadFile(t *testing.T) {
 	file, _ := ioutil.TempFile(".", "test-PathHandler-")
 	err := ioutil.WriteFile(file.Name(), []byte(expectStr), os.FileMode(int(0664)))
 	if err != nil {
-		log.Fatalf("Could not create file %s: %s", file.Name(), err)
+		t.Errorf("Could not create file %s: %s", file.Name(), err)
 	}
 	defer os.Remove(file.Name())
 
@@ -22,6 +22,6 @@ func TestReadFile(t *testing.T) {
 		log.Fatal(err)
 	}
 	if data != expectStr {
-		log.Fatalf("Got %s, expected %s", data, expectStr)
+		t.Errorf("Got %s, expected %s", data, expectStr)
 	}
 }

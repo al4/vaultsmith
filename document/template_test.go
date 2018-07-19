@@ -21,7 +21,7 @@ func examplePath() string {
 func TestNewTemplatedDocument(t *testing.T) {
 	params, err := GenerateTemplateParams(filepath.Join(examplePath(), "template.json"), []string{})
 	if err != nil {
-		log.Fatalf("Could not generate template params: %s", err)
+		t.Errorf("Could not generate template params: %s", err)
 	}
 	NewTemplate(
 		filepath.Join(examplePath(), "sys/policy/read_service.json"),
@@ -46,15 +46,15 @@ func TestTemplatedDocument_findPlaceholders(t *testing.T) {
 		log.Fatal(err)
 	}
 	if _, ok := rv["foo"]; !ok {
-		log.Fatalf("Expected %q in map. Got %+v", "foo", rv)
+		t.Errorf("Expected %q in map. Got %+v", "foo", rv)
 	} else if rv["foo"] != "{{ foo }}" {
-		log.Fatalf("Expected %q to be %q. Got %+v", "foo", "{{ foo }}", rv)
+		t.Errorf("Expected %q to be %q. Got %+v", "foo", "{{ foo }}", rv)
 	}
 
 	if _, ok := rv["baz"]; !ok {
-		log.Fatalf("Expected %q in map. Got %+v", "baz", rv)
+		t.Errorf("Expected %q in map. Got %+v", "baz", rv)
 	} else if rv["baz"] != "{{ baz }}" {
-		log.Fatalf("Expected %q to be %q. Got %+v", "baz", "{{ baz }}", rv)
+		t.Errorf("Expected %q to be %q. Got %+v", "baz", "{{ baz }}", rv)
 	}
 
 }
@@ -79,12 +79,12 @@ func TestTemplatedDocument_Render(t *testing.T) {
 	var exp string
 	exp = "foo is A bar is A."
 	if renderedTemplates[0].Content != exp {
-		log.Fatalf("Expected %q, got %q", exp, renderedTemplates[0].Content)
+		t.Errorf("Expected %q, got %q", exp, renderedTemplates[0].Content)
 	}
 
 	exp = "foo is B bar is B."
 	if renderedTemplates[1].Content != exp {
-		log.Fatalf("Expected %q, got %q", exp, renderedTemplates[1].Content)
+		t.Errorf("Expected %q, got %q", exp, renderedTemplates[1].Content)
 	}
 }
 
@@ -107,7 +107,7 @@ func TestTemplatedDocument_Render_MultipleFoo(t *testing.T) {
 	var exp string
 	exp = "foo is A bar is A. And foo is A"
 	if renderedTemplates[0].Content != exp {
-		log.Fatalf("Expected %q, got %q", exp, renderedTemplates[0].Content)
+		t.Errorf("Expected %q, got %q", exp, renderedTemplates[0].Content)
 	}
 }
 
@@ -130,7 +130,7 @@ func TestTemplate_Render_DoesNotDuplicate(t *testing.T) {
 	}
 	if len(renderedTemplates) != 1 {
 		log.Printf("%+v", renderedTemplates)
-		log.Fatalf("Expected 1 entry in rendered templates, got %v", len(renderedTemplates))
+		t.Errorf("Expected 1 entry in rendered templates, got %v", len(renderedTemplates))
 	}
 }
 

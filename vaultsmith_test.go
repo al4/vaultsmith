@@ -42,10 +42,10 @@ func TestRunWhenRoleIsInvalid(t *testing.T) {
 		log.Fatal("Expected error, got nil")
 	}
 	if !strings.Contains(err.Error(), "failed authenticating with Vault:") {
-		log.Fatalf("bad failure message '%s'", err.Error())
+		t.Errorf("bad failure message '%s'", err.Error())
 	}
 
 	if !strings.Contains(err.Error(), fmt.Sprintf("entry for role %s not found", conf.VaultRole)) {
-		log.Fatalf("bad reason message '%s'", err.Error())
+		t.Errorf("bad reason message '%s'", err.Error())
 	}
 }

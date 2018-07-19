@@ -27,10 +27,10 @@ func TestGeneric_isDocApplied_true(t *testing.T) {
 
 	result, err := gh.isDocApplied(testDoc)
 	if err != nil {
-		log.Fatalf("Error calling isDocApplied: %s", err)
+		t.Errorf("Error calling isDocApplied: %s", err)
 	}
 	if !result {
-		log.Fatalf("Got false result, expected true")
+		t.Errorf("Got false result, expected true")
 	}
 }
 
@@ -56,10 +56,10 @@ func TestGeneric_isDocApplied_falseValue(t *testing.T) {
 
 	result, err := gh.isDocApplied(testDoc)
 	if err != nil {
-		log.Fatalf("Error calling isDocApplied: %s", err)
+		t.Errorf("Error calling isDocApplied: %s", err)
 	}
 	if result {
-		log.Fatalf("Got true result, expected false")
+		t.Errorf("Got true result, expected false")
 	}
 }
 
@@ -128,7 +128,7 @@ func TestConvertAuthConfigConvertsDefaultLeaseTTL(t *testing.T) {
 		log.Fatal(err)
 	}
 	if out.DefaultLeaseTTL != expected {
-		log.Fatalf("Wrong DefaultLeastTTL value %d, expected %d", out.DefaultLeaseTTL, expected)
+		t.Errorf("Wrong DefaultLeastTTL value %d, expected %d", out.DefaultLeaseTTL, expected)
 	}
 }
 
@@ -142,7 +142,7 @@ func TestConvertAuthConfigConvertsMaxLeaseTTL(t *testing.T) {
 		log.Fatal(err)
 	}
 	if out.MaxLeaseTTL != expected {
-		log.Fatalf("Wrong MaxLeastTTL value %d, expected %d", out.MaxLeaseTTL, expected)
+		t.Errorf("Wrong MaxLeastTTL value %d, expected %d", out.MaxLeaseTTL, expected)
 	}
 }
 
@@ -167,7 +167,7 @@ func TestIsTtlEquivalent(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			rv := IsTtlEquivalent(test.ttlA, test.ttlB)
 			if rv != test.expected {
-				log.Fatalf("Test case %s failed. Expected %v, got %v. ttlA: %s, ttlB: %s",
+				t.Errorf("Test case %s failed. Expected %v, got %v. ttlA: %s, ttlB: %s",
 					test.name, test.expected, rv, test.ttlA, test.ttlB)
 			}
 
@@ -206,7 +206,7 @@ func TestIsSliceEquivalent(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			rv := isSliceEquivalent(test.valueA, test.valueB)
 			if rv != test.expected {
-				log.Fatalf("Test case %q failed. A: %+v, B: %+v. Expected %+v",
+				t.Errorf("Test case %q failed. A: %+v, B: %+v. Expected %+v",
 					test.name, test.valueA, test.valueB, test.expected)
 			}
 		})

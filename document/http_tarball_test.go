@@ -2,7 +2,6 @@ package document
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -29,7 +28,7 @@ func TestHttpTarball_archivePath(t *testing.T) {
 	exp := "/tmp/test/test.tgz"
 	r := p.archivePath()
 	if r != exp {
-		log.Fatalf("Bad file path, expected %q, got %q", exp, r)
+		t.Errorf("Bad file path, expected %q, got %q", exp, r)
 	}
 }
 
@@ -41,7 +40,7 @@ func TestHttpTarball_Get(t *testing.T) {
 	url, _ := url.Parse(ts.URL + "/test-archive.tgz")
 	tmpDir, err := ioutil.TempDir(os.TempDir(), "fetcher-")
 	if err != nil {
-		log.Fatalf("Could not create tempdir: %s", err)
+		t.Errorf("Could not create tempdir: %s", err)
 	}
 	p := HttpTarball{
 		WorkDir: tmpDir,
@@ -52,17 +51,17 @@ func TestHttpTarball_Get(t *testing.T) {
 	defer p.CleanUp()
 
 	if _, err := os.Stat(p.archivePath()); os.IsNotExist(err) {
-		log.Fatalf("Expected file %s to exist", p.archivePath())
+		t.Errorf("Expected file %s to exist", p.archivePath())
 	}
 	c, err := ioutil.ReadFile(p.archivePath())
 	if err != nil {
-		log.Fatalf("Error reading file %s", err)
+		t.Errorf("Error reading file %s", err)
 	}
 
 	// Something is adding a newline. It appears in the file, (so it must be present in the response
 	// Body), but shouldn't be a problem in real-world use
 	if string(c) != expected+"\n" {
-		log.Fatalf("Expected file contents to be %q, got %q", expected, c)
+		t.Errorf("Expected file contents to be %q, got %q", expected, c)
 	}
 }
 
