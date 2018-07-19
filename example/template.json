@@ -1,18 +1,18 @@
 [
   {
     "name": "one",
-    "variables": {"service": "foo", "option": "value"}
+    "variables": {"service": "foo", "account": "test", "option": "value"}
   },
   {
     "name": "two",
-    "variables": {"service": "bar"}
+    "variables": {"service": "bar", "account": "test"}
   },
   {
     "name": "three",
-    "variables": {"service": "baz"}
+    "variables": {"service": "baz", "account": "test"}
   },
   {
     "name": "four",
-    "variables": {"service": "boz"}
+    "variables": {"service": "boz", "account": "test"}
   }
 ]
