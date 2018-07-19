@@ -31,14 +31,6 @@ type ConfigWalker struct {
 func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath string) (configWalker ConfigWalker, err error) {
 	// Map configuration directories to specific path handlers
 	var handlerMap = map[string]path_handlers.PathHandler{}
-	var templateFile string
-
-	// Find the mapping file
-	if config.TemplateFile == "" {
-		templateFile = filepath.Join(docPath, "template.json")
-	} else {
-		templateFile = config.TemplateFile
-	}
 
 	// Instantiate our path handlers
 	// We handle any unknown directories with this one
@@ -46,7 +38,7 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 		client,
 		path_handlers.PathHandlerConfig{
 			DocumentPath:      docPath,
-			TemplateFile:      templateFile,
+			TemplateFile:      config.TemplateFile,
 			TemplateOverrides: config.TemplateParams,
 		})
 	if err != nil {
@@ -70,7 +62,7 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 				path_handlers.PathHandlerConfig{
 					DocumentPath:      docPath,
 					Order:             10,
-					TemplateFile:      templateFile,
+					TemplateFile:      config.TemplateFile,
 					TemplateOverrides: config.TemplateParams,
 				})
 			if err != nil {
@@ -88,7 +80,7 @@ func NewConfigWalker(client vault.Vault, config config.VaultsmithConfig, docPath
 				path_handlers.PathHandlerConfig{
 					DocumentPath:      docPath,
 					Order:             20,
-					TemplateFile:      templateFile,
+					TemplateFile:      config.TemplateFile,
 					TemplateOverrides: config.TemplateParams,
 				})
 			if err != nil {

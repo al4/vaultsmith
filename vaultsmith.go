@@ -12,6 +12,7 @@ import (
 	"github.com/starlingbank/vaultsmith/internal"
 	"github.com/starlingbank/vaultsmith/vault"
 	"io/ioutil"
+	"path/filepath"
 )
 
 var flags = flag.NewFlagSet("Vaultsmith", flag.ExitOnError)
@@ -88,6 +89,12 @@ func main() {
 	if documentPath == "" {
 		log.Fatalln("Please specify --document-path")
 	}
+	// Only check if specified, otherwise no template file is OK
+	if templateFile != "" {
+		if _, err := os.Stat(templateFile); os.IsNotExist(err) {
+			log.Fatalf("Specified template-file does not exist: %s", err)
+		}
+	}
 
 	conf := config.VaultsmithConfig{
 		DocumentPath:   documentPath,
@@ -110,6 +117,17 @@ func main() {
 	log.Debugf("Success")
 }
 
+func whichFileExists(filePath ...string) (file string) {
+	for _, f := range filePath {
+		if _, err := os.Stat(f); !os.IsNotExist(err) {
+			return f
+		} else {
+			log.WithFields(log.Fields{"file": f}).Debug("templateFile does not exist")
+		}
+	}
+	return ""
+}
+
 func Run(c vault.Vault, config config.VaultsmithConfig) error {
 	err := c.Authenticate(config.VaultRole)
 	if err != nil {
@@ -128,6 +146,12 @@ func Run(c vault.Vault, config config.VaultsmithConfig) error {
 	}
 	docSet.Get()
 	defer docSet.CleanUp()
+
+	// Determine if we have a template file
+	config.TemplateFile = whichFileExists(
+		templateFile,
+		filepath.Join(docSet.Path(), "template.json"),
+	)
 
 	cw, err := internal.NewConfigWalker(c, config, docSet.Path())
 	if err != nil {

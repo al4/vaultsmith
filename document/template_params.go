@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"strings"
 )
 
@@ -17,10 +16,6 @@ type TemplateParams struct {
 
 // Build template configurations from a template file and slice of overrides, for passing to Template
 func GenerateTemplateParams(templateFile string, overrides []string) (tp []TemplateParams, err error) {
-	if _, err := os.Stat(templateFile); os.IsNotExist(err) {
-		return nil, fmt.Errorf("file %s does not exist", templateFile)
-	}
-
 	var templateConfigs []TemplateParams
 	if templateFile != "" {
 		file, err := ioutil.ReadFile(templateFile)
