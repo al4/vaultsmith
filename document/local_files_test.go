@@ -14,7 +14,10 @@ func TestLocalFiles_Get(t *testing.T) {
 func TestLocalFiles_Path(t *testing.T) {
 	exp := "."
 	l := LocalFiles{Directory: "."}
-	r := l.Path()
+	r, err := l.Path()
+	if err != nil {
+		t.Error(err.Error())
+	}
 	if r != "." {
 		t.Errorf("Expected %q, got %s", r, exp)
 	}

@@ -29,7 +29,10 @@ func TestLocalTarball_Path(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	r := lt.Path()
+	r, err := lt.Path()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
 	if r != td {
 		t.Errorf("Bad extract path, expected %q, got %q", td, r)
 	}
@@ -53,8 +56,12 @@ func TestLocalTarball_extract(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error calling extract: %s", err)
 	}
-	if _, err := os.Stat(l.Path()); os.IsNotExist(err) {
-		t.Errorf("Expected %s to exist", l.Path())
+	path, err := l.Path()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		t.Errorf("Expected %s to exist", path)
 	}
 }
 
