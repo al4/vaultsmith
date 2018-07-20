@@ -146,15 +146,20 @@ func Run(c vault.Vault, config config.VaultsmithConfig) error {
 		return err
 	}
 	docSet.Get()
-	defer docSet.CleanUp()
+	//defer docSet.CleanUp()
+
+	docPath, err := docSet.Path()
+	if err != nil {
+		return err
+	}
 
 	// Determine if we have a template file
 	config.TemplateFile = whichFileExists(
 		templateFile,
-		filepath.Join(docSet.Path(), "template.json"),
+		filepath.Join(docPath, "template.json"),
 	)
 
-	cw, err := internal.NewConfigWalker(c, config, docSet.Path())
+	cw, err := internal.NewConfigWalker(c, config, docPath)
 	if err != nil {
 		return err
 	}

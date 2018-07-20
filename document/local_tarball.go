@@ -22,24 +22,23 @@ func (l *LocalTarball) Get() (err error) {
 }
 
 // Return the path to the extracted files. It does not guarantee that they exist.
-func (l *LocalTarball) Path() (path string) {
+func (l *LocalTarball) Path() (path string, err error) {
 	// Most tarballs, including github tarballs, will contain a single directory with the archive
 	// contents
 	// TODO should probably have an option for this behaviour; what if a user only has one config dir?
 	entries, err := ioutil.ReadDir(l.extractPath())
 	if err != nil {
-		log.Error(err)
-		return ""
+		return "", err
 	}
 	if len(entries) == 1 && entries[0].Name() != "sys" && entries[0].IsDir() {
 		// Probably a single dir, use it instead
-		return filepath.Join(l.extractPath(), entries[0].Name())
+		return filepath.Join(l.extractPath(), entries[0].Name()), err
 	} else if len(entries) > 1 {
 		// More than one entry suggests we already have the correct path
-		return l.extractPath()
+		return l.extractPath(), err
 	} else {
 		log.Warnf("Empty directory %q", l.extractPath())
-		return ""
+		return "", err
 	}
 }
 
@@ -97,6 +96,8 @@ func (l *LocalTarball) extract() (err error) {
 				return fmt.Errorf("error writing to file %q: %s", df, err)
 			}
 			w.Close()
+		default:
+			log.Debugf("Unhandled tar type: %+v", hdr)
 		}
 	}
 

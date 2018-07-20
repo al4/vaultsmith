@@ -36,7 +36,7 @@ func (h *HttpTarball) Get() (err error) {
 }
 
 // Return the path to the extracted files. It does not guarantee that the path exists.
-func (h *HttpTarball) Path() (path string) {
+func (h *HttpTarball) Path() (path string, err error) {
 	return h.LocalTarball.Path()
 }
 

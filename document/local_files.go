@@ -15,8 +15,8 @@ func (l *LocalFiles) Get() (err error) {
 }
 
 // Return the path to the documents
-func (l *LocalFiles) Path() (path string) {
-	return l.Directory
+func (l *LocalFiles) Path() (path string, err error) {
+	return l.Directory, nil
 }
 
 func (l *LocalFiles) CleanUp() {
