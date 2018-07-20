@@ -15,6 +15,7 @@ import (
 type LocalTarball struct {
 	WorkDir     string
 	ArchivePath string
+	TarDir      string // directory to look for configuration within the tarball
 }
 
 func (l *LocalTarball) Get() (err error) {
@@ -23,9 +24,12 @@ func (l *LocalTarball) Get() (err error) {
 
 // Return the path to the extracted files. It does not guarantee that they exist.
 func (l *LocalTarball) Path() (path string, err error) {
-	// Most tarballs, including github tarballs, will contain a single directory with the archive
-	// contents
-	// TODO should probably have an option for this behaviour; what if a user only has one config dir?
+	// If the archive contains a single directory, use that directory, otherwise use the base of
+	// the archive.
+	// If the user doesn't want us to guess, they should specify --tar-dir
+	if l.TarDir != "" {
+		return filepath.Join(l.extractPath(), l.TarDir), err
+	}
 	entries, err := ioutil.ReadDir(l.extractPath())
 	if err != nil {
 		return "", err

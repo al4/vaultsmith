@@ -7,4 +7,5 @@ type VaultsmithConfig struct {
 	TemplateFile   string
 	TemplateParams []string
 	HttpAuthToken  string
+	TarDir         string
 }

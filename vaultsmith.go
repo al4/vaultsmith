@@ -23,6 +23,7 @@ var vaultRole string
 var logLevel string
 var templateParams []string
 var httpAuthToken string
+var tarDir string
 
 func init() {
 	flags.StringVar(
@@ -52,6 +53,12 @@ func init() {
 	flags.StringVar(
 		&httpAuthToken, "http-auth-token", "", "Auth token to pass as "+
 			"'Authorization' header. Useful for passing user tokens to private github repos.",
+	)
+	flags.StringVar(
+		&tarDir, "tar-dir", "", "Directory within the tarball to use as the "+
+			"document-path. If not specified, and there is only one directory within the archive, "+
+			"that one will be used. If there is more than one diretory, the root directory of the "+
+			"archive will be used.",
 	)
 
 	flags.Usage = func() {
@@ -112,6 +119,7 @@ func main() {
 		Dry:            dry,
 		TemplateParams: templateParams,
 		HttpAuthToken:  httpAuthToken,
+		TarDir:         tarDir,
 	}
 
 	var client vault.Vault

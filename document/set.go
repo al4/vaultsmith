@@ -25,7 +25,10 @@ func GetSet(workDir string, config config.VaultsmithConfig) (docSet Set, err err
 	switch u.Scheme {
 	case "http", "https":
 		return &HttpTarball{
-			WorkDir:   workDir,
+			LocalTarball: LocalTarball{
+				TarDir:  config.TarDir,
+				WorkDir: workDir,
+			},
 			Url:       u,
 			AuthToken: config.HttpAuthToken,
 		}, nil
@@ -53,6 +56,7 @@ func GetSet(workDir string, config config.VaultsmithConfig) (docSet Set, err err
 		return &LocalTarball{
 			WorkDir:     workDir,
 			ArchivePath: config.DocumentPath,
+			TarDir:      config.TarDir,
 		}, nil
 	default:
 		return nil, fmt.Errorf("don't know what to do with mode %s", mode)

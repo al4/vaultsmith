@@ -164,8 +164,7 @@ func (cw ConfigWalker) walkConfigDir(path string, handlerMap map[string]path_han
 // determine the handler and pass the root directory to it
 func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 	if f == nil {
-		log.Debugf("f nil for path %s", path)
-		return nil
+		return fmt.Errorf("path %q does not exist", path)
 	}
 	if !f.IsDir() { // only want to operate on directories
 		return nil

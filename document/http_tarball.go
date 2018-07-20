@@ -13,7 +13,6 @@ import (
 // Implements document.Set
 type HttpTarball struct {
 	LocalTarball
-	WorkDir   string
 	Url       *url.URL
 	AuthToken string
 }
@@ -25,10 +24,7 @@ func (h *HttpTarball) Get() (err error) {
 		return fmt.Errorf("error downloading tarball: %s", err)
 	}
 
-	h.LocalTarball = LocalTarball{
-		WorkDir:     h.WorkDir,
-		ArchivePath: downloadPath,
-	}
+	h.LocalTarball.ArchivePath = downloadPath
 	err = h.LocalTarball.extract()
 	if err != nil {
 		return fmt.Errorf("error extracting tarball: %s", err)
@@ -65,7 +61,6 @@ func (h *HttpTarball) download() (path string, err error) {
 		return "", err
 	}
 	if h.AuthToken != "" {
-		log.Debug("FOO")
 		req.Header.Set("Authorization", fmt.Sprintf("token %s", h.AuthToken))
 	}
 	res, err := client.Do(req)
