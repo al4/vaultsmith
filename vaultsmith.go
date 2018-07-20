@@ -145,7 +145,10 @@ func Run(c vault.Vault, config config.VaultsmithConfig) error {
 	if err != nil {
 		return err
 	}
-	docSet.Get()
+	err = docSet.Get()
+	if err != nil {
+		return err
+	}
 	//defer docSet.CleanUp()
 
 	docPath, err := docSet.Path()

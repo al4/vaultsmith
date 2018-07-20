@@ -21,7 +21,7 @@ type HttpTarball struct {
 func (h *HttpTarball) Get() (err error) {
 	downloadPath, err := h.download()
 	if err != nil {
-		return fmt.Errorf("error downloading tarball %s", err)
+		return fmt.Errorf("error downloading tarball: %s", err)
 	}
 
 	h.LocalTarball = LocalTarball{
@@ -30,7 +30,7 @@ func (h *HttpTarball) Get() (err error) {
 	}
 	err = h.LocalTarball.extract()
 	if err != nil {
-		return fmt.Errorf("error extracting tarball %s", err)
+		return fmt.Errorf("error extracting tarball: %s", err)
 	}
 	return nil
 }
@@ -63,6 +63,10 @@ func (h *HttpTarball) download() (path string, err error) {
 		return "", err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("status code %v", resp.StatusCode)
+	}
 
 	n, err := io.Copy(out, resp.Body)
 	if err != nil {
