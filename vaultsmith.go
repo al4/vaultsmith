@@ -22,27 +22,36 @@ var templateFile string
 var vaultRole string
 var logLevel string
 var templateParams []string
+var httpAuthToken string
 
 func init() {
 	flags.StringVar(
 		// TODO: remove default value of "./example", could do bad things in production
 		&documentPath, "document-path", "",
-		"The root directory of the configuration. Can be a local directory, local gz tarball or http url to a gz tarball.",
+		"The root directory of the configuration. Can be a local directory, local gz "+
+			"tarball or http url to a gz tarball.",
 	)
 	flags.StringVar(
 		&vaultRole, "role", "root", "The Vault role to authenticate as",
 	)
 	flags.StringVar(
-		&templateFile, "template-file", "", "JSON file containing template mappings. If not specified, vaultsmith will look for \"template.json\" in the base of the document path.",
+		&templateFile, "template-file", "", "JSON file containing template "+
+			"mappings. If not specified, vaultsmith will look for \"template.json\" in the base of the document path.",
 	)
 	flags.BoolVar(
 		&dry, "dry", false, "Dry run; will read from but not write to vault",
 	)
 	flags.StringVar(
-		&logLevel, "log-level", "info", fmt.Sprintf("Log level, valid values are %+v", log.AllLevels),
+		&logLevel, "log-level", "info", fmt.Sprintf("Log level, valid "+
+			"values are %+v", log.AllLevels),
 	)
 	flags.StringSliceVar(
-		&templateParams, "template-params", []string{}, "Template parameters. Applies globally, but values in template-file take precedence. E.G.: service=foo,account=bar",
+		&templateParams, "template-params", []string{}, "Template parameters. "+
+			"Applies globally, but values in template-file take precedence. E.G.: service=foo,account=bar",
+	)
+	flags.StringVar(
+		&httpAuthToken, "http-auth-token", "", "Auth token to pass as "+
+			"'Authorization' header. Useful for passing user tokens to private github repos.",
 	)
 
 	flags.Usage = func() {
@@ -102,6 +111,7 @@ func main() {
 		TemplateFile:   templateFile,
 		Dry:            dry,
 		TemplateParams: templateParams,
+		HttpAuthToken:  httpAuthToken,
 	}
 
 	var client vault.Vault
@@ -141,7 +151,7 @@ func Run(c vault.Vault, config config.VaultsmithConfig) error {
 	}
 	defer os.Remove(workDir)
 
-	docSet, err := document.GetSet(config.DocumentPath, workDir)
+	docSet, err := document.GetSet(workDir, config)
 	if err != nil {
 		return err
 	}

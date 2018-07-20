@@ -3,6 +3,7 @@ package document
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"github.com/starlingbank/vaultsmith/config"
 	"net/url"
 	"os"
 )
@@ -15,8 +16,8 @@ type Set interface {
 }
 
 // Return the appropriate document.Set for the given path
-func GetSet(path string, workDir string) (docSet Set, err error) {
-	u, err := url.Parse(path)
+func GetSet(workDir string, config config.VaultsmithConfig) (docSet Set, err error) {
+	u, err := url.Parse(config.DocumentPath)
 	if err != nil {
 		log.Error(err)
 	}
@@ -24,8 +25,9 @@ func GetSet(path string, workDir string) (docSet Set, err error) {
 	switch u.Scheme {
 	case "http", "https":
 		return &HttpTarball{
-			WorkDir: workDir,
-			Url:     u,
+			WorkDir:   workDir,
+			Url:       u,
+			AuthToken: config.HttpAuthToken,
 		}, nil
 	case "", "file":
 		// local filesystem, handled below
@@ -35,22 +37,22 @@ func GetSet(path string, workDir string) (docSet Set, err error) {
 	}
 
 	// From here we are assuming path points to the local file system
-	p, err := os.Stat(path)
+	p, err := os.Stat(config.DocumentPath)
 	if err != nil {
-		return nil, fmt.Errorf("error reading %q: %s", path, err)
+		return nil, fmt.Errorf("error reading %q: %s", config.DocumentPath, err)
 	}
 	switch mode := p.Mode(); {
 	case mode.IsDir():
 		// Should be an directory of files
 		return &LocalFiles{
 			WorkDir:   workDir,
-			Directory: path,
+			Directory: config.DocumentPath,
 		}, nil
 	case mode.IsRegular():
 		// Should be an archive
 		return &LocalTarball{
 			WorkDir:     workDir,
-			ArchivePath: path,
+			ArchivePath: config.DocumentPath,
 		}, nil
 	default:
 		return nil, fmt.Errorf("don't know what to do with mode %s", mode)

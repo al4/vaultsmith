@@ -13,8 +13,9 @@ import (
 // Implements document.Set
 type HttpTarball struct {
 	LocalTarball
-	WorkDir string
-	Url     *url.URL
+	WorkDir   string
+	Url       *url.URL
+	AuthToken string
 }
 
 // download tarball from Github
@@ -58,17 +59,26 @@ func (h *HttpTarball) download() (path string, err error) {
 	}
 	defer out.Close()
 
-	resp, err := http.Get(h.Url.String())
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", h.Url.String(), nil)
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	if h.AuthToken != "" {
+		log.Debug("FOO")
+		req.Header.Set("Authorization", fmt.Sprintf("token %s", h.AuthToken))
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
 
-	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("status code %v", resp.StatusCode)
+	if res.StatusCode != 200 {
+		return "", fmt.Errorf("status code %v", res.StatusCode)
 	}
 
-	n, err := io.Copy(out, resp.Body)
+	n, err := io.Copy(out, res.Body)
 	if err != nil {
 		return "", err
 	}

@@ -6,4 +6,5 @@ type VaultsmithConfig struct {
 	VaultRole      string
 	TemplateFile   string
 	TemplateParams []string
+	HttpAuthToken  string
 }
