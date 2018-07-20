@@ -62,8 +62,10 @@ $ vaultsmith -h
 Usage of vaultsmith:
       --document-path string      The root directory of the configuration. Can be a local directory, local gz tarball or http url to a gz tarball.
       --dry                       Dry run; will read from but not write to vault
+      --http-auth-token string    Auth token to pass as 'Authorization' header. Useful for passing user tokens to private github repos.
       --log-level string          Log level, valid values are [panic fatal error warning info debug] (default "info")
-      --role string               The Vault role to authenticate as
+      --role string               The Vault role to authenticate as (default "root")
+      --tar-dir string            Directory within the tarball to use as the document-path. If not specified, and there is only one directory within the archive, that one will be used. If there is more than one diretory, the root directory of the archive will be used.
       --template-file string      JSON file containing template mappings. If not specified, vaultsmith will look for "template.json" in the base of the document path.
       --template-params strings   Template parameters. Applies globally, but values in template-file take precedence. E.G.: service=foo,account=bar
 ```
@@ -99,3 +101,19 @@ Run vaultsmith and it should apply the example document set:
 ```bash
 vaultsmith -document-path https://raw.githubusercontent.com/starlingbank/vaultsmith/master/example/example.tar.gz
 ```
+
+Pulling archives from private Github repositories
+-------------------------------------------------
+
+As github tarballs place the repository in a subdirectory, a little more work is needed. If for
+example you have your vault documents in directory called "data", which is within a git repository 
+(I.E repository_root/data):
+```bash
+vaultsmith --document-path https://api.github.com/repos/$ORG/$REPO/tarball/master --http-auth-token $TOKEN --tar-dir $ORG-$REPO-$COMMIT_SHA/data --dry
+```
+See the [Github API docs](https://developer.github.com/v3/repos/releases/#get-a-single-release) for
+more information.
+
+You can sidestep this by placing the documents at the root of the repository, and having nothing
+else in it, but the recommended solution is to create and upload your own tarballs to a private
+repository.
