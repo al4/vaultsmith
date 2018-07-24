@@ -22,8 +22,10 @@ func (h *TestHttpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func TestHttpTarball_archivePath(t *testing.T) {
 	url, _ := url.Parse("https://example.com/test.tgz")
 	p := HttpTarball{
-		WorkDir: "/tmp/test",
-		Url:     url,
+		LocalTarball: LocalTarball{
+			WorkDir: "/tmp/test",
+		},
+		Url: url,
 	}
 	exp := "/tmp/test/test.tgz"
 	r := p.archivePath()
@@ -43,8 +45,10 @@ func TestHttpTarball_Get(t *testing.T) {
 		t.Errorf("Could not create tempdir: %s", err)
 	}
 	p := HttpTarball{
-		WorkDir: tmpDir,
-		Url:     url,
+		LocalTarball: LocalTarball{
+			WorkDir: tmpDir,
+		},
+		Url: url,
 	}
 
 	p.Get()
