@@ -70,7 +70,7 @@ func init() {
 			"• Vault authentication is handled by environment variables (the same " +
 			"ones as the Vault client, as vaultsmith uses the same code). So ensure VAULT_ADDR " +
 			"and VAULT_TOKEN are set.\n" +
-			"• If template-file is not specified, it is not mandatory for template.json to be present." +
+			"• If template-file is not specified, it is not mandatory for template.json to be present.\n" +
 			"• Specifying a parameter with --template-params allows only a single value. If you " +
 			"need multiple values, please use a template-file." +
 			"\n\n")
@@ -167,7 +167,7 @@ func Run(c vault.Vault, config config.VaultsmithConfig) error {
 	if err != nil {
 		return err
 	}
-	//defer docSet.CleanUp()
+	defer docSet.CleanUp()
 
 	docPath, err := docSet.Path()
 	if err != nil {

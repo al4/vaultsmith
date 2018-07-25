@@ -99,7 +99,7 @@ export VAULT_ADDR=http://localhost:8200
 ```
 Run vaultsmith and it should apply the example document set:
 ```bash
-vaultsmith -document-path https://raw.githubusercontent.com/starlingbank/vaultsmith/master/example/example.tar.gz
+vaultsmith --document-path https://raw.githubusercontent.com/starlingbank/vaultsmith/master/example/example.tar.gz
 ```
 
 Pulling archives from private Github repositories
