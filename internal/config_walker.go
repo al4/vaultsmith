@@ -172,6 +172,12 @@ func (cw ConfigWalker) walkFile(path string, f os.FileInfo, err error) error {
 	if visited, ok := cw.Visited[path]; ok && visited { // already been here
 		return nil
 	}
+
+	if strings.HasPrefix(f.Name(), "_") {
+		// Don't process files that start with an underscore; e.g. template json
+		return nil
+	}
+
 	relPath, err := filepath.Rel(cw.ConfigDir, path)
 	if err != nil {
 		return fmt.Errorf("could not determine relative path of %s to %s: %s", path, cw.ConfigDir, err)

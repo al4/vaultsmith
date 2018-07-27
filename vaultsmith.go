@@ -24,6 +24,7 @@ var logLevel string
 var templateParams []string
 var httpAuthToken string
 var tarDir string
+var noCleanUp bool
 
 func init() {
 	flags.StringVar(
@@ -37,7 +38,8 @@ func init() {
 	)
 	flags.StringVar(
 		&templateFile, "template-file", "", "JSON file containing template "+
-			"mappings. If not specified, vaultsmith will look for \"template.json\" in the base of the document path.",
+			"mappings. If not specified, vaultsmith will look for \"_vaultsmith.json\" in the "+
+			"base of the document path.",
 	)
 	flags.BoolVar(
 		&dry, "dry", false, "Dry run; will read from but not write to vault",
@@ -60,6 +62,9 @@ func init() {
 			"that one will be used. If there is more than one diretory, the root directory of the "+
 			"archive will be used.",
 	)
+	flags.BoolVar(
+		&noCleanUp, "no-cleanup", false, "Don't clean up temp directory on exit",
+	)
 
 	flags.Usage = func() {
 		fmt.Printf("Usage of vaultsmith:\n")
@@ -70,7 +75,10 @@ func init() {
 			"• Vault authentication is handled by environment variables (the same " +
 			"ones as the Vault client, as vaultsmith uses the same code). So ensure VAULT_ADDR " +
 			"and VAULT_TOKEN are set.\n" +
-			"• If template-file is not specified, it is not mandatory for template.json to be present.\n" +
+			"• Files that start with an underscore (e.g. _vaultsmith.json) are not published to " +
+			"vault.\n" +
+			"• If template-file is not specified, it is not mandatory for _vaultsmith.json to be " +
+			"present.\n" +
 			"• Specifying a parameter with --template-params allows only a single value. If you " +
 			"need multiple values, please use a template-file." +
 			"\n\n")
@@ -167,7 +175,9 @@ func Run(c vault.Vault, config config.VaultsmithConfig) error {
 	if err != nil {
 		return err
 	}
-	defer docSet.CleanUp()
+	if !noCleanUp {
+		defer docSet.CleanUp()
+	}
 
 	docPath, err := docSet.Path()
 	if err != nil {
@@ -177,7 +187,7 @@ func Run(c vault.Vault, config config.VaultsmithConfig) error {
 	// Determine if we have a template file
 	config.TemplateFile = whichFileExists(
 		templateFile,
-		filepath.Join(docPath, "template.json"),
+		filepath.Join(docPath, "_vaultsmith.json"),
 	)
 
 	cw, err := internal.NewConfigWalker(c, config, docPath)

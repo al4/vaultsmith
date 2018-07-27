@@ -1,3 +1,0 @@
-{
-  "policy":"path \"secret/{{ service }}/*\" {\n  capabilities = [\"read\", \"list\"]\n}"
-}

@@ -8,37 +8,36 @@ import (
 )
 
 // Set of parameters to apply to our Template document
-// Matches the structure of the template.json file (within the array)
+// Defines the structure of the _vaultsmith.json file
 type TemplateParams struct {
-	Name      string            `json:"name"`
-	Variables map[string]string `json:"variables"`
+	Instances map[string][]string `json:"instances"`
+	Variables map[string]string   `json:"variables"`
 }
 
 // Build template configurations from a template file and slice of overrides, for passing to Template
-func GenerateTemplateParams(templateFile string, overrides []string) (tp []TemplateParams, err error) {
-	var templateConfigs []TemplateParams
+func GenerateTemplateParams(templateFile string, overrides []string) (tp TemplateParams, err error) {
+	var templateConfig TemplateParams
+
 	if templateFile != "" {
 		file, err := ioutil.ReadFile(templateFile)
 		if err != nil {
-			return tp, fmt.Errorf("could not read mapping file %s: %s", templateFile, err)
+			return tp, fmt.Errorf("could not read template file %s: %s", templateFile, err)
 		}
 
-		if err := json.Unmarshal(file, &templateConfigs); err != nil {
+		if err := json.Unmarshal(file, &templateConfig); err != nil {
 			return tp, fmt.Errorf("could not unmarshall %s: %s", templateFile, err)
 		}
 	} else {
 		// no file, create a no-name default (blank name means no suffix is added to the path)
-		templateConfigs = append(templateConfigs, TemplateParams{
+		templateConfig = TemplateParams{
 			Variables: map[string]string{}, // need to initialise for setParams()
-		})
+		}
 	}
 
 	// override/add variables from overrideParams in each TemplateParams
-	var templateConfigsNew []TemplateParams
-	for _, tc := range templateConfigs {
-		templateConfigsNew = append(templateConfigsNew, setParams(tc, overrides))
-	}
-	return templateConfigsNew, nil
+	var templateConfigNew TemplateParams
+	templateConfigNew = setParams(templateConfig, overrides)
+	return templateConfigNew, nil
 }
 
 // Set params from a slice in TemplateParams.Variables

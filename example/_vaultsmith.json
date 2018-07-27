@@ -1,0 +1,14 @@
+{
+  "instances": {
+    "read_service": [
+      "foo", "bar", "baz", "boz"
+    ],
+    "write_service": [
+      "qux", "quux", "quuz"
+    ]
+  },
+  "variables": {
+    "account_id": "000000000",
+    "region": "eu-west-1"
+  }
+}

@@ -83,6 +83,20 @@ func apiPath(rootPath string, filePath string) (apiPath string, err error) {
 	return filepath.Join(dir, fileName), err
 }
 
+// Return the vault api directory for this rendered template, given the filesystem path
+func apiDir(rootPath string, filePath string) (apiPath string, err error) {
+	relPath, err := filepath.Rel(rootPath, filePath)
+	if err != nil {
+		return apiPath, fmt.Errorf("could not determine relative path of %s to %s: %s",
+			filePath, rootPath, err)
+	}
+
+	dir, _ := filepath.Split(relPath)
+
+	// TODO This assumes OS path separator is '/'...
+	return dir, err
+}
+
 // Return the template path
 // This is the ApiPath with the template name
 func templatePath(apiPath string, name string) (templatePath string) {

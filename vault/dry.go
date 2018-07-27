@@ -15,7 +15,7 @@ func (c *dryClient) EnableAuth(path string, options *vaultApi.EnableAuthOptions)
 		"action":  "EnableAuth",
 		"options": options,
 		"path":    path,
-	}).Debug()
+	}).Debug("No Vault API call made")
 	return nil
 }
 

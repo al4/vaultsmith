@@ -32,8 +32,9 @@ type SysPolicy struct {
 }
 
 type policy struct {
-	Name   string
-	Policy string `json:"policy"`
+	Name       string
+	Policy     string `json:"policy"`
+	SourceFile string // only for logging
 }
 
 func NewSysPolicyHandler(client vault.Vault, config PathHandlerConfig) (*SysPolicy, error) {
@@ -63,7 +64,7 @@ func (sh *SysPolicy) walkFile(path string, f os.FileInfo, err error) error {
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("error reading %s: %s", path, err)
+		return fmt.Errorf("error finding %s: %s", path, err)
 	}
 	// not doing anything with dirs
 	if f.IsDir() {
@@ -75,11 +76,16 @@ func (sh *SysPolicy) walkFile(path string, f os.FileInfo, err error) error {
 		return fmt.Errorf("could not generate template parameters: %s", err)
 	}
 
-	// getting file contents
-	td := document.NewTemplate(path, tp)
+	content, err := document.Read(path)
 	if err != nil {
-		return fmt.Errorf("failed to instantiate TemplateDocument: %s", err)
+		return fmt.Errorf("error reading %s: %s", path, err)
 	}
+	td := &document.Template{
+		FileName: strings.TrimSuffix(f.Name(), filepath.Ext(f.Name())),
+		Content:  content,
+		Params:   tp,
+	}
+
 	templatedDocs, err := td.Render()
 	if err != nil {
 		return fmt.Errorf("failed to render document %q: %s", path, err)
@@ -92,13 +98,10 @@ func (sh *SysPolicy) walkFile(path string, f os.FileInfo, err error) error {
 	if !strings.HasPrefix(apiPath, "sys/policy") {
 		return fmt.Errorf("found file without sys/policy prefix: %s", apiPath)
 	}
-	policyPath := strings.TrimPrefix(apiPath, "sys/policy/")
-
 	for _, td := range templatedDocs {
-		writeName := templatePath(policyPath, td.Name)
-
 		policy := policy{
-			Name: writeName,
+			Name:       td.Name,
+			SourceFile: f.Name(),
 		}
 		err = json.Unmarshal([]byte(td.Content), &policy)
 		if err != nil {
@@ -125,7 +128,8 @@ func (sh *SysPolicy) PutPoliciesFromDir(path string) error {
 
 func (sh *SysPolicy) EnsurePolicy(policy policy) error {
 	logger := sh.log.WithFields(log.Fields{
-		"policy": policy.Name,
+		"name":       policy.Name,
+		"sourceFile": policy.SourceFile,
 	})
 
 	sh.configuredPolicyList = append(sh.configuredPolicyList, policy.Name)

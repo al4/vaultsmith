@@ -6,9 +6,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
+
+// Regexp which defines how to find "placeholder" values
+var matcher = regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`)
 
 // This seems a little unnecessary
 type Renderer interface {
@@ -16,12 +20,11 @@ type Renderer interface {
 }
 
 // Our Template is a document that contains placeholders, which can be rendered into a valid Vault
-// json document when provided with a Instances
+// json document when provided with a Params
 type Template struct {
-	Path         string
+	FileName     string
 	Content      string
-	Instances    []TemplateParams // List of "instances" of the document, mapping the key-values for each one
-	matcher      *regexp.Regexp   // Regex to find placeholders
+	Params       TemplateParams // List of "instances" of the document, mapping the key-values for each one
 	placeHolders map[string]string
 }
 
@@ -31,99 +34,111 @@ type RenderedTemplate struct {
 	Content string
 }
 
-func NewTemplate(filepath string, instances []TemplateParams) (t *Template) {
-	return &Template{
-		Path:      filepath,
-		matcher:   regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		Instances: instances,
-	}
-}
-
 // Return slice containing all "versions" of the document, with template placeholders replaced
 func (t *Template) Render() (renderedTemplates []RenderedTemplate, err error) {
-	// No need to read if Content already defined
-	if t.Content == "" {
-		_, err = t.read()
+	if t.placeHolders == nil {
+		t.placeHolders, err = t.findPlaceholders(t.Content)
 		if err != nil {
-			return
+			return renderedTemplates, fmt.Errorf("error finding placeholders: %s", err)
 		}
 	}
 
-	placeholders, err := t.findPlaceholders()
-	if err != nil {
-		return renderedTemplates, fmt.Errorf("error finding placeholders: %s", err)
-	}
-
-	if len(placeholders) == 0 || len(t.Instances) == 0 {
-		// no placeholders or values to map, return a single result with the original content
-		return []RenderedTemplate{
-			{Content: t.Content},
-		}, nil
-	}
-
-	// Avoid writing duplicate documents when all the placeholder values are the same
-	if t.hasMultiple(placeholders) {
-		for _, params := range t.Instances {
-			rendered, err := t.createRenderedTemplate(params)
-			if err != nil {
-				return renderedTemplates, err
-
-			}
-			renderedTemplates = append(renderedTemplates, rendered)
+	// if the filename has no placeholders, we only render it once
+	fileNamePlaceholders, err := t.findPlaceholders(t.FileName)
+	if len(fileNamePlaceholders) == 0 {
+		name := strings.TrimSuffix(t.FileName, filepath.Ext(t.FileName))
+		template, err := t.createRenderedTemplate(name, t.Params)
+		if err != nil {
+			return renderedTemplates, err
 		}
+		return []RenderedTemplate{template}, err
+	}
+
+	// could potentially support combinations... but doesn't seem useful
+	if len(fileNamePlaceholders) > 1 {
+		return renderedTemplates, fmt.Errorf("multiple placeholders in a filename is not supported")
+	}
+
+	// we have a placeholder, thus we have to render all instances of it
+	var fileNamePlaceHolderKey, fileNamePlaceHolderValue string
+	for k, v := range fileNamePlaceholders {
+		fileNamePlaceHolderKey = k
+		fileNamePlaceHolderValue = v
+	}
+
+	// else we have to iterate of all instances of it
+	var instances []string
+	if i, ok := t.Params.Instances[fileNamePlaceHolderKey]; ok {
+		instances = i
 	} else {
-		rendered, err := t.createRenderedTemplate(t.Instances[0])
+		return renderedTemplates, fmt.Errorf("tried to render file name %s, but there are no instances of it in the template config", t.FileName)
+	}
+
+	for _, instance := range instances {
+		name := strings.TrimSuffix(t.FileName, filepath.Ext(t.FileName))
+		name = strings.Replace(name, fileNamePlaceHolderValue, instance, -1)
+
+		rendered, err := t.createRenderedTemplate(name, t.Params)
 		if err != nil {
 			return renderedTemplates, err
 		}
 
-		// Avoid adding to the vault document path; there is no need to append instance name to the
-		// path when we only have one instance
-		rendered.Name = ""
-
 		renderedTemplates = append(renderedTemplates, rendered)
 	}
+
 	return renderedTemplates, err
 }
 
-func (t *Template) createRenderedTemplate(params TemplateParams) (rt RenderedTemplate, err error) {
-	placeholders, err := t.findPlaceholders()
+func (t *Template) createRenderedTemplate(name string, params TemplateParams) (rt RenderedTemplate, err error) {
+	placeHolders, err := t.findPlaceholders(t.Content)
 	if err != nil {
-		return rt, err
+		return rt, fmt.Errorf("error finding placeholders: %s", err)
 	}
 
 	content := t.Content
-	for pk, placeholderText := range placeholders {
+	for pk, placeholderText := range placeHolders {
 		if value, ok := params.Variables[pk]; ok {
 			content = strings.Replace(content, placeholderText, value, -1)
+		} else if _, ok := params.Instances[pk]; ok {
+			// If the placeholder key is in instances, then we can assume this placeholder should be
+			// replaced with the instance name. Making a variable with the same key would screw
+			// this up, but intent would be ambiguous in that case.
+			//
+			// One weird side effect is that if you created a template with no placeholder in the
+			// filename and a placeholder inside the file that matches an instances key, you'd get
+			// the file name of the template. Could be worse.
+			content = strings.Replace(content, placeholderText, name, -1)
 		} else {
-			log.WithFields(log.Fields{"placeholder": pk, "path": t.Path}).Warn("Placeholder has no values")
+			log.WithFields(log.Fields{"placeholder": pk, "fileName": t.FileName}).Warn("Placeholder has no values")
 		}
 	}
 
-	return RenderedTemplate{Name: params.Name, Content: content}, err
+	return RenderedTemplate{Name: name, Content: content}, err
 }
 
-// Determine whether we have multiple values for any variable
-func (t *Template) hasMultiple(placeholders map[string]string) (hasMultiple bool) {
-	for key := range placeholders {
-		seen := make(map[string]bool)
-		for _, templateConfig := range t.Instances {
-			if value, ok := templateConfig.Variables[key]; ok {
-				seen[value] = true
-			}
-		}
+func (t *Template) replaceText(initialText string, params TemplateParams) (output string, err error) {
 
-		if len(seen) > 1 {
-			hasMultiple = true
-		}
+	return
+}
+
+// Map the keys to the actual placeholder string in the template
+// For example, given template file:
+//		Hello, {{ foo }}.
+// We would return:
+// 		map[string]string{"foo": "{{ foo }}"}
+func (t *Template) findPlaceholders(text string) (placeholders map[string]string, err error) {
+	matches := matcher.FindAllStringSubmatch(text, -1)
+	placeholders = make(map[string]string)
+
+	for _, m := range matches {
+		placeholders[m[1]] = m[0]
 	}
 
-	return hasMultiple
+	return placeholders, nil
 }
 
-func (t *Template) read() (string, error) {
-	file, err := os.Open(t.Path)
+func Read(filePath string) (content string, err error) {
+	file, err := os.Open(filePath)
 	if err != nil {
 		return "", fmt.Errorf("error opening file: %s", err)
 	}
@@ -136,29 +151,7 @@ func (t *Template) read() (string, error) {
 		return "", fmt.Errorf("error reading from buffer: %s", err)
 	}
 
-	data := buf.String()
-	t.Content = data
+	content = buf.String()
 
-	return data, nil
-}
-
-// Map the keys to the actual placeholder string in the template
-// For example, given template file:
-//		Hello, {{ foo }}.
-// We would return:
-// 		map[string]string{"foo": "{{ foo }}"}
-func (t *Template) findPlaceholders() (placeholders map[string]string, err error) {
-	if t.placeHolders != nil {
-		// avoid re-reading file if already done as we call this in a few places
-		return t.placeHolders, nil
-	}
-
-	matches := t.matcher.FindAllStringSubmatch(t.Content, -1)
-	placeholders = make(map[string]string)
-
-	for _, m := range matches {
-		placeholders[m[1]] = m[0]
-	}
-
-	return placeholders, nil
+	return content, err
 }

@@ -15,8 +15,9 @@ import (
 
 // Required information to write a document to vault
 type vaultDocument struct {
-	path string
-	data map[string]interface{}
+	path       string
+	data       map[string]interface{}
+	sourceFile string
 }
 
 // The generic handler simply writes the files to the path they are stored in
@@ -51,7 +52,7 @@ func (gh *Generic) walkFile(path string, f os.FileInfo, err error) error {
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("error reading %q: %s", path, err)
+		return fmt.Errorf("error finding %s: %s", path, err)
 	}
 	// not doing anything with dirs
 	if f.IsDir() {
@@ -63,10 +64,14 @@ func (gh *Generic) walkFile(path string, f os.FileInfo, err error) error {
 		return fmt.Errorf("could not generate template parameters: %s", err)
 	}
 
-	// getting file contents
-	td := document.NewTemplate(path, tp)
+	content, err := document.Read(path)
 	if err != nil {
-		return fmt.Errorf("failed to instantiate TemplateDocument: %s", err)
+		return fmt.Errorf("error reading %q: %s", path, err)
+	}
+	td := &document.Template{
+		FileName: f.Name(),
+		Content:  content,
+		Params:   tp,
 	}
 
 	templatedDocs, err := td.Render()
@@ -75,10 +80,9 @@ func (gh *Generic) walkFile(path string, f os.FileInfo, err error) error {
 	}
 
 	// figure out where to write to
-	apiPath, err := apiPath(gh.config.DocumentPath, path)
+	apiDir, err := apiDir(gh.config.DocumentPath, path)
 	if err != nil {
-		return fmt.Errorf("could not determine relative path of %s to %s: %s",
-			path, gh.config.DocumentPath, err)
+		return err
 	}
 
 	for _, td := range templatedDocs {
@@ -90,11 +94,10 @@ func (gh *Generic) walkFile(path string, f os.FileInfo, err error) error {
 			return fmt.Errorf("failed to parse json from file %q: %s", path, err)
 		}
 
-		writePath := templatePath(apiPath, td.Name)
-
 		doc := vaultDocument{
-			path: writePath,
-			data: data,
+			path:       filepath.Join(apiDir, td.Name),
+			data:       data,
+			sourceFile: f.Name(),
 		}
 		err := gh.ensureDoc(doc)
 		if err != nil {
@@ -118,7 +121,8 @@ func (gh *Generic) PutPoliciesFromDir(path string) error {
 // Ensure the document is present and consistent
 func (gh *Generic) ensureDoc(doc vaultDocument) error {
 	logger := gh.log.WithFields(log.Fields{
-		"path": doc.path,
+		"path":       doc.path,
+		"sourceFile": doc.sourceFile,
 	})
 	gh.configuredDocMap[doc.path] = doc
 

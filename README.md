@@ -66,7 +66,7 @@ Usage of vaultsmith:
       --log-level string          Log level, valid values are [panic fatal error warning info debug] (default "info")
       --role string               The Vault role to authenticate as (default "root")
       --tar-dir string            Directory within the tarball to use as the document-path. If not specified, and there is only one directory within the archive, that one will be used. If there is more than one diretory, the root directory of the archive will be used.
-      --template-file string      JSON file containing template mappings. If not specified, vaultsmith will look for "template.json" in the base of the document path.
+      --template-file string      JSON file containing template mappings. If not specified, vaultsmith will look for "_vaultsmith.json" in the base of the document path.
       --template-params strings   Template parameters. Applies globally, but values in template-file take precedence. E.G.: service=foo,account=bar
 ```
 
@@ -87,7 +87,7 @@ Paths not present in document-path will not be affected.
 Templating
 ----------
 
-Documentation required, but see example/template.json for an example.
+Documentation required, but see example/_vaultsmith.json for an example.
 
 Examples
 --------

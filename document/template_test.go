@@ -3,8 +3,6 @@ package document
 import (
 	log "github.com/sirupsen/logrus"
 	"os"
-	"path/filepath"
-	"regexp"
 	"strings"
 	"testing"
 )
@@ -18,30 +16,9 @@ func examplePath() string {
 	return strings.Join(path, string(os.PathSeparator))
 }
 
-func TestNewTemplatedDocument(t *testing.T) {
-	params, err := GenerateTemplateParams(filepath.Join(examplePath(), "template.json"), []string{})
-	if err != nil {
-		t.Errorf("Could not generate template params: %s", err)
-	}
-	NewTemplate(
-		filepath.Join(examplePath(), "sys/policy/read_service.json"),
-		params,
-	)
-}
-
 func TestTemplatedDocument_findPlaceholders(t *testing.T) {
-	mapping := []TemplateParams{
-		{Name: "foo", Variables: map[string]string{"foo": "bar"}},
-		{Name: "baz", Variables: map[string]string{"baz": "boz"}},
-	}
-
-	tf := Template{
-		Path:      "",
-		matcher:   regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		Instances: mapping,
-		Content:   "This is a test file; foo is {{ foo }} baz is {{ baz }}.",
-	}
-	rv, err := tf.findPlaceholders()
+	tf := Template{}
+	rv, err := tf.findPlaceholders("This is a test file; foo is {{ foo }} baz is {{ baz }}.")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,44 +37,37 @@ func TestTemplatedDocument_findPlaceholders(t *testing.T) {
 }
 
 func TestTemplatedDocument_Render(t *testing.T) {
-	mapping := []TemplateParams{
-		{Name: "one", Variables: map[string]string{"foo": "A", "bar": "A"}},
-		{Name: "two", Variables: map[string]string{"foo": "B", "bar": "B"}},
+	mapping := TemplateParams{
+		Variables: map[string]string{
+			"foo": "A", "bar": "B",
+		},
 	}
 
 	tf := Template{
-		Path:      "",
-		matcher:   regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		Instances: mapping,
-		Content:   "foo is {{ foo }} bar is {{ bar }}.",
+		Params:  mapping,
+		Content: "foo is {{ foo }} bar is {{ bar }}.",
 	}
 	renderedTemplates, err := tf.Render()
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	var exp string
-	exp = "foo is A bar is A."
+	exp = "foo is A bar is B."
 	if renderedTemplates[0].Content != exp {
 		t.Errorf("Expected %q, got %q", exp, renderedTemplates[0].Content)
-	}
-
-	exp = "foo is B bar is B."
-	if renderedTemplates[1].Content != exp {
-		t.Errorf("Expected %q, got %q", exp, renderedTemplates[1].Content)
 	}
 }
 
 func TestTemplatedDocument_Render_MultipleFoo(t *testing.T) {
-	mapping := []TemplateParams{
-		{Name: "test", Variables: map[string]string{"foo": "A", "bar": "A"}},
+	mapping := TemplateParams{
+		Variables: map[string]string{
+			"foo": "A", "bar": "B",
+		},
 	}
 
 	tf := Template{
-		Path:      "",
-		matcher:   regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		Instances: mapping,
-		Content:   "foo is {{ foo }} bar is {{ bar }}. And foo is {{ foo }}",
+		Params:  mapping,
+		Content: "foo is {{ foo }} bar is {{ bar }}. And foo is {{ foo }}",
 	}
 	renderedTemplates, err := tf.Render()
 	if err != nil {
@@ -105,83 +75,35 @@ func TestTemplatedDocument_Render_MultipleFoo(t *testing.T) {
 	}
 
 	var exp string
-	exp = "foo is A bar is A. And foo is A"
+	exp = "foo is A bar is B. And foo is A"
 	if renderedTemplates[0].Content != exp {
 		t.Errorf("Expected %q, got %q", exp, renderedTemplates[0].Content)
 	}
 }
 
-// When there are identical documents we should not duplicate
-func TestTemplate_Render_DoesNotDuplicate(t *testing.T) {
-	mapping := []TemplateParams{
-		{Name: "one", Variables: map[string]string{"foo": "A"}},
-		{Name: "two", Variables: map[string]string{"foo": "A"}},
+// Test that we render the templated filename
+func TestTemplatedDocument_Render_FileName(t *testing.T) {
+	mapping := TemplateParams{
+		Instances: map[string][]string{
+			"read_service": {"reader1", "reader2"},
+		},
+		Variables: map[string]string{
+			"foo": "A", "bar": "B",
+		},
 	}
-
 	tf := Template{
-		Path:      "",
-		matcher:   regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		Instances: mapping,
-		Content:   "foo is {{ foo }} bar is {{ bar }}.",
+		FileName: "{{ read_service }}",
+		Params:   mapping,
+		Content:  "foo is {{ foo }} bar is {{ bar }}. And foo is {{ foo }}",
 	}
 	renderedTemplates, err := tf.Render()
 	if err != nil {
 		log.Fatal(err)
 	}
-	if len(renderedTemplates) != 1 {
-		log.Printf("%+v", renderedTemplates)
-		t.Errorf("Expected 1 entry in rendered templates, got %v", len(renderedTemplates))
-	}
-}
 
-func TestTemplate_hasMultiple_false(t *testing.T) {
-	mapping := []TemplateParams{
-		{Name: "one", Variables: map[string]string{"foo": "A"}},
-		{Name: "two", Variables: map[string]string{"foo": "A"}},
+	var exp string
+	exp = "reader1"
+	if renderedTemplates[0].Name != exp {
+		t.Errorf("Expected %q, got %q", exp, renderedTemplates[0].Name)
 	}
-
-	tf := Template{
-		Path:      "",
-		matcher:   regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		Instances: mapping,
-		Content:   "foo is {{ foo }} bar is {{ bar }}.",
-	}
-	ph, err := tf.findPlaceholders()
-	if err != nil {
-		t.Errorf("findPlaceholders call failed")
-	}
-
-	rv := tf.hasMultiple(ph)
-	if err != nil {
-		log.Fatalln(err)
-	} else if rv == true {
-		log.Fatalln("Expected hasMultiple call to be false")
-	}
-
-}
-
-func TestTemplate_hasMultiple_true(t *testing.T) {
-	mapping := []TemplateParams{
-		{Name: "one", Variables: map[string]string{"foo": "A"}},
-		{Name: "two", Variables: map[string]string{"foo": "B"}},
-	}
-
-	tf := Template{
-		Path:      "",
-		matcher:   regexp.MustCompile(`{{\s*([^ }]*)?\s*}}`),
-		Instances: mapping,
-		Content:   "foo is {{ foo }} bar is {{ bar }}.",
-	}
-	ph, err := tf.findPlaceholders()
-	if err != nil {
-		t.Errorf("findPlaceholders call failed")
-	}
-
-	rv := tf.hasMultiple(ph)
-	if err != nil {
-		log.Fatalln(err)
-	} else if rv == false {
-		log.Fatalln("Expected hasMultiple call to be true")
-	}
-
 }
