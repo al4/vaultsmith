@@ -169,7 +169,7 @@ func (gh *Generic) areKeysApplied(mapA map[string]interface{}, mapB map[string]i
 		// this is a bit more complicated, thanks to ttls and bundling into arrays :(
 		if strings.Contains(key, "ttl") {
 			// check if the ttls are equivalent
-			if IsTtlEquivalent(mapA[key], mapB[key]) {
+			if isTtlEquivalent(mapA[key], mapB[key]) {
 				continue
 			}
 		}
@@ -301,7 +301,7 @@ func firstElementEqual(slice interface{}, value interface{}) bool {
 }
 
 // Determine whether a string ttl is equal to an int ttl
-func IsTtlEquivalent(ttlA interface{}, ttlB interface{}) bool {
+func isTtlEquivalent(ttlA interface{}, ttlB interface{}) bool {
 	durA, err := convertToDuration(ttlA)
 	if err != nil {
 		log.Warnf("Could not parse %+v: %s", ttlA, err)

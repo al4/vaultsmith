@@ -165,7 +165,7 @@ func TestIsTtlEquivalent(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			rv := IsTtlEquivalent(test.ttlA, test.ttlB)
+			rv := isTtlEquivalent(test.ttlA, test.ttlB)
 			if rv != test.expected {
 				t.Errorf("Test case %s failed. Expected %v, got %v. ttlA: %s, ttlB: %s",
 					test.name, test.expected, rv, test.ttlA, test.ttlB)
@@ -201,9 +201,13 @@ func TestIsSliceEquivalent(t *testing.T) {
 		{name: "equal interfaces with values", valueA: []interface{}{"foo"}, valueB: []interface{}{"foo"}, expected: true},
 		{name: "unequal interfaces with values", valueA: []interface{}{"foo"}, valueB: []interface{}{"bar"}, expected: false},
 		{name: "unequal interfaces with str int", valueA: []interface{}{"foo"}, valueB: []interface{}{0}, expected: false},
+
+		{name: "one long slice", valueA: []int{1, 2}, valueB: "1", expected: false},
+		{name: "one long slice reverse", valueA: "1", valueB: []int{1, 2}, expected: false},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			log.Printf("A: %+v, B: %+v", test.valueA, test.valueB)
 			rv := isSliceEquivalent(test.valueA, test.valueB)
 			if rv != test.expected {
 				t.Errorf("Test case %q failed. A: %+v, B: %+v. Expected %+v",
