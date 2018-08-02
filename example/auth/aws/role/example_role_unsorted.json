@@ -5,8 +5,8 @@
 	"inferred_entity_type": "ec2_instance",
 	"inferred_aws_region": "us-east-1",
 	"policies": [
-		"read_secrets",
-		"write_secrets"
+		"write_secrets",
+		"read_secrets"
 	],
 	"resolve_aws_unique_ids": true
 }
