@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 )
@@ -248,7 +249,29 @@ func (gh *Generic) Order() int {
 func isSliceEquivalent(a interface{}, b interface{}) (equivalent bool) {
 	if reflect.TypeOf(a).Kind() == reflect.TypeOf(b).Kind() {
 		// just compare directly if type is the same
-		return reflect.DeepEqual(a, b)
+		if reflect.DeepEqual(a, b) {
+			return true
+		}
+
+		// try to cast as string
+		xs, aok := a.([]string)
+		ys, bok := b.([]string)
+		if aok && bok {
+			sort.Sort(sort.StringSlice(xs))
+			sort.Sort(sort.StringSlice(ys))
+			return stringSliceEqual(xs, ys)
+		}
+
+		// try to cast as int
+		xi, aok := a.([]int)
+		yi, bok := b.([]int)
+		if aok && bok {
+			sort.Sort(sort.IntSlice(xi))
+			sort.Sort(sort.IntSlice(yi))
+			return intSliceEqual(xi, yi)
+		}
+
+		return false
 	}
 
 	if reflect.TypeOf(a).Kind() == reflect.Slice {
@@ -262,6 +285,30 @@ func isSliceEquivalent(a interface{}, b interface{}) (equivalent bool) {
 	}
 
 	return false
+}
+
+func stringSliceEqual(a []string, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if b[i] != v {
+			return false
+		}
+	}
+	return true
+}
+
+func intSliceEqual(a []int, b []int) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if b[i] != v {
+			return false
+		}
+	}
+	return true
 }
 
 // Return true if value is equal to the first item in slice

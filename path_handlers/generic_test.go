@@ -204,6 +204,9 @@ func TestIsSliceEquivalent(t *testing.T) {
 
 		{name: "one long slice", valueA: []int{1, 2}, valueB: "1", expected: false},
 		{name: "one long slice reverse", valueA: "1", valueB: []int{1, 2}, expected: false},
+
+		{name: "different sort order int", valueA: []string{"1", "2"}, valueB: []string{"2", "1"}, expected: true},
+		{name: "different sort order string", valueA: []string{"1", "2"}, valueB: []string{"2", "1"}, expected: true},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
