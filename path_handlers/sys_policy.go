@@ -195,9 +195,11 @@ func (sh *SysPolicy) isPolicyApplied(policy policy) (bool, error) {
 		return false, nil
 	}
 
+	// TODO Need a proper HCL parser here, testing strings is error prone
 	if reflect.DeepEqual(policy.Policy, remotePolicy) {
 		return true, nil
 	} else {
+		log.Debugf("Policy not equal (local != remote): \n%+v\n!=\n%+v\n", policy.Policy, remotePolicy)
 		return false, nil
 	}
 }
