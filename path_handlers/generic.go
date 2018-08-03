@@ -2,6 +2,7 @@ package path_handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/starlingbank/vaultsmith/document"
@@ -129,6 +130,13 @@ func (gh *Generic) ensureDoc(doc vaultDocument) error {
 	gh.configuredDocMap[doc.path] = doc
 
 	if applied, err := gh.isDocApplied(doc); err != nil {
+		if strings.Contains(err.Error(), "permission denied") {
+			// Continue with a warning on 403. The user might not have permission to read all
+			// documents, and in this case we want to continue updating others, without attempting
+			// to write this particular one.
+			logger.Warnf("Skipping path: %s", err.Error())
+			return nil
+		}
 		return fmt.Errorf("could not determine if %q is applied: %s", doc.path, err)
 	} else if applied {
 		logger.Debugf("Document already applied")
@@ -144,8 +152,11 @@ func (gh *Generic) ensureDoc(doc vaultDocument) error {
 func (gh *Generic) isDocApplied(doc vaultDocument) (bool, error) {
 	secret, err := gh.client.Read(doc.path)
 	if err != nil {
-		// TODO assume not applied, but should handle specific errors differently
-		gh.log.Errorf("error on client.Read, assuming doc %q not present: %s, please raise a "+
+		if strings.Contains(err.Error(), "Code: 403") {
+			gh.log.Debug(err.Error())
+			return false, errors.New("permission denied (code 403)")
+		}
+		gh.log.Errorf("error on client.Read: %s, please raise a "+
 			"bug as this should be handled cleanly!", doc.path, err)
 		return false, nil
 	}
