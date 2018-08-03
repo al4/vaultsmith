@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -179,7 +180,7 @@ func (gh *Generic) areKeysApplied(mapA map[string]interface{}, mapB map[string]i
 		if isSliceEquivalent(mapA[key], mapB[key]) {
 			continue
 		}
-		//gh.log.Debugf("%q not equal; %+v(%T) != %+v(%T)", key, mapA[key], mapA[key], mapB[key], mapB[key])
+		gh.log.Debugf("Field %q not equal; %+v (type %T) != %+v (type %T)", key, mapA[key], mapA[key], mapB[key], mapB[key])
 		return false
 	}
 	return true
@@ -245,7 +246,10 @@ func (gh *Generic) Order() int {
 }
 
 // Determine whether an array is logically equivalent as far as Vault is concerned.
-// e.g. [policy] == policy
+// examples:
+//		[policy] == policy
+// 		[] == ""
+//		["foo", "bar"] == ["bar", "foo"]
 func isSliceEquivalent(a interface{}, b interface{}) (equivalent bool) {
 	if reflect.TypeOf(a).Kind() == reflect.TypeOf(b).Kind() {
 		// just compare directly if type is the same
@@ -253,22 +257,58 @@ func isSliceEquivalent(a interface{}, b interface{}) (equivalent bool) {
 			return true
 		}
 
+		var aString []string
+		var bString []string
+		var err error
+
+		xif, aok := a.([]interface{})
+		if aok {
+			// recast as []string
+			aString, err = interfaceSliceToStringSlice(xif)
+			if err != nil {
+				log.Debugf("Could not cast %+v as string slice", a)
+				return false
+			}
+		}
+
+		yif, bok := b.([]interface{})
+		if bok {
+			// recast as []string
+			bString, err = interfaceSliceToStringSlice(yif)
+			if err != nil {
+				log.Debugf("Could not cast %+v as string slice", a)
+				return false
+			}
+		}
+
 		// try to cast as string
 		xs, aok := a.([]string)
+		if aok {
+			aString = xs
+		}
 		ys, bok := b.([]string)
-		if aok && bok {
-			sort.Sort(sort.StringSlice(xs))
-			sort.Sort(sort.StringSlice(ys))
-			return stringSliceEqual(xs, ys)
+		if bok {
+			bString = ys
 		}
 
 		// try to cast as int
 		xi, aok := a.([]int)
+		if aok {
+			aString, err = intSliceToStringSlice(xi)
+		}
 		yi, bok := b.([]int)
-		if aok && bok {
-			sort.Sort(sort.IntSlice(xi))
-			sort.Sort(sort.IntSlice(yi))
-			return intSliceEqual(xi, yi)
+		if bok {
+			bString, err = intSliceToStringSlice(yi)
+		}
+
+		// if either was successfully cast, test them as sorted arrays
+		if len(aString) != 0 || len(bString) != 0 {
+			sort.Sort(sort.StringSlice(aString))
+			sort.Sort(sort.StringSlice(bString))
+
+			if reflect.DeepEqual(aString, bString) {
+				return true
+			}
 		}
 
 		return false
@@ -287,42 +327,46 @@ func isSliceEquivalent(a interface{}, b interface{}) (equivalent bool) {
 	return false
 }
 
-func stringSliceEqual(a []string, b []string) bool {
-	if len(a) != len(b) {
-		return false
+func intSliceToStringSlice(in []int) (out []string, err error) {
+	for _, v := range in {
+		s := strconv.Itoa(v)
+		out = append(out, s)
 	}
-	for i, v := range a {
-		if b[i] != v {
-			return false
-		}
-	}
-	return true
+	return out, err
 }
 
-func intSliceEqual(a []int, b []int) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i, v := range a {
-		if b[i] != v {
-			return false
+func interfaceSliceToStringSlice(in []interface{}) (out []string, err error) {
+	for _, v := range in {
+		x, ok := v.(string)
+		if !ok {
+			return out, fmt.Errorf("could not case `%+v` as string", v)
 		}
+		out = append(out, x)
 	}
-	return true
+	return out, err
 }
 
 // Return true if value is equal to the first item in slice
 func firstElementEqual(slice interface{}, value interface{}) bool {
 	switch t := slice.(type) {
 	case []string:
+		if len(t) == 0 {
+			return value.(string) == ""
+		}
 		if t[0] == value && len(t) == 1 {
 			return true
 		}
 	case []int:
+		if len(t) == 0 {
+			return value.(string) == ""
+		}
 		if t[0] == value && len(t) == 1 {
 			return true
 		}
 	case []interface{}:
+		if len(t) == 0 {
+			return value.(string) == ""
+		}
 		s := reflect.ValueOf(t)
 		var val interface{}
 		for i := 0; i < s.Len(); i++ {
