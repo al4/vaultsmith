@@ -1,6 +1,6 @@
 {
 	"auth_type": "iam",
-	"bound_iam_instance_profile_arn": "test:arn::{{ read_service }}",
+	"bound_iam_instance_profile_arn": "arn:aws:iam::{{ account_id }}:instance-profile/{{ service_role }}",
 	"max_ttl": "1h",
 	"inferred_entity_type": "ec2_instance",
 	"inferred_aws_region": "us-east-1",

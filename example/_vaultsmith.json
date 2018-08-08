@@ -5,10 +5,13 @@
     ],
     "write_service": [
       "qux", "quux", "quuz"
+    ],
+    "service_role": [
+      "foo", "bar", "baz", "boz",
+      "qux", "quux", "quuz"
     ]
   },
   "variables": {
-    "account_id": "000000000",
     "region": "eu-west-1"
   }
 }
