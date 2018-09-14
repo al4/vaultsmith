@@ -18,7 +18,7 @@ FROM builder as tester
 RUN go test ./...
 
 # Production image stage
-FROM alpine:3.7
+FROM alpine:3.8
 
 RUN apk --update upgrade
 
