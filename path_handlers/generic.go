@@ -51,7 +51,7 @@ func (gh *Generic) walkFile(path string, f os.FileInfo, err error) error {
 		"file":  f,
 	})
 	if f == nil {
-		logger.Debugf("Path not present, skipping", path)
+		logger.Debugf("Path %s not present, skipping", path)
 		return nil
 	}
 	if err != nil {
@@ -156,7 +156,7 @@ func (gh *Generic) isDocApplied(doc vaultDocument) (bool, error) {
 			gh.log.Debug(err.Error())
 			return false, errors.New("permission denied (code 403)")
 		}
-		gh.log.Errorf("error on client.Read: %s, please raise a "+
+		gh.log.Errorf("error on client.Read: %s: %v, please raise a "+
 			"bug as this should be handled cleanly!", doc.path, err)
 		return false, nil
 	}
