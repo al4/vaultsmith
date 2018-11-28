@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.10.3-alpine3.8 as builder
+FROM golang:1.11.2-alpine3.8 as builder
 
 ENV GOPATH /go
 ENV CGO_ENABLED 0
