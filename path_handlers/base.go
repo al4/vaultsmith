@@ -58,7 +58,7 @@ func (h *BaseHandler) readFile(path string) (string, error) {
 	_, err = io.Copy(&buf, file)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("error reading from buffer: %s", err))
+		log.Fatalf("error reading from buffer: %s", err)
 	}
 
 	data := buf.String()
