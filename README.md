@@ -1,5 +1,3 @@
-_This is a work in progress_
-
 vaultsmith
 ==========
 
@@ -39,6 +37,12 @@ and the contents of the document within is posted to Vault, using the built-in V
 It gets more complicated when you consider endpoints such as sys/auth and sys/policy have
 special methods in the Vault client, so these directories are assigned specific handlers which
 call the appropriate methods.
+
+Project Status
+--------------
+Vaultsmith has been used in production at Starling for more than a year. While it's useful to
+us, it supports only a subset of the Vault API, and adopters will likely need to do a bit of work
+to add support for the endpoints they use.
 
 Installation
 --------
