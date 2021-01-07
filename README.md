@@ -1,3 +1,13 @@
+Project Status
+--------------
+Vaultsmith was used in production at Starling for a couple of years, but has since been
+removed in favour of another in-house tool. While it was useful to us in that time, it
+supports only a subset of the Vault API, and adopters would likely need to do a bit of
+work to add support for the endpoints they use.
+
+No further changes are expected from me or Starling; this repository exists purely as a
+historical reference.
+
 vaultsmith
 ==========
 
@@ -37,12 +47,6 @@ and the contents of the document within is posted to Vault, using the built-in V
 It gets more complicated when you consider endpoints such as sys/auth and sys/policy have
 special methods in the Vault client, so these directories are assigned specific handlers which
 call the appropriate methods.
-
-Project Status
---------------
-Vaultsmith has been used in production at Starling for more than a year. While it's useful to
-us, it supports only a subset of the Vault API, and adopters will likely need to do a bit of work
-to add support for the endpoints they use.
 
 Installation
 --------
